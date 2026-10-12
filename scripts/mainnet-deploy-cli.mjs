@@ -109,16 +109,59 @@ async function keypress() {
   });
 }
 
-// Stays open until the user presses Ctrl+X (Enter accepted as fallback).
-// Non-interactive pipes skip the wait so CI never hangs.
+// Stays open until a FRESH Ctrl+X (Enter accepted as fallback).
+// First drains stale keystrokes (e.g. the Enter typed after the menu choice)
+// so they can never auto-satisfy the wait. Pipes exit via end/close.
 async function waitCtrlX() {
   console.log(`  ${dim("press")} ${hl("Ctrl+X")} ${dim("to close")}`);
-  if (!process.stdin.isTTY) return;
-  for (;;) {
-    const k = await keypress();
-    if (k.includes(0x18) || k.includes(0x0d) || k.includes(0x0a)) return;
-    if (k.includes(0x03)) process.exit(0);
-  }
+  const stdin = process.stdin;
+  const tty = !!stdin.isTTY;
+  try {
+    if (tty) stdin.setRawMode(true);
+  } catch {}
+  stdin.resume();
+  await new Promise((resolve) => {
+    let timer;
+    const quiet = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        stdin.removeListener("data", gulp);
+        resolve();
+      }, 200);
+    };
+    const gulp = () => quiet();
+    stdin.on("data", gulp);
+    quiet();
+  });
+  // Pipe already ended (non-interactive run): exit instead of hanging.
+  if (stdin.readableEnded || stdin.destroyed) return;
+  await new Promise((resolve) => {
+    const cleanup = () => {
+      stdin.removeListener("data", onData);
+      stdin.removeListener("end", onEnd);
+      stdin.removeListener("close", onEnd);
+      try {
+        if (tty) stdin.setRawMode(false);
+      } catch {}
+      stdin.pause();
+    };
+    const onData = (d) => {
+      const buf = Buffer.isBuffer(d) ? d : Buffer.from(String(d));
+      if (buf.includes(0x03)) process.exit(0);
+      if (buf.includes(0x18) || buf.includes(0x0d) || buf.includes(0x0a)) {
+        cleanup();
+        resolve();
+      }
+      // any other key: ignored, keep waiting
+    };
+    const onEnd = () => {
+      cleanup();
+      resolve();
+    };
+    stdin.on("data", onData);
+    stdin.on("end", onEnd);
+    stdin.on("close", onEnd);
+  });
 }
 
 async function stage(title, names) {
