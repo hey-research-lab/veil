@@ -110,7 +110,6 @@ all `success`, contract addresses match §1–§2). Total gas: 24,586,693.
 Full hashes in the JSON file; explorer links in `mainnet-deploy-cli.mjs` output.
 
 ## 9. Blockscout Verification Packages (ready to submit)
-
 Explorer + Sourcify APIs are unreachable from the deploy machine, so
 submission is a 5-minute manual step (owner wallet not needed — anyone can
 submit sources for matching):
@@ -128,6 +127,16 @@ Hook note: factory-deployed via create2 — enter the args manually if the
 explorer cannot trace the internal creation tx. 0xbow core contracts
 (entrypoint/pools/verifiers/Poseidon) verify from the upstream audited repo
 (follow-up, same procedure).
+
+**DONE 2026-10-12 via Sourcify (chain 4663) — 10/10 Verified.**
+Robinhood mainnet explorer was unreachable network-wide (TLS killed at every
+path; testnet explorer fine — their zone is broken), so verification went to
+Sourcify instead through verify.sourcify.dev: 3 exact runtime+creation
+matches (Create2Deployer, Mock, Registry) + 7 jobs-table Verified rows
+matching each submitted address (treasury `0xb68C…`, legacy ETH `0x15F7…`,
+VEIL05 `0x493F…`, VEIL2 `0x3783…`, router `0x3dB4…`, hook `0xf95F…`, zkRouter
+`0x0fb4…`). Check any contract: Sourcify lookup → chain 4663 → address.
+Blockscout checkmark follows whenever their explorer recovers (same sources).
 
 ## 8. Proof Cycle 0.001 (2026-10-12, REAL funds) + One Dust Note
 
