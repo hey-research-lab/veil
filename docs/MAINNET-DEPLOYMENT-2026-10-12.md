@@ -109,6 +109,26 @@ all `success`, contract addresses match §1–§2). Total gas: 24,586,693.
 
 Full hashes in the JSON file; explorer links in `mainnet-deploy-cli.mjs` output.
 
+## 9. Blockscout Verification Packages (ready to submit)
+
+Explorer + Sourcify APIs are unreachable from the deploy machine, so
+submission is a 5-minute manual step (owner wallet not needed — anyone can
+submit sources for matching):
+`verification/mainnet-4663/<Name>.verify.json` — one file per Veil contract
+(10 files), each containing: exact `standardJsonInput` (solc
+`0.8.37+commit.f401782d`, optimizer 200, viaIR, cancun), `contractFile:Name`,
+`constructorArgumentsEncoded`, and a local byte-identity proof
+(`localByteMatch: true` = artifact matches onchain code modulo
+constructor-set immutables, whose values were read back live in §1–§2).
+
+Per contract: explorer address page → Verify → Standard JSON Input → paste
+`standardJsonInput` → compiler `v0.8.37+commit.f401782d` → optimization 200,
+viaIR on, EVM cancun → constructor args = `constructorArgumentsEncoded`.
+Hook note: factory-deployed via create2 — enter the args manually if the
+explorer cannot trace the internal creation tx. 0xbow core contracts
+(entrypoint/pools/verifiers/Poseidon) verify from the upstream audited repo
+(follow-up, same procedure).
+
 ## 8. Proof Cycle 0.001 (2026-10-12, REAL funds) + One Dust Note
 
 **Cycle PASSED.** Deposit
