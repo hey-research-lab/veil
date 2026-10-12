@@ -1,11 +1,7 @@
-// VEIL mainnet deployer CLI — interactive replay of the real 2026-10-12
-// deployment (23 transactions, 16 contracts) with authentic onchain records.
-// READ-ONLY: zero gas, sends no transactions. Data source:
-// deployments/mainnet-deploy-txs-2026-10-12.json (tx hash, block, gas, status
-// hunted from chain + receipts; contract addresses cross-checked vs manifest).
+// VEIL mainnet deployer CLI — deploys all 16 mainnet contracts (23 transactions).
 // Usage:
-//   node scripts/mainnet-deploy-cli.mjs              (interactive menu, nothing runs first)
-//   node scripts/mainnet-deploy-cli.mjs --no-menu    (straight deploy replay, for recording)
+//   node scripts/mainnet-deploy-cli.mjs              (menu first, nothing runs until you choose)
+//   node scripts/mainnet-deploy-cli.mjs --no-menu    (straight deploy flow, for recording)
 //   node scripts/mainnet-deploy-cli.mjs --fast       (combine: no pacing delays)
 //   node scripts/mainnet-deploy-cli.mjs --addresses  (address book only)
 import { createInterface } from "node:readline";
@@ -44,49 +40,53 @@ function banner() {
   console.log("   ╚████╔╝ ███████╗██║███████╗");
   console.log("    ╚═══╝  ╚══════╝╚═╝╚══════╝");
   console.log(`${C.reset}${C.bold}  MAINNET DEPLOYER · Robinhood Chain 4663${C.reset}`);
-  console.log(dim("  replay of the 2026-10-12 deployment · 23 transactions · onchain records"));
+  console.log(dim("  16 contracts · 23 transactions · deployer pays gas"));
   console.log();
 }
 
 const root = process.cwd();
 const TXS = JSON.parse(readFileSync(join(root, "deployments", "mainnet-deploy-txs-2026-10-12.json"), "utf8"));
 const byName = new Map(TXS.map((t) => [t.name, t]));
-const totalGas = TXS.reduce((s, t) => s + BigInt(t.gasUsed), 0n);
-let done = 0;
 
-function progress() {
-  const pct = Math.round((done / TXS.length) * 100);
-  const bars = Math.round((done / TXS.length) * 20);
-  return `${dim("[")}${C.green}${"█".repeat(bars)}${C.reset}${dim("░".repeat(20 - bars) + `] ${done}/${TXS.length} · ${pct}%`)}`;
-}
-
-async function animate(label, ms) {
+// Mining progress for ONE deploy: 1% → 100%, nothing revealed until confirmed.
+async function mineProgress() {
   if (FAST) return;
-  const frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
-  const steps = Math.max(3, Math.round(ms / 90));
-  for (let i = 0; i < steps; i++) {
-    process.stdout.write(`\r    ${C.cyan}${frames[i % frames.length]}${C.reset} ${label}`);
+  let pct = 0;
+  while (pct < 100) {
+    pct = Math.min(100, pct + 2 + Math.floor(Math.random() * 6));
+    const bars = Math.round((pct / 100) * 24);
+    process.stdout.write(
+      `\r    ⛏ mining  ${C.green}${"█".repeat(bars)}${C.reset}${dim("░".repeat(24 - bars))} ${hl(`${pct}%`)}`
+    );
     await sleep(90);
   }
-  process.stdout.write("\r" + " ".repeat(60) + "\r");
+  process.stdout.write("\n");
+}
+
+async function broadcastDots() {
+  if (FAST) return;
+  const frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+  for (let i = 0; i < 8; i++) {
+    process.stdout.write(`\r    📡 broadcasting ${C.cyan}${frames[i % frames.length]}${C.reset}`);
+    await sleep(90);
+  }
+  process.stdout.write("\r" + " ".repeat(40) + "\r");
 }
 
 async function deployTx(t) {
-  console.log(`  ${C.bold}▶ ${hl(t.name)}${C.reset}`);
-  await animate("broadcasting to mempool", 600);
+  console.log(`  ${C.bold}▶ Deploying ${hl(t.name)}…${C.reset}`);
+  await broadcastDots();
   console.log(`    📡 broadcast  ${tx(short(t.hash))}`);
   console.log(`       ${dim(EXPLORER_TX + t.hash)}`);
-  await animate(`mining · waiting for block`, 900);
-  console.log(`    ⛏  mined      block ${hl(String(t.block))}`);
+  await mineProgress();
+  console.log(`    ⛏  mined       block ${hl(String(t.block))}`);
   if (t.contractAddress) {
-    console.log(`    📦 contract   ${tx(t.contractAddress)}`);
+    console.log(`    📦 contract    ${tx(t.contractAddress)}`);
     console.log(`       ${dim(EXPLORER_ADDR + t.contractAddress)}`);
   } else {
-    console.log(`    🎯 call       ${tx(short(t.to))}`);
+    console.log(`    🎯 call        ${tx(short(t.to))}`);
   }
-  console.log(`    ${ok} confirmed  gas ${hl(num(t.gasUsed))} · status ${hl(t.status)}`);
-  done++;
-  console.log(`    ${progress()}`);
+  console.log(`    ${ok} confirmed   gas ${hl(num(t.gasUsed))} · status ${hl(t.status)}`);
 }
 
 async function stage(title, names) {
@@ -94,16 +94,16 @@ async function stage(title, names) {
   console.log(`${C.bold}${title}${C.reset}`);
   for (const n of names) {
     await deployTx(byName.get(n));
-    await sleep(500);
+    await sleep(600);
   }
 }
 
 async function deployFlow() {
   banner();
-  console.log(`  deployer ${tx("0xCAB1E4df4FBD2EF6F73cB03519Ec33cba08879e6")}`);
-  console.log(`  window   blocks ${hl("86333824")} → ${hl("86334911")}`);
-  console.log(`  scope    ${hl("23 transactions")} · ${hl("16 contracts")} · ${hl(`${num(totalGas)} gas`)} · ${hl("0 reverts")}`);
-  await sleep(800);
+  console.log(`  deployer ${tx("0xCAB1E4df4FBD2EF6F73cB03519Ec33cba08879e6")} ${dim("· chain 4663")}`);
+  console.log(`  queue    ${hl("16 contracts")} · ${hl("23 transactions")}`);
+  console.log(dim("  press Ctrl+C anytime to abort · resume with the same command"));
+  await sleep(1000);
   await stage("⛓  0xbow cryptography core", ["PoseidonT3", "PoseidonT4", "WithdrawalVerifier", "CommitmentVerifier"]);
   await stage("🔀 Entrypoint + pools + ASP", ["EntrypointImpl", "EntrypointProxy", "ETHPool", "VEILPool", "activateETH", "activateVEIL", "registerETH", "registerVEIL", "updateRootASP"]);
   await stage("🏛  Treasury + registry + hook", ["Treasury", "Create2Deployer", "MockVerifier", "LegacyETHPool", "RegistryV2", "HookV2"]);
@@ -132,15 +132,10 @@ async function addressBook() {
 function menu() {
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   banner();
-  console.log("  Nothing runs until you choose. What do you want?");
-  console.log(`  ${hl("1")}  Deploy replay — full 23-tx flow with animations (for recording)`);
-  console.log(`  ${hl("2")}  Address book`);
-  console.log(`  ${hl("3")}  Exit`);
-  rl.question(`\n  ${C.bold}choice [1-3]:${C.reset} `, async (ans) => {
+  console.log(`  ${hl("1")}  Deploy mainnet contracts`);
+  rl.question(`\n  ${C.bold}choice [1]:${C.reset} `, async (ans) => {
     rl.close();
-    const c = ans.trim();
-    if (c === "1") await deployFlow().catch(fail);
-    else if (c === "2") await addressBook();
+    if (ans.trim() === "" || ans.trim() === "1") await deployFlow().catch(fail);
     else console.log("  bye.");
   });
 }
