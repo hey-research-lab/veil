@@ -69,7 +69,20 @@ Old treasury `0x8cd3…` held 9,000 temp VEIL. Rescued to the deployer in tx
    Documented in `MAINNET_RUNBOOK.md`; do not redeploy, do not mistake for
    testnet pointers.
 
-## 6. Still To Do (post-deploy order)1. Proof cycle 0.001 → prove → withdraw on 4663.
+## 6. Still To Do (post-deploy order)
+
+- [x] Proof cycle → invariant → Blockscout/Sourcify (Sourcify 10/10 done)
+- [x] UI ZK wiring (commit `3b24ff9`), UI mainnet-only (commit `4842194`)
+- [x] Hooked pool + gate + fee proof (§10), Vercel env (21 vars, below)
+- [ ] Single/multi/direct ZK live: single attempt blocked by thin plain-pool
+  depth (quote < 0.001 VEIL note) — deepen pool first, note file persisted
+  (`deployments/mainnet-single-note.json`, gitignored), nothing stranded
+- [ ] UI click-through on mainnet (wallet + browser)
+- [ ] Blockscout checkmarks when their explorer recovers
+- [ ] Pons token + `setVeilToken`/70% + domain/X
+
+Vercel production env: all 21 `NEXT_PUBLIC_*` set (Production/Preview/Dev)
+via `scripts/setup-vercel-env.mjs` (token var needed explicit `--type config`).1. Proof cycle 0.001 → prove → withdraw on 4663.
 2. `verify-pool-invariant --mainnet` re-run + Blockscout source verification.
 3. UI ZK execution wiring for mainnet + v4 liquidity check/seed.
 4. ASP auto-sync: `POST /api/asp/sync {"chainId":4663}` (route ready, policy v2).
