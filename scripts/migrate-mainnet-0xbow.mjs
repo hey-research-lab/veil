@@ -60,9 +60,9 @@ const libs = {};
 async function deployLibrary(name) {
   const a = art(name);
   const send = async () => {
-    const h = await wallet.writeContract({ abi: a.abi, bytecode: `0x${a.bytecode}`, args: [] });
+    const h = await wallet.deployContract({ abi: a.abi, bytecode: link(a.bytecode, a.linkReferences), args: [] });
     const rc = await publicClient.waitForTransactionReceipt({ hash: h });
-    if (rc.status !== "success") throw new Error(`${name} deploy reverted`);
+    if (rc.status !== "success" || !rc.contractAddress) throw new Error(`${name} deploy reverted`);
     return rc.contractAddress;
   };
   if (!EXECUTE) {

@@ -30,3 +30,15 @@ describe("mainnet ZK router parity", () => {
     expect(runbook).toContain("NEXT_PUBLIC_0XBOW_ZK_ROUTER");
   });
 });
+
+describe("migration deploy mechanics", () => {
+  it("deploys libraries via deployContract (writeContract cannot deploy)", () => {
+    const src = readFileSync("scripts/migrate-mainnet-0xbow.mjs", "utf8");
+    const start = src.indexOf("async function deployLibrary");
+    const end = src.indexOf("function link(");
+    expect(start).toBeGreaterThan(-1);
+    const body = src.slice(start, end);
+    expect(body).toContain("deployContract");
+    expect(body).not.toContain("writeContract");
+  });
+});
