@@ -139,7 +139,6 @@ VEIL05 `0x493F…`, VEIL2 `0x3783…`, router `0x3dB4…`, hook `0xf95F…`, zkR
 Blockscout checkmark follows whenever their explorer recovers (same sources).
 
 ## 8. Proof Cycle 0.001 (2026-10-12, REAL funds) + One Dust Note
-
 **Cycle PASSED.** Deposit
 [`0x3eee36f9…a8784a1e4a`](https://explorer.mainnet.chain.robinhood.com/tx/0x3eee36f9bd1ae425cea82de105ac67e0b5b6ed72b899f805b6949aa8784a1e4a)
 (block 86372444) → ASP publish
@@ -160,3 +159,20 @@ forever. No one can take it (not even the operator); invariant still holds
 (lifetime 0.002 − withdrawn 0.001 = balance 0.001). Lesson applied: secrets
 persist pre-deposit, scans retry + assert the label, same-root publishes
 skipped. Post-cycle invariant re-run: **5/5 PASS**.
+
+## 10. Hooked Pool + Gating + Fee Proof (2026-10-12, REAL funds)
+
+- Hooked ETH/temp-VEIL pool (fee 3000, hook v2) initialized at 2000 VEIL/ETH: `0x82766b3819d411514c2dee6e9411f1573b06c9f66b403949fbeb2dbf9b021653`
+- Pool id `0x39d8f6b31a3595e2190985505d2b7585afbe2d4a6f96b23b0cc32542405c192a`, seeded L=37500000000000000 via `0xd1dd...` (recoverable): `0x2fead33da74ad07ce77c0a9fa50725f08fdc5eb1d42cd48c0f5c70b9c8b5ea43`
+- Swap helper `0x08b11d4d5fc78789e305e8437c45c52488a19a58` (`0x6dce7d20cd022adf8f1cc1bcd780973f61f81149c683e93c9156f846c3cb17d1`)
+- Gating window 30d: `0x98e9af04e2641195cf48ea7c77a3b77460d9ccb8df6f8b310dd250f989abbd1c`
+- Attested dust swap 0.0002 ETH: `0x4228714bec66077bb02dd463f75061171c89fa6cb8249a2122898c578153a26f` — treasury +320857510136 wei (flywheel ALIVE). Unattested path reverts (negative proof).
+- Script: `scripts/mainnet-gated-pool.mjs`. Contract: `contracts/MainnetSwapHelper.sol`.
+
+## 10. Hooked Pool + Gating + Fee Proof (2026-10-12, REAL funds)
+
+- Pool id 0x39d8f6b31a3595e2190985505d2b7585afbe2d4a6f96b23b0cc32542405c192a, seeded L=37500000000000000 via 0xd1dd... (recoverable): 0x2fead33da74ad07ce77c0a9fa50725f08fdc5eb1d42cd48c0f5c70b9c8b5ea43
+- Swap helper 0x08b11d4d5fc78789e305e8437c45c52488a19a58 (0x6dce7d20cd022adf8f1cc1bcd780973f61f81149c683e93c9156f846c3cb17d1)
+- Gating window 30d: 0x98e9af04e2641195cf48ea7c77a3b77460d9ccb8df6f8b310dd250f989abbd1c
+- Attested dust swap 0.0002 ETH: 0x4228714bec66077bb02dd463f75061171c89fa6cb8249a2122898c578153a26f � treasury +320857510136 wei (flywheel ALIVE). Unattested path reverts (negative proof).
+- Script: scripts/mainnet-gated-pool.mjs. Contract: contracts/MainnetSwapHelper.sol.
