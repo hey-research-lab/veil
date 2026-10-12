@@ -67,6 +67,14 @@ into `.env.local` + `.env.mainnet.local`. Checkpoints resume in
 `deployments/migrate-mainnet-pending.json` — a mid-run abort never needs a
 from-scratch rerun (this was the 95%-not-100% hole: fixed by resume).
 
+> **Known cosmetic quirk (2026-10-12 migration):** several fresh mainnet
+> addresses are byte-identical to testnet ones (e.g. treasury `0xb68c…` =
+> testnet entrypoint address). This is normal CREATE behavior — same deployer,
+> same nonce trajectory — and harmless: same address on another chain holds
+> different code, verified post-deploy (`owner()`/`denomination()`/invariant
+> all read back correct on 4663). Do not "fix" by redeploying; do not mistake
+> them for testnet pointers. Chain ID + manifest are the source of truth.
+
 ### After migration (operational, owner wallet):
 1. **Proof cycle** — deposit 0.001 → prove → withdraw (testnet pattern, 3x proven).
 2. **UI switch** — `getBowSuite(4663)` lights up automatically from env; wire the mainnet router mode (dest pools/denoms) from the fresh manifest — addresses are only known post-deploy, so this step cannot be pre-coded.
