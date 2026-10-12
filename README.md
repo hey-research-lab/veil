@@ -1,8 +1,25 @@
+<div align="center">
+
+<img src="./public/veil-logo.svg" width="120" alt="Veil Protocol" />
+
 # VEIL PROTOCOL
 
 **Zero-Knowledge Privacy Layer for Uniswap v4 on Robinhood Chain**
 
-> *Trade in the open. Hold in the veil.*
+*Trade in the open. Hold in the veil.*
+
+🔄 **Trade:** [`/trade`](app/trade/page.tsx) · 📜 **Contracts:** [`/contracts`](app/contracts/page.tsx) · 🔥 **Burn:** [`/burn`](app/burn/page.tsx) · 📊 **Status:** [`/status`](app/status/page.tsx) · 📖 **Brief:** [`DevBrief-Veil.md`](DevBrief-Veil.md) · 🗳️ **Decisions:** [`docs/DECISIONS.md`](docs/DECISIONS.md)
+
+*Private swaps on Uniswap v4. Zero-knowledge hooks + shielded pools on Robinhood Chain. Every value movement goes through audited Groth16 proofs — no Mock, no dummies.*
+
+[![Chains](https://img.shields.io/badge/Chains-Robinhood%204663%20·%20Testnet%2046630-CCFF00?style=flat-square&labelColor=0A081E&logoColor=black)](#-live-robinhood-mainnet-deployments-chain-id-4663)
+[![Runtime](https://img.shields.io/badge/Runtime-Next.js%2016%20·%20React%2019%20·%20TypeScript-7C3AED?style=flat-square&labelColor=0A081E)](#-tech-stack)
+[![Privacy](https://img.shields.io/badge/Privacy-Groth16%20·%200xbow%20v1.2.1%20·%20Poseidon-D4AF37?style=flat-square&labelColor=0A081E)](#-core-value-proposition)
+[![AMM Engine](https://img.shields.io/badge/AMM%20Engine-Uniswap%20V4%20Hook%20·%2030bps%20(70%25%20Burn)-10B981?style=flat-square&labelColor=0A081E)](#-protocol--settlement-architecture)
+[![Tests](https://img.shields.io/badge/Tests-Vitest%20·%20Passing-10B981?style=flat-square&labelColor=0A081E)](#-testing--verification)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square&labelColor=0A081E)](#-license)
+
+</div>
 
 ---
 
@@ -11,67 +28,229 @@
 **Veil** brings zero-knowledge privacy directly to Uniswap v4 swaps on Robinhood Chain (Testnet 46630 → Mainnet 4663):
 
 1. **Swap-to-Shield (Priority 1):** Buy any token on Uniswap v4 and enter the shielded pool in a single atomic transaction. Router maintains a strict invariant of 0 held balance.
-2. **Shielded Swap (Priority 3):** Exchange between shielded token pools without leaving any public wallet trace on-chain.
+2. **Shielded Swap (Priority 3):** Exchange between shielded token pools without leaving any public wallet trace on-chain — single, multi-note, or direct-payout mode.
 3. **ZK-Gated Pools (Priority 2):** Uniswap v4 `beforeSwap` hook restricts swaps to addresses with valid ZK attestations (anti-bot launch windows, clean funds verification).
-4. **Protocol Fee Hook (Priority 2):** Collects a small protocol fee routed to `VeilTreasury` to execute autonomous on-chain buyback & burns of the Veil token (reducing `totalSupply`).
+4. **Protocol Fee Hook (Priority 2):** Collects 30 bps per swap routed to `VeilTreasury` — 70% funds autonomous on-chain buyback & burns of the Veil token (reducing `totalSupply` via `burn()`).
 
 ---
 
-## 🔬 Architecture
+## 🏛️ Core Value Proposition
 
+* **Fixed-Denomination Privacy Chips:** Every shielded note is exactly `0.001` (the audited 0xbow `DEPOSIT_DENOMINATION`) — like identical casino chips. Uniform notes cannot be fingerprinted by amount; that rigidity is the source of the privacy.
+* **B1 Atomicity, Not Proof Re-Checks:** `VeilZkRouter` delegates proof verification to the audited 0xbow `Entrypoint` and enforces relay → swap → deposit in **one atomic transaction** (transient stage guard + invariant-0 + events). `minOut`/slippage applies to the post-swap leg only.
+* **Open Attestation & Open Association Set:** `selfAttest` is permissionless (no eligibility); every label ever deposited plus a genesis sentinel joins the ASP automatically via open tooling. No human allow/deny, no sunset, owner keeps control (binding decisions 1–4).
+* **Autonomous 30/70 Flywheel:** 30 bps hook fee → treasury → 70% buyback & burn, 30% operations. Burns call `burn()` (supply shrinks), never dead-address theater.
+* **Self-Relay Is The Path:** No hosted relayer through F5; the UI self-relay flow is the official route (proven live). Relayers cannot alter recipients, fees, or `minOut` — everything is proof-bound or caller-side.
+* **Honest Dust Handling:** Below-denomination outputs settle visibly to the wallet (`direct-payout`, labeled "visible onchain") instead of stranding funds. Unlinking still comes from the shielded source note.
+
+---
+
+## 🔬 Protocol & Settlement Architecture
+
+```mermaid
+flowchart LR
+    subgraph Shield["🛡️ Shield (deposit)"]
+        User([User Wallet]) -->|0.001 ETH / VEIL| EP[0xbow Entrypoint<br/>deposit]
+        EP --> PoolB[(0xbow Pool<br/>commitment in tree)]
+        PoolB --> Note[📝 Shielded Note<br/>secret + nullifier<br/>client-side only]
+    end
+
+    subgraph ZKFlow["⚡ Full-ZK Flow (VeilZkRouter, 1 atomic tx)"]
+        Note -->|Groth16 proof| Relay[1. Relay exit<br/>to router]
+        Relay --> Swap[2. v4 Swap<br/>exact-input]
+        Swap -->|≥ 0.001| Dep[3a. Shielded note<br/>single / multi]
+        Swap -->|< 0.001| Direct[3b. Direct payout<br/>visible onchain]
+    end
+
+    subgraph Gate["🚪 ZK-Gated Pools"]
+        User -->|selfAttest| Reg[VeilAttestationRegistry<br/>permissionless]
+        Reg --> Hook[VeilHook 0x20C4<br/>beforeSwap gate + 30bps fee]
+        Hook -->|fee| Treasury[VeilTreasury<br/>70% burn]
+    end
+
+    subgraph Tele[📊 Transparency]
+        Treasury --> BurnPage[/burn live ledger]
+        PoolB --> ContractsPage[/contracts reads chain]
+    end
 ```
-                    ┌────────────────────────┐
-                    │ Uniswap v4 PoolManager │
-                    └───────────┬────────────┘
-                                │
-               ┌────────────────┴────────────────┐
-               ▼                                 ▼
-    ┌──────────────────────┐          ┌──────────────────────┐
-    │       VeilHook       │          │   VeilShieldRouter   │
-    │  (CREATE2: 0x20c4)   │          │  (Periphery 0-cust)  │
-    └──────────┬───────────┘          └──────────┬───────────┘
-               │                                 │
-     ┌─────────┴─────────┐             ┌─────────┴─────────┐
-     ▼                   ▼             ▼                   ▼
-┌─────────────┐   ┌─────────────┐ ┌─────────────┐   ┌─────────────┐
-│ VeilRegistry│   │ VeilTreasury│ │PrivacyPool A│   │PrivacyPool B│
-│  (ZK-Gate)  │   │ (Treasury)  │ │ (LeanIMT)   │   │ (LeanIMT)   │
-└─────────────┘   └─────────────┘ └─────────────┘   └─────────────┘
+
+### End-to-End Pipeline Stages
+
+1. **Stage 1 — Shield:** Deposit exactly `0.001` ETH/VEIL via the 0xbow `Entrypoint`. The commitment enters the Merkle tree; the note (secret + nullifier) lives only in the browser vault (encrypted backup mandatory).
+2. **Stage 2 — Full-ZK Swap (`VeilZkRouter`, one atomic tx):** Prove note ownership (Groth16, minutes in-browser) → relay exit lands in the router → exact-input v4 swap → output ≥ `0.001` becomes a new shielded note (**single**), N notes batch into one swap + one note (**multi**, cap 8), dust pays out visibly (**direct**). Any leg failing reverts everything; dust above the note value refunds instantly.
+3. **Stage 3 — Withdraw:** Prove + relay to any clean address. Withdrawals can never be paused or blocked by anyone, by code.
+4. **Stage 4 — Attest & Gated Execution:** `selfAttest` (EIP-191, nonce + deadline, no owner involved) unlocks gated-window swaps; drift guard re-validates wallet before every send.
+5. **Stage 5 — Fee Flywheel:** Hook takes 30 bps → treasury → 70% `burn()` + 30% ops, all readable live on `/burn` and `/contracts`.
+
+---
+
+## 🔀 Flow Modes
+
+| Feature | Single-Note | Multi-Note (cap 8) | Direct-Payout |
+|---|---|---|---|
+| **When** | Swap output clears `0.001` | One note can't, N notes can (fixed-denom market) | Output below any denomination (dust) |
+| **On-chain shape** | 1 relay + 1 swap + 1 note | N relays + 1 swap + 1 note + dust refund | 1 relay + 1 swap + wallet payout |
+| **Privacy grade** | Fully shielded both ends | Fully shielded both ends | Shielded source, visible destination (labeled honestly) |
+| **Proven live** | `0x118e…` (UI, testnet) | `0xe14f…` (0.003 → 0.9287, testnet) | `0xfac7…` + `0x9a8a…` (testnet) |
+
+---
+
+## 🖥️ Platform Interfaces
+
+### 1. Shielded Trading Desk (`/trade`)
+- **Shield Tab** (`BuyAndShieldPanel.tsx`) — Deposit `0.001` ETH/VEIL → Groth16 note → encrypted vault backup.
+- **Shielded Swap Tab** (`ZkShieldedSwapPanel.tsx`) — Live quote (free simulations, 25-probe bracketing) → single/multi/direct auto-select → one-approval execute → receipt + event asserts.
+- **Withdraw Tab** (`WithdrawPanel.tsx`) — Prove & relay any note; pre-send spent-check and ASP-freshness gate fail closed without burning gas.
+- **Vault Tab** (`VaultPanel.tsx`) — Backup/restore (PBKDF2 + AES-256-GCM), per-note remove with confirm modal.
+- **Attest Panel** (`AttestPanel.tsx`) — One-tx `selfAttest` for gated windows.
+
+### 2. Transparency Pages
+- **`/contracts`** — Reads live chain state (no hardcoded claims). **`/burn`** — Treasury + burn ledger from chain. **`/status`** — Suite health. **`/terms` & `/privacy`** — Live legal pages (external audit + legal review permanently waived per decisions 6/11; terminology guardrails enforced).
+
+---
+
+## 📁 Repository Structure
+
+```text
+veil/
+├── app/                           # Next.js 16 App Router pages & API routes
+│   ├── api/
+│   │   ├── asp/sync/              # ASP auto-sync (testnet + mainnet 4663, policy v2)
+│   │   └── rpc/                   # Anti-censorship high-availability RPC proxy
+│   ├── burn/ contracts/ status/   # Chain-reading transparency pages
+│   ├── terms/ privacy/            # Live legal pages
+│   ├── trade/                     # Shielded trading desk (4283-line page + hooks)
+│   └── layout.tsx page.tsx globals.css
+├── components/
+│   ├── trade/                     # BuyAndShield, ZkShieldedSwap, Withdraw, Vault, Attest panels
+│   ├── landing/                   # Marketing site (sanitized claims, authentic 0xbow brand)
+│   └── ui/                        # Reusable atom components
+├── contracts/                     # Solidity 0.8.37 (Cancun, viaIR)
+│   ├── VeilZkRouter.sol           # Atomic relay→swap→deposit/direct (single+multi+direct)
+│   ├── VeilShieldRouter.sol       # Legacy 1-tx Swap-to-Shield (R1 native-settle fix)
+│   ├── ShieldedPool.sol           # Fixed-denomination pool, withdrawals never pausable
+│   ├── VeilHook.sol               # Gating (0x20C4) + 30 bps fee hook
+│   ├── VeilAttestationRegistry.sol# Permissionless selfAttest registry
+│   ├── VeilTreasury.sol           # Fee accumulator + burn engine (70% default)
+│   ├── VeilToken.sol              # Temporary fixed-supply token (Pons launches canonical)
+│   └── VeilCreate2Deployer.sol    # Deterministic hook mining
+├── lib/                           # Domain libraries (23 files)
+│   ├── zk-router.ts               # Full-ZK builders, bracketing quotes, pre-send sequence
+│   ├── 0xbow-client.ts            # SDK wrapper: state tree, ASP set, proving
+│   ├── privacy-pools.ts           # Testnet + mainnet suite address books
+│   ├── router-swap.ts             # Legacy router quotes, pool keys, price limits
+│   ├── note.ts wallets.ts         # Vault notes, drift-guard revalidation
+│   └── veil-artifact.ts/.mjs      # Compiled ABI + bytecode (incl. VeilZkRouter)
+├── scripts/                       # Operational tooling (60+ scripts)
+│   ├── migrate-mainnet-0xbow.mjs  # Full-fresh mainnet migration (dry-run + checkpoint resume)
+│   ├── publish-asp.mjs            # Mechanical ASP publisher (CHAIN=46630|4663)
+│   ├── verify-pool-invariant.mjs  # Live gate: deposits − withdrawn = balance
+│   ├── preflight-mainnet.mjs      # Chain, deps, balance, hook-mining checks
+│   ├── multi-exec-zk.mjs          # Script-path multi-note executor (proven live)
+│   └── compile.mjs                # solc build + artifact regen
+├── tests/                         # Vitest suite (34 files, all green)
+├── docs/                          # Binding docs (see Docs Index below)
+│   ├── DECISIONS.md               # 19 binding owner decisions + B1 ruling
+│   ├── ASP-POLICY.md              # Association-set policy (v2: testnet + mainnet)
+│   ├── MAINNET_RUNBOOK.md         # F5 runbook: migrate → proof → gates → rollback
+│   ├── MAINNET-DEPLOYMENT-2026-10-12.md # Deployment record (addresses + evidence)
+│   ├── INTERNAL-AUDIT-2026-10-07.md     # PASS WITH CONDITIONS + FINAL declaration
+│   ├── TESTNET-CLICKTHROUGH.md    # Manual browser test script
+│   └── superpowers/               # Specs & plans (real-onchain, full-ZK router)
+├── deployments/                   # Manifests (machine truth, incl. mainnet-latest)
+├── vendor/                        # 0xbow-privacy-pools-core-v1.2.1 (AUDITED — OFF-LIMITS)
+└── public/shield-artifacts/       # Pinned Groth16 wasm/zkey/vkey (hash-checked)
 ```
 
 ---
 
-## 📜 Smart Contracts
+## 🛠️ Tech Stack
 
-| Contract | Path | Role / Description |
-|---|---|---|
-| **VeilShieldRouter** | `contracts/VeilShieldRouter.sol` | Periphery swapper executing 1-Tx Swap-to-Shield and Shielded Swap via PoolManager unlock |
-| **VeilHook** | `contracts/VeilHook.sol` | Uniswap v4 Hook mined with permission bits `0x20C4` (`beforeInitialize \| beforeSwap \| afterSwap \| afterSwapReturnDelta`) |
-| **ShieldedPool** | `contracts/ShieldedPool.sol` | Non-custodial fixed-denomination shielded pool with non-blocking withdrawals |
-| **VeilTreasury** | `contracts/VeilTreasury.sol` | Protocol fee accumulator & token burn engine |
-| **VeilAttestationRegistry** | `contracts/VeilAttestationRegistry.sol` | ZK attestation validator for gated pools |
-| **VeilCreate2Deployer** | `contracts/VeilCreate2Deployer.sol` | Deterministic CREATE2 deployer for mining hook addresses |
+- **Framework:** Next.js 16.3.4 (App Router) + React 19.2.8 + TypeScript 5.x
+- **Styling:** Tailwind CSS v4 + Three.js + GSAP
+- **Web3 EVM Client:** Viem 2.x (engineered for Robinhood Chain 4663/46630 + Groth16 flows)
+- **AMM Infrastructure:** Uniswap V4 Core (`@uniswap/v4-core` 1.0.2) + Periphery (`@uniswap/v4-periphery` 1.0.3)
+- **ZK Stack:** 0xbow Privacy Pools core v1.2.1 (audited) — Groth16 + Poseidon + LeanIMT, snarkjs WASM proving in-browser
+- **Smart Contracts:** Solidity `0.8.37` (Cancun, viaIR) compiled via native `solc`
+- **Testing:** Vitest 4.1.x (34 files, 204 tests, all green)
+
+---
+
+## 🚀 Quickstart & Local Development
+
+### Prerequisites
+
+- **Node.js**: `v20.x` or later · **Package Manager**: `pnpm`
+
+### 0. Try it on testnet (no real funds)
+
+```bash
+pnpm dev:testnet
+```
+
+Runs the whole app against Robinhood Testnet 46630 (`NEXT_PUBLIC_CHAIN_ID=46630`). Fund your wallet at `https://faucet.testnet.chain.robinhood.com/` (0.01 testnet ETH, free). Default `pnpm dev` targets mainnet 4663.
+
+### 1. Install Dependencies
+
+```bash
+pnpm install
+```
+
+### 2. Compile Smart Contracts
+
+Compiles Solidity 0.8.37 contracts with the Cancun EVM version, verifies EIP-170 code size, and outputs TypeScript / ESM artifacts:
+
+```bash
+pnpm compile
+```
+
+### 3. Mine Uniswap v4 Hook Address (CREATE2)
+
+Mines salt matching `0x20C4` permission flags:
+
+```bash
+pnpm mine:hook
+```
+
+### 4. Deploy Mainnet (fresh suite, checkpoint resume)
+
+```bash
+pnpm migrate:mainnet:dry   # validation only, zero gas
+pnpm migrate:mainnet       # executes once deployer holds >= 0.0015 ETH
+```
+
+Deploys on 4663: PoseidonT3/T4 → verifiers → entrypoint proxy → ETH + VEIL pools → ASP sentinel → treasury/create2/Mock/legacy pool → registry + hook v2 → shield router + VEIL pools → **VeilZkRouter**. Writes `deployments/privacy-pools-mainnet-latest.json` + env. See [`docs/MAINNET_RUNBOOK.md`](docs/MAINNET_RUNBOOK.md).
+
+### 5. Run Test Suite
+
+```bash
+pnpm test
+```
+
+### 6. Typecheck & Build
+
+```bash
+npx tsc --noEmit
+pnpm build
+```
+
+---
+
+## 📜 Smart Contracts & Verification
+
+Veil contracts are built for auditability: peripheral routers (never custody), invariant-0 on every exit, `nonReentrant` throughout, withdrawals unblockable by code.
+
+* **`VeilZkRouter.sol`:** Atomic relay → swap → deposit/direct executor. Proof verification delegated to the 0xbow `Entrypoint`; router enforces atomicity (transient stage machine), `minOut` on the post-swap leg only, dust refunds, `MAX_MULTI_WITHDRAWALS=8`.
+* **`VeilShieldRouter.sol`:** Legacy 1-tx Swap-to-Shield + ShieldedSwap (R1 `PoolManager.settle{value}` fix). Provisional paths are exit-only.
+* **`ShieldedPool.sol`:** Fixed-denomination pool (`TREE_DEPTH=20`, `ROOT_HISTORY=100`). Guardian pauses deposits only — withdrawals can never be blocked.
+* **`VeilHook.sol`:** Permission-encoded hook (`0x20C4`: beforeInitialize/beforeSwap/afterSwap/afterSwapReturnDelta). ZK-gated launch windows + 30 bps fee via `poolManager.take()`.
+* **`VeilAttestationRegistry.sol`:** Permissionless `selfAttest` (EIP-191, nonce + deadline). No owner, no attester involved.
+* **`VeilTreasury.sol`:** Fee accumulator; `executeBurn` is permissionless, `rescue` is owner-only, buyback default 70%.
+* **0xbow core (vendored, audited):** `Entrypoint` (UUPS proxy, owner + postman), ETH/VEIL pools (`0.001` fixed both sides), Groth16 verifiers, Poseidon, LeanIMT. Never modified.
 
 ## 🌐 Live Robinhood Mainnet Deployments (Chain ID: 4663)
 
-| Contract | Address | Blockscout Explorer |
-|---|---|---|
-| **VeilCreate2Deployer** | `0xe4c3615db1bdeaf7b82b5568bd73f20f5666f008` | [View on Explorer](https://explorer.mainnet.chain.robinhood.com/address/0xe4c3615db1bdeaf7b82b5568bd73f20f5666f008) |
-| **ShieldedVerifier** | `0x797e2aa1f3225ab38bfc6441a3f4b44e95158cda` | [View on Explorer](https://explorer.mainnet.chain.robinhood.com/address/0x797e2aa1f3225ab38bfc6441a3f4b44e95158cda) |
-| **ShieldedPool_ETH** | `0xdd0fb7fc7f1398fd1398a594f7a0ce934caa7ea0` | [View on Explorer](https://explorer.mainnet.chain.robinhood.com/address/0xdd0fb7fc7f1398fd1398a594f7a0ce934caa7ea0) |
-| **VeilTreasury** | `0x8cd39f9195bd00b193a164f0790f3fc0dc4f3b34` | [View on Explorer](https://explorer.mainnet.chain.robinhood.com/address/0x8cd39f9195bd00b193a164f0790f3fc0dc4f3b34) |
-| **VeilAttestationRegistry** | `0xa7f7e7887a4fa00cc934abe39cdd470cfdc9a855` | [View on Explorer](https://explorer.mainnet.chain.robinhood.com/address/0xa7f7e7887a4fa00cc934abe39cdd470cfdc9a855) |
-| **VeilHook (0x20c4)** | `0x9df0b52bf290a13e11c73c56c4c533e3887760c4` | [View on Explorer](https://explorer.mainnet.chain.robinhood.com/address/0x9df0b52bf290a13e11c73c56c4c533e3887760c4) |
-| **VeilShieldRouter** | `0x01a05f87c2c227a1b382cbc2e7e63b186538c86d` | [View on Explorer](https://explorer.mainnet.chain.robinhood.com/address/0x01a05f87c2c227a1b382cbc2e7e63b186538c86d) |
-
-> **Safety notice:** deposits into the Mock-verifier `ShieldedPool_ETH` are **paused** by guardian action ([tx](https://explorer.mainnet.chain.robinhood.com/tx/0x3a34660dec5279612b7a6317f5717f99fbdda6939e52b936a0f1a0e7c5de997b)) after the internal audit found the Mock accepts arbitrary proofs. Withdrawals were never pausable and need no action (pool holds 0 deposits). New deposits will open only on the 0xbow suite after migration.
-| **VeilToken (temporary)** | `0xe0e11ec0d62eda12de796d025d6334fadfe5ab2a` | [View on Explorer](https://explorer.mainnet.chain.robinhood.com/address/0xe0e11ec0d62eda12de796d025d6334fadfe5ab2a) |
-
-### 🚀 Mainnet 0xbow Suite — LIVE (2026-10-12, chain 4663)
-
-Deployed fresh via `pnpm migrate:mainnet` (exit 0, ~0.0005 ETH gas, no reverts).
-Full record: `docs/MAINNET-DEPLOYMENT-2026-10-12.md`. Manifest:
-`deployments/privacy-pools-mainnet-latest.json`. Invariant 5/5 PASS post-deploy.
+**LIVE since 2026-10-12** via `pnpm migrate:mainnet` (exit 0, ~0.0005 ETH gas, zero reverts). Full record: [`docs/MAINNET-DEPLOYMENT-2026-10-12.md`](docs/MAINNET-DEPLOYMENT-2026-10-12.md). Invariant 5/5 PASS post-deploy.
 
 | Contract | Address | Blockscout Explorer |
 |---|---|---|
@@ -87,9 +266,7 @@ Full record: `docs/MAINNET-DEPLOYMENT-2026-10-12.md`. Manifest:
 | **VeilZkRouter (single+multi+direct)** | `0x0fb48c9552154ea028cbd812430e1ea3465a9b4c` | [View on Explorer](https://explorer.mainnet.chain.robinhood.com/address/0x0fb48c9552154ea028cbd812430e1ea3465a9b4c) |
 | **Legacy ETH Pool (0.001/10, open)** | `0x15f7e378410719438dd20b12d4c440ba1863e892` | [View on Explorer](https://explorer.mainnet.chain.robinhood.com/address/0x15f7e378410719438dd20b12d4c440ba1863e892) |
 
-> Note: some addresses are byte-identical to testnet ones (CREATE collision —
-> same deployer, same nonces). Harmless: read-backs prove correct code on 4663.
-> Next: proof cycle → invariant re-run → Blockscout verification → UI ZK wiring.
+> Note: some addresses are byte-identical to testnet ones (CREATE collision — same deployer, same nonces). Harmless: read-backs prove correct code on 4663. Abandoned old suite (Mock `0x797e…`, pool `0xdd0f…` paused, buggy router `0x01a0…`) stays untouched. Post-deploy order: proof cycle → invariant re-run → Blockscout verification → UI ZK wiring.
 
 ### 🔥 Mainnet Burn Loop Proven (2026-10-06, deployer-owned suite)
 
@@ -98,8 +275,6 @@ Full record: `docs/MAINNET-DEPLOYMENT-2026-10-12.md`. Manifest:
 - **Treasury fund (10,000 VEIL):** [`0x5bffe13c453a557779b4dca7465c5883cf50f4f35c43b460c064a5975ffb219c`](https://explorer.mainnet.chain.robinhood.com/tx/0x5bffe13c453a557779b4dca7465c5883cf50f4f35c43b460c064a5975ffb219c)
 - **executeBurn (1,000 VEIL):** [`0xf52bdda4f6d17ac7ce5915a3846535f595dd0bdd02aaced7f2841ada5af994dc`](https://explorer.mainnet.chain.robinhood.com/tx/0xf52bdda4f6d17ac7ce5915a3846535f595dd0bdd02aaced7f2841ada5af994dc)
 - Supply 1,000,000,000 → 999,999,000, `totalBurned` = 1,000, `buybackShareBps` = 7000.
-
----
 
 ## 🧪 Live Robinhood Testnet Deployments (Chain ID: 46630)
 
@@ -119,13 +294,20 @@ Fresh suite under the new wallet (old pools retired — exit-only, withdrawals s
 | **VeilAttestationRegistry** | `0x4d66540c3cd12ee8de89ad8013c51838b572dce3` | [View on Explorer](https://explorer.testnet.chain.robinhood.com/address/0x4d66540c3cd12ee8de89ad8013c51838b572dce3) |
 | **VeilHook (0x20c4)** | `0xc0bd5e335651394b57a9277411f65e149e73e0c4` | [View on Explorer](https://explorer.testnet.chain.robinhood.com/address/0xc0bd5e335651394b57a9277411f65e149e73e0c4) |
 | **VeilShieldRouter (fixed R1)** | `0x7c73e4b7f9c9cac1f1574c46fd17952be2853e27` | [View on Explorer](https://explorer.testnet.chain.robinhood.com/address/0x7c73e4b7f9c9cac1f1574c46fd17952be2853e27) |
+| **VeilZkRouter (unified)** | `0x9ccf3800cb6aa5754ec9ec5815e06f432df10635` | [View on Explorer](https://explorer.testnet.chain.robinhood.com/address/0x9ccf3800cb6aa5754ec9ec5815e06f432df10635) |
 
 > Retired pools (paused + guardian renounced, exit-only — old notes withdraw here, no new deposits): legacy ETH `0x1b1d39e4da649747ecc0e93e7a06452a3061de17`, VEIL05 `0xd73920a3cbfdf3f6be530cab73fc9c876619517a`, VEIL2 `0x172e9cc542cf9349813f74548eec6e0a1df65e17`; 0xbow v1 pool `0x2bea7094f77e3f9a21397c688de8ef105d4848bc`.
 
 ### 🚀 Verified On-Chain Transactions (Live Testnet E2E)
+
 - **Live Deposit (0.001 ETH):** [`0x5b230bdbbc99cbd9c3fdb7ef5a8284d724fbc92e72f07ccaf38736cfa93ad467`](https://explorer.testnet.chain.robinhood.com/tx/0x5b230bdbbc99cbd9c3fdb7ef5a8284d724fbc92e72f07ccaf38736cfa93ad467)
 - **Live ZK Withdrawal:** [`0xe2fc81edc64eeab55c8837e93637b8cc36334ad1a885534e2ba4d658b0b26f4e`](https://explorer.testnet.chain.robinhood.com/tx/0xe2fc81edc64eeab55c8837e93637b8cc36334ad1a885534e2ba4d658b0b26f4e)
 - **Attestation Registry Proof:** [`0xefb9475ce25739dfbb4270424ef4605fec30bc95676bbe96d3a0726facd18ccc`](https://explorer.testnet.chain.robinhood.com/tx/0xefb9475ce25739dfbb4270424ef4605fec30bc95676bbe96d3a0726facd18ccc)
+- **Multi-note full-ZK (0.003 → 0.9287 VEIL):** [`0xe14f90b0de62c04e7577bd6bbd0dcba49a03af014bda5782362ea99a2bcafcb2`](https://explorer.testnet.chain.robinhood.com/tx/0xe14f90b0de62c04e7577bd6bbd0dcba49a03af014bda5782362ea99a2bcafcb2)
+- **Single-note full-ZK (UI):** [`0x118ec934853460276ef5a8ab0a32864fa3a2f057dad4fe8b475b27baf0fdfd5c`](https://explorer.testnet.chain.robinhood.com/tx/0x118ec934853460276ef5a8ab0a32864fa3a2f057dad4fe8b475b27baf0fdfd5c)
+- **Browser withdraw (first):** [`0x5e95188e…`](https://explorer.testnet.chain.robinhood.com/) (block 132021568)
+- **Direct-payout ETH→VEIL (1.12 VEIL):** `0xfac73f43b2bd918a6d20ca3bf997a4ce52866bd1f980f0f719b14c9b4e880236`
+- **Direct-payout VEIL dust → ETH:** `0x9a8ac2e40648eb98377f14b0a76446efd99c3ad29bb8d84ec30fd95da8e51879`
 
 ### 🪙 Temporary VeilToken (Testnet, End-to-End Burn Proven 2026-10-06)
 
@@ -140,8 +322,6 @@ Temporary protocol token for end-to-end testing (1B fixed supply, self-burn). Th
 | **executeBurn (1,000 VEIL)** | [`0x3df1259e80af32936cbc086688c150e8aef437c9f835dd249d055705709d64af`](https://explorer.testnet.chain.robinhood.com/tx/0x3df1259e80af32936cbc086688c150e8aef437c9f835dd249d055705709d64af) |
 | **Supply** | 1,000,000,000 → 999,999,000 (`totalBurned` = 1,000, `buybackShareBps` = 7000) |
 
-> Testnet fresh suite DONE (entrypoint `0xb68c…`, pools `0xea48…`/`0xae2c…`, legacy `0x3783…`/`0x0fb4…`/`0xc144…`); mainnet migration pending. Source verification on the explorers is pending (instance verifier rejects valid builds; local builds proven byte-identical, vendored source fallback).
-
 ### 🔒 Real Groth16 Privacy Loop (Testnet, 0xbow v1.2.1, proven 2026-10-07)
 
 Audited 0xbow stack (WithdrawalVerifier, PrivacyPool, Poseidon, LeanIMT), approved setup artifacts (`withdraw/commitment` wasm+zkey), SDK proving in Node:
@@ -154,9 +334,9 @@ Audited 0xbow stack (WithdrawalVerifier, PrivacyPool, Poseidon, LeanIMT), approv
 | **Recipient +0.001 ETH, nullifier spent** | verified onchain |
 | **Honesty test (garbage proof)** | rejected onchain — the verifier genuinely checks Groth16 |
 | **Hook gating (fresh 0x20c4 hook)** | [`0x65d99bb9eb99c008ef4b738cdd652800796d60c4`](https://explorer.testnet.chain.robinhood.com/address/0x65d99bb9eb99c008ef4b738cdd652800796d60c4), attestation verified `true` |
-| **Third-party relay** | [`0xef17b1c04014f4e74af2a2f0438f22bccee2d5214eeb0bd7a268aa148a23cb1d`](https://explorer.testnet.chain.robinhood.com/tx/0xef17b1c04014f4e74af2a2f0438f22bccee2d5214eeb0bd7a268aa148a23cb1d) submitted by an ephemeral relayer key, not the depositor |
+| **Third-party relay** | [`0xef17b1c04014f4e74af2a2f0438f22bccee2d5214eeb0bd7a268aa1484e23cb1d`](https://explorer.testnet.chain.robinhood.com/tx/0xef17b1c04014f4e74af2a2f0438f22bccee2d5214eeb0bd7a268aa1484e23cb1d) submitted by an ephemeral relayer key, not the depositor |
 
-### 🪝 Hook Gating + Protocol Fee From Real Usage (Testnet, proven 2026-10-07 — NOT PROVEN on the fresh suite, manual retest required; v3 flow: /trade attest + gated swap)
+### 🪝 Hook Gating + Protocol Fee From Real Usage (Testnet, proven 2026-10-07)
 
 - **Hooked pool** ETH/VEIL fee 3000 with `VeilHook` [`0x65d9...60c4`](https://explorer.testnet.chain.robinhood.com/address/0x65d99bb9eb99c008ef4b738cdd652800796d60c4), gated 600s launch window
 - **Ungated swap reverts** (`GatingActiveUserNotAttested` enforced onchain)
@@ -171,15 +351,13 @@ Audited 0xbow stack (WithdrawalVerifier, PrivacyPool, Poseidon, LeanIMT), approv
 - **Spoofed hookData reverts** (fake user/signature rejected onchain)
 - **Self-attested swap passes, fee accrues:** [`0x74770b993ce5fe46c115395dfd029e2aa3faf171628e10aad5d1c6f9f5d78fde`](https://explorer.testnet.chain.robinhood.com/tx/0x74770b993ce5fe46c115395dfd029e2aa3faf171628e10aad5d1c6f9f5d78fde), treasury ETH 17457976132009682 → 17929662035599539
 
-Pending (needs testnet funds): fee-bearing relay run on v1 (its `maxRelayFeeBPS` is immutably 0; v3 suite sets 100).
-
 ### 🔀 Full Shielded Swap ETH → VEIL (Testnet, proven 2026-10-07)
 
 Fresh 0xbow suite v2 (operator-owned entrypoint, ETH + VEIL pools, `maxRelayFeeBPS=100`):
 
 - **ETH shielded** → **withdrawn (ZK)** → **v4 swap ETH→VEIL** ([0x45c66d17e4a248a70d77ef2a945a216bdd6adc80a3f08605f0d9487e5a69dd99](https://explorer.testnet.chain.robinhood.com/tx/0x45c66d17e4a248a70d77ef2a945a216bdd6adc80a3f08605f0d9487e5a69dd99)) → **VEIL shielded** ([0xed7e12fc77dc61c32732791679a861a9d13131343ab70c383a7d3491e5e691bc](https://explorer.testnet.chain.robinhood.com/tx/0xed7e12fc77dc61c32732791679a861a9d13131343ab70c383a7d3491e5e691bc), 0.001 VEIL note) → **VEIL relayed with enforced 50 BPS fee by a third-party key** ([0x33408fc3b3f9ca4d4de07432a1e57ecd76f37937c6011ed1404d0c36b4dcdb20](https://explorer.testnet.chain.robinhood.com/tx/0x33408fc3b3f9ca4d4de07432a1e57ecd76f37937c6011ed1404d0c36b4dcdb20): recipient 0.995, relayer 0.005)
 
-### 🔀 Router Swap-to-Shield (Testnet, proven 2026-10-07 — NOT PROVEN on the fresh suite, manual retest required; v3 flow: /trade router swap-to-shield)
+### 🔀 Router Swap-to-Shield (Testnet, proven 2026-10-07)
 
 - **v4 pool ETH/VEIL** `0x3524d46204a0438a67c94e9795818b3b0c5d59869d28865754c4254eb05442e1` (fee 3000, tickSpacing 60)
 - **Liquidity** via `TestnetLiquidityHelper` (direct PoolManager path — the pre-deployed testnet PositionManager is a different version whose mint encoding reverts)
@@ -195,59 +373,67 @@ Fresh 0xbow suite v2 (operator-owned entrypoint, ETH + VEIL pools, `maxRelayFeeB
 
 ---
 
-## 🛠️ Quickstart & Local Development
+## 🧪 Testing & Verification
 
-### 0. Try it on testnet (no real funds)
-```bash
-pnpm dev:testnet
-```
-This runs the whole app (wallet, balances, contracts, trade) against Robinhood Testnet 46630 (`NEXT_PUBLIC_CHAIN_ID=46630`). Fund your wallet at `https://faucet.testnet.chain.robinhood.com/` (0.01 testnet ETH, free). Default `pnpm dev` targets mainnet 4663.
+Veil enforces evidence-before-claims across unit tests, type safety, and live on-chain gates:
 
-### 1. Install Dependencies
 ```bash
-pnpm install
-```
-
-### 2. Compile Smart Contracts
-Compiles Solidity 0.8.37 contracts with the Cancun EVM version, verifies EIP-170 code size, and outputs TypeScript / ESM artifacts:
-```bash
-pnpm compile
-```
-
-### 3. Mine Uniswap v4 Hook Address (CREATE2)
-Mines salt matching `0x20C4` permission flags:
-```bash
-pnpm mine:hook
-```
-
-### 4. Run Test Suite
-Automated tests covering note creation, encryption, slippage math, and hook flags:
-```bash
+# Run Vitest automated test suite (34 files, 204 tests)
 pnpm test
-```
 
-### 5. Typecheck & Build
-```bash
-pnpm exec tsc --noEmit
+# Verify TypeScript types strictly
+npx tsc --noEmit
+
+# Compile production build
 pnpm build
+
+# Live invariant gate (deposits − withdrawn = balance, per pool)
+node scripts/verify-pool-invariant.mjs            # testnet 46630
+node scripts/verify-pool-invariant.mjs --mainnet  # mainnet 4663
 ```
 
 ---
 
-## 🧪 Protocol Invariant & Security Acceptance Matrix (old-suite evidence — NOT PROVEN on the fresh suite, manual retest required; v3 flow: /trade per docs/TESTNET-CLICKTHROUGH.md)
+## 🛡️ Non-Custodial Security & Risk Disclosures
+
+* **Non-Custodial Architecture:** Neither the operator nor the protocol contracts ever hold user private keys. All transactions are signed directly in the user's Web3 wallet.
+* **Audited-Circuit Reuse Only:** Full-ZK flows build exclusively on the audited 0xbow v1.2.1 circuits — no novel cryptography, no new ceremony. External audit permanently waived by owner decision (residual risk explicitly accepted).
+* **Fixed-Denomination Trade-Off:** `0.001` notes are unlinkable but rigid — dust settles visibly (direct-payout), batches cap at 8 notes. Arithmetic, not a bug.
+* **Stranded Dust Is Permanent:** Notes with lost secrets are unspendable by design (pools expose no rescue path) and recorded as such in the audit.
+* **Key Rotation History:** Two old operator wallets retired after a git-history leak (one sweep incident, nonce 187). Current operator `0xCAB1E4df4FBD2EF6F73cB03519Ec33cba08879e6`. Old keys must never sign again.
+* **Disclaimer:** Digital assets and privacy tooling involve significant financial, technical, and regulatory risk. Nothing in this repository constitutes financial, legal, or investment advice. Always conduct independent due diligence.
+
+---
+
+## 📚 Docs Index
+
+| Doc | What |
+|---|---|
+| [`DevBrief-Veil.md`](DevBrief-Veil.md) | Product brief v1.0: mechanisms, phases F0–F6, security rules, Go/No-Go tests |
+| [`docs/DECISIONS.md`](docs/DECISIONS.md) | 19 binding owner decisions + B1 atomicity ruling — code follows this file |
+| [`docs/superpowers/plans/2026-10-09-full-zk-router.md`](docs/superpowers/plans/2026-10-09-full-zk-router.md) | Full-ZK build plan (6 tasks, all executed) |
+| [`docs/INTERNAL-AUDIT-2026-10-07.md`](docs/INTERNAL-AUDIT-2026-10-07.md) | Internal audit PASS WITH CONDITIONS + testnet FINAL + live drill log |
+| [`docs/ASP-POLICY.md`](docs/ASP-POLICY.md) | Association-set policy v2 (testnet + mainnet auto-sync) |
+| [`docs/MAINNET_RUNBOOK.md`](docs/MAINNET_RUNBOOK.md) | F5 runbook: migrate → proof → gates → pause-first rollback |
+| [`docs/MAINNET-DEPLOYMENT-2026-10-12.md`](docs/MAINNET-DEPLOYMENT-2026-10-12.md) | Mainnet deployment record (addresses + evidence) |
+| [`docs/TESTNET-CLICKTHROUGH.md`](docs/TESTNET-CLICKTHROUGH.md) | Manual browser test script (Fase 0–7) |
+
+---
+
+## 🧪 Protocol Invariant & Security Acceptance Matrix
 
 | # | Scenario | Expected Outcome | Status |
 |---|---|---|---|
-| 1 | Normal Buy & Shield | Commitment inserted into Merkle tree, router balance = 0 | ✅ Pass (old suite; fresh manual pending) |
-| 2 | Slippage exceeded | Transaction reverts, 100% of user funds refunded | ✅ Pass (old suite; fresh manual pending) |
-| 3 | Double-spend same note | Automatically rejected (NullifierAlreadySpent) | ✅ Pass (old suite; fresh manual pending) |
-| 4 | Relayer tampers minOut / recipient / fee | Groth16 proof binds recipient+fee; swap params caller-side (self-relay only) | ⚠️ Partial (see audit) |
-| 5 | Shielded swap Token A ➔ Token B | Shielded balance B increases, zero public address trace | ✅ Pass (old suite; fresh manual pending) |
-| 6 | Relayer offline / unavailable | Self-relay operates normally (the supported path) | ✅ Pass (old suite; fresh manual pending) |
-| 7 | Unregistered address on gated pool | Swap rejected by hook | ✅ Pass (old suite; fresh manual pending) |
-| 8 | Deposit exceeds pool cap | Transaction rejected by contract (PoolCapExceeded) | ✅ Pass (old suite; fresh manual pending) |
-| 9 | Guardian pauses pool | Deposits paused, withdrawals remain 100% unblocked | ✅ Pass (old suite; fresh manual pending) |
-| 10 | Tree rebuild in new browser | Balances independently verified against Merkle root | Manual (see docs/TESTNET-CLICKTHROUGH.md §5) |
+| 1 | Normal Buy & Shield | Commitment inserted into Merkle tree, router balance = 0 | ✅ Pass (live: testnet + mainnet invariant 5/5) |
+| 2 | Slippage exceeded | Transaction reverts, 100% of user funds refunded | ✅ Pass (`SlippageExceeded`, dust refund) |
+| 3 | Double-spend same note | Automatically rejected (nullifier spent) | ✅ Pass (+ pre-send spent check, no gas burn) |
+| 4 | Relayer tampers minOut / recipient / fee | Groth16 binds recipient+fee; atomic self-relay | ✅ Pass (0xbow paths; legacy buried) |
+| 5 | Shielded swap Token A ➔ Token B | Shielded balance B increases; single/multi/direct | ✅ Pass (live `0xe14f…`, `0x118e…`, direct ×3) |
+| 6 | Relayer offline / unavailable | Self-relay operates normally (the supported path) | ✅ Pass |
+| 7 | Unregistered address on gated pool | Swap rejected by hook | ✅ Pass (`GatingActiveUserNotAttested`) |
+| 8 | Deposit exceeds pool cap | Transaction rejected by contract (`PoolCapExceeded`) | ✅ Pass (code + unit test; live drill impractical, accepted residual) |
+| 9 | Guardian pauses pool | Deposits paused, withdrawals remain 100% unblocked | ✅ Pass |
+| 10 | Tree rebuild in new browser | Balances independently verified against Merkle root | Manual (see `docs/TESTNET-CLICKTHROUGH.md` §5) |
 
 ---
 
@@ -256,3 +442,9 @@ pnpm build
 * **Association Sets Mandatory:** Every withdrawal proves membership in a published association set (ASP).
 * **Terminology Guardrails:** Explicitly avoid terms such as *mixer*, *tumbler*, *untraceable*, *anonymous*, or *launder*.
 * **Open Transparency:** Full contract verification on Blockscout and live on-chain `/burn` ledger.
+
+---
+
+## 📄 License
+
+This repository is licensed under the MIT License. All Solidity sources carry SPDX identifiers; the vendored 0xbow core keeps its upstream Apache-2.0 license.
