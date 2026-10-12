@@ -25,7 +25,6 @@ const ok = `${C.green}✓${C.reset}`;
 const tx = (s) => `${C.cyan}${s}${C.reset}`;
 const hl = (s) => `${C.yellow}${s}${C.reset}`;
 const dim = (s) => `${C.dim}${s}${C.reset}`;
-const short = (h) => `${h.slice(0, 10)}…${h.slice(-6)}`;
 const num = (n) => Number(n).toLocaleString("en-US");
 
 const EXPLORER_TX = "https://explorer.mainnet.chain.robinhood.com/tx/";
@@ -76,7 +75,7 @@ async function broadcastDots() {
 async function deployTx(t) {
   console.log(`  ${C.bold}▶ Deploying ${hl(t.name)}…${C.reset}`);
   await broadcastDots();
-  console.log(`    📡 broadcast  ${tx(short(t.hash))}`);
+  console.log(`    📡 broadcast  ${tx(t.hash)}`);
   console.log(`       ${dim(EXPLORER_TX + t.hash)}`);
   await mineProgress();
   console.log(`    ⛏  mined       block ${hl(String(t.block))}`);
@@ -84,9 +83,28 @@ async function deployTx(t) {
     console.log(`    📦 contract    ${tx(t.contractAddress)}`);
     console.log(`       ${dim(EXPLORER_ADDR + t.contractAddress)}`);
   } else {
-    console.log(`    🎯 call        ${tx(short(t.to))}`);
+    console.log(`    🎯 call        ${tx(t.to)}`);
   }
   console.log(`    ${ok} confirmed   gas ${hl(num(t.gasUsed))} · status ${hl(t.status)}`);
+}
+
+// Stays open until the user presses Ctrl+X (never auto-closes).
+async function waitCtrlX() {
+  console.log(`  ${dim("press")} ${hl("Ctrl+X")} ${dim("to close")}`);
+  if (!process.stdin.isTTY) return;
+  process.stdin.setRawMode(true);
+  await new Promise((resolve) => {
+    const onKey = (d) => {
+      if (d.includes(0x18)) {
+        process.stdin.removeListener("data", onKey);
+        process.stdin.setRawMode(false);
+        resolve();
+      } else if (d.includes(0x03)) {
+        process.exit(0);
+      }
+    };
+    process.stdin.on("data", onKey);
+  });
 }
 
 async function stage(title, names) {
@@ -112,6 +130,7 @@ async function deployFlow() {
   console.log(`${C.green}${C.bold}  ✅ DEPLOYED — 16 CONTRACTS LIVE ON MAINNET 4663${C.reset}`);
   console.log(dim("  manifest: deployments/privacy-pools-mainnet-latest.json"));
   console.log();
+  await waitCtrlX();
 }
 
 async function addressBook() {
