@@ -795,12 +795,18 @@ export default function SwapToShieldPage() {
   const zkQuoteDisabled =
     isExecuting || isZkQuoting || !connectedAddress || !zkNoteValid;
 
-  // Shielded Swap tab derived state: source-note picker over 0xbow ETH/VEIL
-  // notes from the vault, destination fixed by direction (VEIL -> 0.001 ETH
-  // note, ETH -> VEIL per the live minimum). Direction binding is enforced
-  // through resolveZkShieldedSwapAssets so VEIL->ETH and ETH->VEIL are the
-  // only pairs; anything else fails closed before any simulation.
-  const zkBowNotes = notes.filter((n) => isBowNote(n));
+  // Shielded Swap tab derived state: source-note picker over MAINNET 0xbow
+  // ETH/VEIL notes from the vault (notes without an explicit mainnet chain
+  // are testnet-era: the UI is mainnet-only), destination fixed by direction
+  // (VEIL -> 0.001 ETH note, ETH -> VEIL per the live minimum). Direction
+  // binding is enforced through resolveZkShieldedSwapAssets so VEIL->ETH and
+  // ETH->VEIL are the only pairs; anything else fails closed before any
+  // simulation.
+  const zkBowNotes = notes.filter(
+    (n) =>
+      isBowNote(n) &&
+      (n as { chainId?: unknown }).chainId === MAINNET_CHAIN_ID
+  );
   const zkShieldedSwapOptions = zkBowNotes.map((n) => {
     const bow = n;
     const isEth = bow.asset.toLowerCase() === ETH_ZERO_ADDRESS.toLowerCase();
@@ -1169,13 +1175,13 @@ export default function SwapToShieldPage() {
     }
     const connectedChainId = await getConnectedChainId(activeProvider);
     const zkSuite = resolveZkSuite(connectedChainId);
-    if (!zkSuite) {
+    if (!zkSuite || zkSuite.chainId !== MAINNET_CHAIN_ID) {
       setFlowError(
-        "Full-ZK Swap-to-Shield is live on Testnet (46630) and on Mainnet once migration finishes. Switch to a supported chain and try again. Nothing was simulated."
+        "Veil UI is mainnet-only. Switch your wallet to Robinhood Mainnet (4663) and try again. Nothing was simulated."
       );
       return;
     }
-    const netLabel = connectedChainId === MAINNET_CHAIN_ID ? "Mainnet" : "Testnet";
+    const netLabel = "Mainnet";
     if (!zkNote || !isBowNote(zkNote)) {
       setFlowError("Select a 0xbow shielded note first. Nothing was simulated.");
       return;
@@ -1463,13 +1469,13 @@ export default function SwapToShieldPage() {
     }
     const connectedChainId = await getConnectedChainId(activeProvider);
     const zkSuite = resolveZkSuite(connectedChainId);
-    if (!zkSuite) {
+    if (!zkSuite || zkSuite.chainId !== MAINNET_CHAIN_ID) {
       setFlowError(
-        "Full-ZK Swap-to-Shield is live on Testnet (46630) and on Mainnet once migration finishes. Switch to a supported chain and try again. No transaction was sent."
+        "Veil UI is mainnet-only. Switch your wallet to Robinhood Mainnet (4663) and try again. No transaction was sent."
       );
       return;
     }
-    const netLabel = connectedChainId === MAINNET_CHAIN_ID ? "Mainnet" : "Testnet";
+    const netLabel = "Mainnet";
     if (!zkBundle) {
       setFlowError("Refresh the live quote first. No transaction was sent.");
       return;
@@ -1701,13 +1707,13 @@ export default function SwapToShieldPage() {
     }
     const connectedChainId = await getConnectedChainId(activeProvider);
     const zkSuite = resolveZkSuite(connectedChainId);
-    if (!zkSuite) {
+    if (!zkSuite || zkSuite.chainId !== MAINNET_CHAIN_ID) {
       setFlowError(
-        "Shielded Swap is live on Testnet (46630) and on Mainnet once migration finishes. Switch to a supported chain and try again. Nothing was simulated."
+        "Veil UI is mainnet-only. Switch your wallet to Robinhood Mainnet (4663) and try again. Nothing was simulated."
       );
       return;
     }
-    const netLabel = connectedChainId === MAINNET_CHAIN_ID ? "Mainnet" : "Testnet";
+    const netLabel = "Mainnet";
     if (!zkNote || !isBowNote(zkNote)) {
       setFlowError("Select a 0xbow shielded note first. Nothing was simulated.");
       return;
@@ -2256,13 +2262,13 @@ export default function SwapToShieldPage() {
     }
     const connectedChainId = await getConnectedChainId(activeProvider);
     const zkSuite = resolveZkSuite(connectedChainId);
-    if (!zkSuite) {
+    if (!zkSuite || zkSuite.chainId !== MAINNET_CHAIN_ID) {
       setFlowError(
-        "Shielded Swap is live on Testnet (46630) and on Mainnet once migration finishes. Switch to a supported chain and try again. No transaction was sent."
+        "Veil UI is mainnet-only. Switch your wallet to Robinhood Mainnet (4663) and try again. No transaction was sent."
       );
       return;
     }
-    const netLabel = connectedChainId === MAINNET_CHAIN_ID ? "Mainnet" : "Testnet";
+    const netLabel = "Mainnet";
     if (!zkBundle && !zkMultiBundle && !zkDirectBundle) {
       setFlowError("Refresh the live quote first. No transaction was sent.");
       return;
@@ -2725,13 +2731,13 @@ export default function SwapToShieldPage() {
 
     const connectedChainId = await getConnectedChainId(activeProvider);
     const zkSuite = resolveZkSuite(connectedChainId);
-    if (!zkSuite) {
+    if (!zkSuite || zkSuite.chainId !== MAINNET_CHAIN_ID) {
       setFlowError(
-        "0xbow shielded deposits are live on Testnet (46630) and on Mainnet once migration finishes. Switch to a supported chain and try again. No transaction was sent."
+        "Veil UI is mainnet-only. Switch your wallet to Robinhood Mainnet (4663) and try again. No transaction was sent."
       );
       return;
     }
-    const netLabel = connectedChainId === MAINNET_CHAIN_ID ? "Mainnet" : "Testnet";
+    const netLabel = "Mainnet";
     if (parsedBowDeposit === null) {
       setFlowError(`Enter a valid ${bowDepositAsset} amount greater than zero.`);
       return;
@@ -3056,7 +3062,8 @@ export default function SwapToShieldPage() {
     const useTestnetBow =
       withdrawPath === "0xbow" &&
       connectedChainId === noteChainId &&
-      zkSuite !== null;
+      zkSuite !== null &&
+      zkSuite.chainId === MAINNET_CHAIN_ID;
 
     // 0xbow Groth16 path (testnet + mainnet): real SDK flow, no Mock verifier.
     if (useTestnetBow) {
@@ -3554,12 +3561,11 @@ export default function SwapToShieldPage() {
       return;
     }
 
-    // A 0xbow note outside any configured suite never enters the legacy
-    // pool: fail closed with directions instead of sending it to the wrong
-    // verifier. Names the note's own chain so the user knows where to go.
+    // A 0xbow note outside the mainnet suite never enters any pool:
+    // fail closed with directions instead of sending it to the wrong verifier.
     if (withdrawPath === "0xbow") {
       setFlowError(
-        `This 0xbow note lives on chain ${noteChainId}. Switch your wallet to that chain to withdraw it. No transaction was sent.`
+        "Veil UI is mainnet-only: 0xbow withdrawals run on Robinhood Mainnet (4663). Legacy exits below still work for old notes. No transaction was sent."
       );
       return;
     }
