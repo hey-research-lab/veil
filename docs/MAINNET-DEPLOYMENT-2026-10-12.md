@@ -70,9 +70,42 @@ Old treasury `0x8cd3…` held 9,000 temp VEIL. Rescued to the deployer in tx
    testnet pointers.
 
 ## 6. Still To Do (post-deploy order)
-
 1. Proof cycle 0.001 → prove → withdraw on 4663.
 2. `verify-pool-invariant --mainnet` re-run + Blockscout source verification.
 3. UI ZK execution wiring for mainnet + v4 liquidity check/seed.
 4. ASP auto-sync: `POST /api/asp/sync {"chainId":4663}` (route ready, policy v2).
 5. Pons token: `setVeilToken` + 70% buyback when launched.
+
+## 7. Transaction Ledger (23 txs, nonces 0–22, blocks 86333824–86334911)
+
+Machine-readable: `deployments/mainnet-deploy-txs-2026-10-12.json`
+(hashes hunted from chain by deployer-nonce order, receipts verified —
+all `success`, contract addresses match §1–§2). Total gas: 24,586,693.
+
+| Nonce | Step | Tx | Block | Gas |
+|---|---|---|---|---|
+| 0 | PoseidonT3 | `0x3c23306d…0a8f50b56` | 86333824 | 3,614,580 |
+| 1 | PoseidonT4 | `0x0726e21a…690bd9950` | 86333875 | 2,751,499 |
+| 2 | WithdrawalVerifier | `0xf58476d9…1e68b91e1de` | 86333929 | 485,746 |
+| 3 | CommitmentVerifier | `0x99f5ac66…666be681d77` | 86333978 | 406,922 |
+| 4 | Entrypoint impl | `0xecdde247…896d25abab31` | 86334032 | 2,465,308 |
+| 5 | Entrypoint proxy | `0x4c075711…944dc91971344` | 86334089 | 299,723 |
+| 6 | ETH pool | `0x510013db…cfacb40215` | 86334136 | 1,678,357 |
+| 7 | VEIL pool | `0xcd91b03c…74468a3a59e5` | 86334185 | 1,735,355 |
+| 8 | activate ETH | `0x942535e7…ccfac55897a16697` | 86334231 | 27,970 |
+| 9 | activate VEIL | `0x277c0b22…ead0bbb8cb790915d` | 86334285 | 27,970 |
+| 10 | register ETH | `0xf45e32f1…2a7c9bcdac358aa8e` | 86334331 | 130,643 |
+| 11 | register VEIL | `0x23f7a227…564d1a165d467d` | 86334377 | 158,397 |
+| 12 | ASP sentinel root | `0x247d8de0…978c1268fe4705d6` | 86334423 | 166,819 |
+| 13 | Treasury | `0x2166a1ef…d46b231642fe2106` | 86334474 | 523,828 |
+| 14 | Create2Deployer | `0x88cca57b…0529bdf876a20d` | 86334522 | 132,219 |
+| 15 | Mock verifier | `0x0955412e…bae2297c7b7bd02316bc` | 86334574 | 170,034 |
+| 16 | Legacy ETH pool | `0x9682b303…c8b5d23c439af8dbfff7` | 86334622 | 1,337,271 |
+| 17 | Registry v2 | `0xb74ef019…02e62379b9371718f2` | 86334674 | 633,026 |
+| 18 | Hook v2 (via create2) | `0xae8ca8cf…8a6fa35c63db34ca37048` | 86334721 | 1,152,942 |
+| 19 | ShieldRouter | `0x877e3c8d…cddc1eb5d3f0c570ad748ed` | 86334766 | 1,647,486 |
+| 20 | VEIL pool 0.5 | `0x21b8ed4b…0db38ab0a72c9c0f741c` | 86334811 | 1,337,535 |
+| 21 | VEIL pool 2 | `0x06a22e50…45dcc64015690bf68` | 86334859 | 1,337,535 |
+| 22 | VeilZkRouter | `0xcf51d624…6202c6208aa5` | 86334911 | 2,365,528 |
+
+Full hashes in the JSON file; explorer links in `mainnet-deploy-cli.mjs` output.
