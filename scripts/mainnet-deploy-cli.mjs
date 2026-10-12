@@ -73,7 +73,7 @@ async function broadcastDots() {
 }
 
 async function deployTx(t) {
-  console.log(`  ${C.bold}▶ Deploying ${hl(t.name)}…${C.reset}`);
+  console.log(`  ${C.bold}▶ Deploying ${hl(t.name)}${C.reset}`);
   await broadcastDots();
   console.log(`    📡 broadcast  ${tx(t.hash)}`);
   console.log(`       ${dim(EXPLORER_TX + t.hash)}`);
