@@ -1,4 +1,4 @@
-# Veil Association Set Policy (v1)
+# Veil Association Set Policy (v2)
 
 ## Rule
 
@@ -28,6 +28,15 @@ and deterministic, the key only prevents censorship.
 `0xae2c…` full history, censoring neither). Anti-spam stays on: at most one
 publish per 1200 blocks (~5 minutes) unless the `x-asp-publish-token`
 (`ASP_PUBLISH_TOKEN`) sentinel or a genuine inclusion label is presented.
+
+## v2 mainnet auto-sync authorization (2026-10-12)
+
+The same route is authorized to publish the mainnet association set
+(entrypoint + ETH + VEIL pools from `NEXT_PUBLIC_0XBOW_*`, populated by
+`pnpm migrate:mainnet`) under the identical mechanical rule and anti-spam
+(1200 blocks, sentinel token or genuine inclusion label). An unconfigured
+suite fails closed with HTTP 400; the route never invents addresses.
+Testnet authorization above is unchanged.
 
 ## Changes
 

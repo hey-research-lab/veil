@@ -1,19 +1,60 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createPublicClient, createWalletClient, type Address } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { robinhoodTestnet } from "@/lib/chains";
+import { robinhoodMainnet, robinhoodTestnet } from "@/lib/chains";
 import { createBypassTransport } from "@/lib/rpc-transport";
-import { TESTNET_BOW_V3_ENTRYPOINT, TESTNET_BOW_V3_ETH_POOL, TESTNET_BOW_V3_VEIL_POOL, TESTNET_CHAIN_ID } from "@/lib/privacy-pools";
+import {
+  MAINNET_0XBOW,
+  MAINNET_CHAIN_ID,
+  TESTNET_BOW_V3_ENTRYPOINT,
+  TESTNET_BOW_V3_ETH_POOL,
+  TESTNET_BOW_V3_VEIL_POOL,
+  TESTNET_CHAIN_ID,
+  isMainnetBowConfigured,
+} from "@/lib/privacy-pools";
 import { fetchBowPoolEvents } from "@/lib/0xbow-client";
 import { buildBowAssociationSet } from "@/lib/0xbow-association";
 
-// Fresh v3 suite (entrypoint 0xb68c…, ETH pool 0xea48…, VEIL pool 0xae2c…).
+export interface AspSyncSuite {
+  chainId: number;
+  chain: typeof robinhoodTestnet | typeof robinhoodMainnet;
+  entrypoint: Address;
+  pools: [Address, Address];
+  tag: string;
+}
+
+// Chain-aware suite selector. Testnet resolves to the fresh v3 constants;
+// mainnet resolves to the migrated env suite and fails closed (null) until
+// `pnpm migrate:mainnet` populates it. Unknown chains always fail closed.
+export function resolveAspSuite(chainId: number): AspSyncSuite | null {
+  if (chainId === TESTNET_CHAIN_ID) {
+    return {
+      chainId,
+      chain: robinhoodTestnet,
+      entrypoint: TESTNET_BOW_V3_ENTRYPOINT,
+      pools: [TESTNET_BOW_V3_ETH_POOL, TESTNET_BOW_V3_VEIL_POOL],
+      tag: "46630",
+    };
+  }
+  if (chainId === MAINNET_CHAIN_ID && isMainnetBowConfigured()) {
+    return {
+      chainId,
+      chain: robinhoodMainnet,
+      entrypoint: MAINNET_0XBOW.entrypoint,
+      pools: [MAINNET_0XBOW.poolEth, MAINNET_0XBOW.poolVeil as Address],
+      tag: "4663",
+    };
+  }
+  return null;
+}
+
+// Fresh suite inputs (entrypoint 0xb68c… on testnet).
 // Scans BOTH pools' full history like scripts/publish-asp.mjs: omitting old
 // labels would censor dormant depositors, so partial ranges are not acceptable.
-async function fetchV3AspInputs(publicClient: any) {
+async function fetchAspInputs(publicClient: any, pools: [Address, Address]) {
   const [eth, veil] = await Promise.all([
-    fetchBowPoolEvents(publicClient, TESTNET_BOW_V3_ETH_POOL),
-    fetchBowPoolEvents(publicClient, TESTNET_BOW_V3_VEIL_POOL),
+    fetchBowPoolEvents(publicClient, pools[0]),
+    fetchBowPoolEvents(publicClient, pools[1]),
   ]);
   return {
     labels: [...eth.labels, ...veil.labels.filter((l) => !eth.labels.some((e) => e === l))],
@@ -45,19 +86,28 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const chainId = Number(searchParams.get("chainId") || TESTNET_CHAIN_ID);
-    if (chainId !== TESTNET_CHAIN_ID) {
-      return NextResponse.json({ error: "Only testnet 46630 supported for ASP auto-sync" }, { status: 400 });
+    const suite = resolveAspSuite(chainId);
+    if (!suite) {
+      return NextResponse.json(
+        {
+          error:
+            chainId === MAINNET_CHAIN_ID
+              ? "Mainnet 0xbow suite pending migration — ASP auto-sync opens after `pnpm migrate:mainnet`"
+              : "Unsupported chainId for ASP auto-sync",
+        },
+        { status: 400 }
+      );
     }
 
     const publicClient = createPublicClient({
-      chain: robinhoodTestnet,
-      transport: createBypassTransport(TESTNET_CHAIN_ID),
+      chain: suite.chain,
+      transport: createBypassTransport(suite.chainId),
     });
 
-    const { labels, depositLogs } = await fetchV3AspInputs(publicClient as any);
+    const { labels, depositLogs } = await fetchAspInputs(publicClient as any, suite.pools);
     const aspSet = buildBowAssociationSet(labels);
     const onchainRoot = await publicClient.readContract({
-      address: TESTNET_BOW_V3_ENTRYPOINT,
+      address: suite.entrypoint,
       abi: ENTRYPOINT_ABI,
       functionName: "latestRoot",
     });
@@ -88,8 +138,17 @@ export async function POST(req: NextRequest) {
     } catch {}
 
     const chainId = Number(body.chainId || TESTNET_CHAIN_ID);
-    if (chainId !== TESTNET_CHAIN_ID) {
-      return NextResponse.json({ error: "Only testnet 46630 supported for ASP auto-sync" }, { status: 400 });
+    const suite = resolveAspSuite(chainId);
+    if (!suite) {
+      return NextResponse.json(
+        {
+          error:
+            chainId === MAINNET_CHAIN_ID
+              ? "Mainnet 0xbow suite pending migration — ASP auto-sync opens after `pnpm migrate:mainnet`"
+              : "Unsupported chainId for ASP auto-sync",
+        },
+        { status: 400 }
+      );
     }
 
     const rawKey = (process.env.PRIVATE_KEY || "").trim();
@@ -101,14 +160,14 @@ export async function POST(req: NextRequest) {
     }
 
     const publicClient = createPublicClient({
-      chain: robinhoodTestnet,
-      transport: createBypassTransport(TESTNET_CHAIN_ID),
+      chain: suite.chain,
+      transport: createBypassTransport(suite.chainId),
     });
 
-    const { labels, depositLogs } = await fetchV3AspInputs(publicClient as any);
+    const { labels, depositLogs } = await fetchAspInputs(publicClient as any, suite.pools);
     const aspSet = buildBowAssociationSet(labels);
     const onchainRoot = await publicClient.readContract({
-      address: TESTNET_BOW_V3_ENTRYPOINT,
+      address: suite.entrypoint,
       abi: ENTRYPOINT_ABI,
       functionName: "latestRoot",
     });
@@ -127,8 +186,8 @@ export async function POST(req: NextRequest) {
     const account = privateKeyToAccount(rawKey as `0x${string}`);
     const walletClient = createWalletClient({
       account,
-      chain: robinhoodTestnet,
-      transport: createBypassTransport(TESTNET_CHAIN_ID),
+      chain: suite.chain,
+      transport: createBypassTransport(suite.chainId),
     });
 
     const head = await publicClient.getBlockNumber();
@@ -160,7 +219,7 @@ export async function POST(req: NextRequest) {
     }
     if (!hasToken && !requestedLabelLive) {
       const rootUpdatedLogs = await publicClient.getLogs({
-        address: TESTNET_BOW_V3_ENTRYPOINT,
+        address: suite.entrypoint,
         event: {
           type: "event",
           name: "RootUpdated",
@@ -190,10 +249,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const cid = `auto-asp-46630-b${head}-l${labels.length}`.padEnd(33, "0");
+    const cid = `auto-asp-${suite.tag}-b${head}-l${labels.length}`.padEnd(33, "0");
 
     const txHash = await walletClient.writeContract({
-      address: TESTNET_BOW_V3_ENTRYPOINT,
+      address: suite.entrypoint,
       abi: ENTRYPOINT_ABI,
       functionName: "updateRoot",
       args: [aspSet.root, cid],
