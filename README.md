@@ -67,15 +67,29 @@
 > **Safety notice:** deposits into the Mock-verifier `ShieldedPool_ETH` are **paused** by guardian action ([tx](https://explorer.mainnet.chain.robinhood.com/tx/0x3a34660dec5279612b7a6317f5717f99fbdda6939e52b936a0f1a0e7c5de997b)) after the internal audit found the Mock accepts arbitrary proofs. Withdrawals were never pausable and need no action (pool holds 0 deposits). New deposits will open only on the 0xbow suite after migration.
 | **VeilToken (temporary)** | `0xe0e11ec0d62eda12de796d025d6334fadfe5ab2a` | [View on Explorer](https://explorer.mainnet.chain.robinhood.com/address/0xe0e11ec0d62eda12de796d025d6334fadfe5ab2a) |
 
-### 🚀 Mainnet 0xbow Migration (mainnet pending — testnet fresh suite DONE)
+### 🚀 Mainnet 0xbow Suite — LIVE (2026-10-12, chain 4663)
 
-Validated offline (`pnpm migrate:mainnet:dry`, ctor/link/encoding checks green). One command once the deployer holds **≥0.0015 ETH**:
+Deployed fresh via `pnpm migrate:mainnet` (exit 0, ~0.0005 ETH gas, no reverts).
+Full record: `docs/MAINNET-DEPLOYMENT-2026-10-12.md`. Manifest:
+`deployments/privacy-pools-mainnet-latest.json`. Invariant 5/5 PASS post-deploy.
 
-```bash
-pnpm migrate:mainnet
-```
+| Contract | Address | Blockscout Explorer |
+|---|---|---|
+| **0xbow Entrypoint (proxy)** | `0x96cb8b1836d341a6f5f1f54428bd6696c8b950b1` | [View on Explorer](https://explorer.mainnet.chain.robinhood.com/address/0x96cb8b1836d341a6f5f1f54428bd6696c8b950b1) |
+| **0xbow ETH Pool** | `0x10c17b7538e13c63b890fea52708846e88bb1932` | [View on Explorer](https://explorer.mainnet.chain.robinhood.com/address/0x10c17b7538e13c63b890fea52708846e88bb1932) |
+| **0xbow VEIL Pool** | `0xdb9f182670da2cc6c5ddd432ec98a45e4f2290d1` | [View on Explorer](https://explorer.mainnet.chain.robinhood.com/address/0xdb9f182670da2cc6c5ddd432ec98a45e4f2290d1) |
+| **VeilTreasury** (owner + temp VEIL, 70% burn) | `0xb68c3d25e5e9902363e8e10d5c0a471e65be8152` | [View on Explorer](https://explorer.mainnet.chain.robinhood.com/address/0xb68c3d25e5e9902363e8e10d5c0a471e65be8152) |
+| **VeilAttestationRegistry v2** | `0xd1f17c70067f1cc2b478606b3f0faa18ee8add1d` | [View on Explorer](https://explorer.mainnet.chain.robinhood.com/address/0xd1f17c70067f1cc2b478606b3f0faa18ee8add1d) |
+| **VeilHook v2 (0x20c4)** | `0xf95f041462ee34c2ea7b953a879838133ef820c4` | [View on Explorer](https://explorer.mainnet.chain.robinhood.com/address/0xf95f041462ee34c2ea7b953a879838133ef820c4) |
+| **VeilShieldRouter (fixed R1)** | `0x3db4ae3429f1507aa0cd31c740a0fd276e22a55c` | [View on Explorer](https://explorer.mainnet.chain.robinhood.com/address/0x3db4ae3429f1507aa0cd31c740a0fd276e22a55c) |
+| **ShieldedPool VEIL 0.5** | `0x493f64d4163fe1f966c423f9338cd955e80a99df` | [View on Explorer](https://explorer.mainnet.chain.robinhood.com/address/0x493f64d4163fe1f966c423f9338cd955e80a99df) |
+| **ShieldedPool VEIL 2** | `0x3783db43f4f08294da847c66a0fb7203bb3e005d` | [View on Explorer](https://explorer.mainnet.chain.robinhood.com/address/0x3783db43f4f08294da847c66a0fb7203bb3e005d) |
+| **VeilZkRouter (single+multi+direct)** | `0x0fb48c9552154ea028cbd812430e1ea3465a9b4c` | [View on Explorer](https://explorer.mainnet.chain.robinhood.com/address/0x0fb48c9552154ea028cbd812430e1ea3465a9b4c) |
+| **Legacy ETH Pool (0.001/10, open)** | `0x15f7e378410719438dd20b12d4c440ba1863e892` | [View on Explorer](https://explorer.mainnet.chain.robinhood.com/address/0x15f7e378410719438dd20b12d4c440ba1863e892) |
 
-Deploys on 4663 (testnet-proven bytecode): PoseidonT3/T4 → WithdrawalVerifier + CommitmentVerifier → Entrypoint (proxy, init in construction) → ETH pool + VEIL pool → activate → `registerPool` (0.001 ETH / 1 VEIL, `maxRelayFeeBPS=100`) → sentinel ASP → writes `deployments/privacy-pools-mainnet-latest.json` + `NEXT_PUBLIC_0XBOW_*` env. UI switch to the 0xbow withdraw path on mainnet is the single follow-up step.
+> Note: some addresses are byte-identical to testnet ones (CREATE collision —
+> same deployer, same nonces). Harmless: read-backs prove correct code on 4663.
+> Next: proof cycle → invariant re-run → Blockscout verification → UI ZK wiring.
 
 ### 🔥 Mainnet Burn Loop Proven (2026-10-06, deployer-owned suite)
 
