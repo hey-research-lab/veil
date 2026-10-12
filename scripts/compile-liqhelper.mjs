@@ -4,6 +4,7 @@ import solc from "solc";
 
 const sources = {
   "TestnetLiquidityHelper.sol": { content: readFileSync("contracts/TestnetLiquidityHelper.sol", "utf8") },
+  "MainnetLiquidityHelper.sol": { content: readFileSync("contracts/MainnetLiquidityHelper.sol", "utf8") },
 };
 const remappings = [
   "@uniswap/=node_modules/@uniswap/",
@@ -39,4 +40,6 @@ if (errors.length) {
 const c = out.contracts["TestnetLiquidityHelper.sol"]["TestnetLiquidityHelper"];
 mkdirSync("deployments", { recursive: true });
 writeFileSync("deployments/liqhelper-artifact.json", JSON.stringify({ abi: c.abi, bytecode: `0x${c.evm.bytecode.object}` }));
-console.log("LiquidityHelper compiled.");
+const m = out.contracts["MainnetLiquidityHelper.sol"]["MainnetLiquidityHelper"];
+writeFileSync("deployments/mainnet-liqhelper-artifact.json", JSON.stringify({ abi: m.abi, bytecode: `0x${m.evm.bytecode.object}` }));
+console.log("LiquidityHelper compiled (testnet + mainnet).");
