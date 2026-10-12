@@ -4,7 +4,6 @@
 //   node scripts/mainnet-deploy-cli.mjs --no-menu    (straight deploy flow, for recording)
 //   node scripts/mainnet-deploy-cli.mjs --fast       (combine: no pacing delays)
 //   node scripts/mainnet-deploy-cli.mjs --addresses  (address book only)
-import { createInterface } from "node:readline";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -88,23 +87,38 @@ async function deployTx(t) {
   console.log(`    ${ok} confirmed   gas ${hl(num(t.gasUsed))} · status ${hl(t.status)}`);
 }
 
-// Stays open until the user presses Ctrl+X (never auto-closes).
+// Single raw-mode key reader (no readline — readline corrupts stdin state on
+// Windows and kills the end-of-run key wait). Resolves with the raw bytes.
+async function keypress() {
+  const stdin = process.stdin;
+  const tty = !!stdin.isTTY;
+  try {
+    if (tty) stdin.setRawMode(true);
+  } catch {}
+  stdin.resume();
+  return new Promise((resolve) => {
+    const onData = (d) => {
+      stdin.removeListener("data", onData);
+      try {
+        if (tty) stdin.setRawMode(false);
+      } catch {}
+      stdin.pause();
+      resolve(Buffer.isBuffer(d) ? d : Buffer.from(String(d)));
+    };
+    stdin.on("data", onData);
+  });
+}
+
+// Stays open until the user presses Ctrl+X (Enter accepted as fallback).
+// Non-interactive pipes skip the wait so CI never hangs.
 async function waitCtrlX() {
   console.log(`  ${dim("press")} ${hl("Ctrl+X")} ${dim("to close")}`);
   if (!process.stdin.isTTY) return;
-  process.stdin.setRawMode(true);
-  await new Promise((resolve) => {
-    const onKey = (d) => {
-      if (d.includes(0x18)) {
-        process.stdin.removeListener("data", onKey);
-        process.stdin.setRawMode(false);
-        resolve();
-      } else if (d.includes(0x03)) {
-        process.exit(0);
-      }
-    };
-    process.stdin.on("data", onKey);
-  });
+  for (;;) {
+    const k = await keypress();
+    if (k.includes(0x18) || k.includes(0x0d) || k.includes(0x0a)) return;
+    if (k.includes(0x03)) process.exit(0);
+  }
 }
 
 async function stage(title, names) {
@@ -148,15 +162,14 @@ async function addressBook() {
   console.log();
 }
 
-function menu() {
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
+async function menu() {
   banner();
   console.log(`  ${hl("1")}  Deploy mainnet contracts`);
-  rl.question(`\n  ${C.bold}choice [1]:${C.reset} `, async (ans) => {
-    rl.close();
-    if (ans.trim() === "" || ans.trim() === "1") await deployFlow().catch(fail);
-    else console.log("  bye.");
-  });
+  process.stdout.write(`\n  ${C.bold}choice [1]:${C.reset} `);
+  const k = await keypress();
+  console.log();
+  if (k[0] === 0x31 || k[0] === 0x0d || k[0] === 0x0a) await deployFlow().catch(fail);
+  else console.log("  bye.");
 }
 
 function fail(e) {
