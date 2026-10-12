@@ -4,6 +4,8 @@
 // Plus full testnet parity for the legacy path: fixed VeilShieldRouter (R1
 // native-settle fix) and legacy ShieldedPool VEIL 0.5 / 2 (Mock verifier,
 // mirroring the mainnet ETH pool config — provisional, like testnet).
+// Plus full-ZK parity: VeilZkRouter (single + multi + direct, constructor
+// entrypoint + PoolManager, post-deploy wiring verified).
 // Quinn: needs ~0.0003 ETH gas + 0.0011 for the proof cycle. Fund first.
 // Usage: node scripts/migrate-mainnet-0xbow.mjs --execute
 // Without --execute: dry-run validation only (zero gas).
@@ -148,6 +150,7 @@ if (entrypointFresh) {
   delete checkpoint.veilPool;
   delete checkpoint.registryV2;
   delete checkpoint.hookV2;
+  delete checkpoint.zkRouter;
 }
 saveCheckpoint();
 const poolAbi = art("VeilTestnetPrivacyPool").abi;
@@ -393,6 +396,44 @@ if (!EXECUTE) {
   veilPool2 = await deployVeilPool("veilPool2", 2000000000000000000n, 20000000000000000000000n);
 }
 
+// ---- Full-ZK parity with testnet FINAL (VeilZkRouter: single + multi +
+// direct in one contract, same bytecode as testnet unified router 0x9ccf).
+// Constructor binds the fresh entrypoint + canonical PoolManager; both are
+// re-read post-deploy and must match, same discipline as routerFixed.
+let zkRouter = `0x${"cc".repeat(20)}`;
+if (!EXECUTE) {
+  console.log("[dry-run] would deploy VeilZkRouter (entrypoint + PoolManager) + verify wiring");
+} else {
+  const { VEIL_ZK_ROUTER_ABI, VEIL_ZK_ROUTER_BYTECODE } = await import("../lib/veil-artifact.mjs");
+  if (outputExists(checkpoint.zkRouter) && (await codeExists(checkpoint.zkRouter))) {
+    zkRouter = checkpoint.zkRouter;
+    console.log("zk router (resumed):", zkRouter);
+  } else {
+    const hh = await wallet.deployContract({
+      abi: VEIL_ZK_ROUTER_ABI,
+      bytecode: VEIL_ZK_ROUTER_BYTECODE,
+      args: [entrypoint, V4_PM_MAINNET],
+    });
+    const rrc = await publicClient.waitForTransactionReceipt({ hash: hh });
+    if (rrc.status !== "success" || !rrc.contractAddress) throw new Error("zk router deploy reverted");
+    zkRouter = rrc.contractAddress;
+    checkpoint.zkRouter = zkRouter;
+    saveCheckpoint();
+    console.log("zk router:", zkRouter);
+  }
+  const zkVerifyAbi = [
+    { type: "function", name: "entrypoint", stateMutability: "view", inputs: [], outputs: [{ type: "address" }] },
+    { type: "function", name: "poolManager", stateMutability: "view", inputs: [], outputs: [{ type: "address" }] },
+  ];
+  const [zkEp, zkPm] = await Promise.all([
+    publicClient.readContract({ address: zkRouter, abi: zkVerifyAbi, functionName: "entrypoint" }),
+    publicClient.readContract({ address: zkRouter, abi: zkVerifyAbi, functionName: "poolManager" }),
+  ]);
+  if (zkEp.toLowerCase() !== entrypoint.toLowerCase()) throw new Error("zk router entrypoint mismatch after deploy");
+  if (zkPm.toLowerCase() !== V4_PM_MAINNET.toLowerCase()) throw new Error("zk router poolManager mismatch after deploy");
+  console.log("zk router verified: entrypoint + poolManager bound");
+}
+
 if (!EXECUTE) {
   console.log("DRY-RUN COMPLETE — no gas spent. Re-run with --execute once funded.");
   process.exit(0);
@@ -405,6 +446,7 @@ const out = {
   create2Deployer: CREATE2_MAINNET, mockVerifier: MOCK_MAINNET,
   legacyEthPool: legacyEthFresh,
   routerFixed, veilPool05, veilPool2,
+  zkRouter,
   abandonedOldSuite: {
     mockVerifier: "0x797e2aa1f3225ab38bfc6441a3f4b44e95158cda",
     poolEth: "0xdd0fb7fc7f1398fd1398a594f7a0ce934caa7ea0",
@@ -430,6 +472,7 @@ for (const f of [".env.local", ".env.mainnet.local"]) {
   set("NEXT_PUBLIC_VEIL_ATTESTATION_REGISTRY", registryV2);
   set("NEXT_PUBLIC_VEIL_HOOK", hookV2);
   set("NEXT_PUBLIC_VEIL_SHIELD_ROUTER", routerFixed);
+  set("NEXT_PUBLIC_0XBOW_ZK_ROUTER", zkRouter);
   set("NEXT_PUBLIC_VEIL_POOL_05", veilPool05);
   set("NEXT_PUBLIC_VEIL_POOL_2", veilPool2);
   set("NEXT_PUBLIC_VEIL_CREATE2_DEPLOYER", CREATE2_MAINNET);

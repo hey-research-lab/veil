@@ -55,6 +55,22 @@ export const TESTNET_ZK_ROUTER_MULTI_ADDRESS =
 // before use so a future edit cannot introduce a TDZ slip (audit F-07).
 export const ZK_ETH_ZERO_ADDRESS = ETH_ZERO_ADDRESS;
 
+// Mainnet ZK router (deployments/privacy-pools-mainnet-latest.json, env
+// NEXT_PUBLIC_0XBOW_ZK_ROUTER, populated by `pnpm migrate:mainnet`).
+// Empty until migration runs — every consumer must gate on
+// isMainnetZkConfigured() and fail closed. Full mainnet execution wiring
+// (denoms/pool keys per fresh manifest) ships after migration verification.
+export const MAINNET_ZK_ROUTER_ADDRESS =
+  (process.env.NEXT_PUBLIC_0XBOW_ZK_ROUTER as Address | undefined) || ("" as Address);
+
+/** True once the mainnet migration deployed the ZK router (env populated). */
+export function isMainnetZkConfigured(): boolean {
+  return (
+    /^0x[0-9a-fA-F]{40}$/.test(MAINNET_ZK_ROUTER_ADDRESS) &&
+    MAINNET_ZK_ROUTER_ADDRESS !== (ZK_ETH_ZERO_ADDRESS as string)
+  );
+}
+
 /** Shielded-swap direction: source asset determines the swap leg. */
 export type ZkShieldedSwapDirection = "ETH_TO_VEIL" | "VEIL_TO_ETH";
 

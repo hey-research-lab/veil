@@ -59,9 +59,10 @@ pnpm migrate:mainnet       # executes once deployer holds >= 0.0015 ETH
 5. **VeilTestnetPrivacyPool (ETH)** + **VeilTestnetPrivacyPoolERC20 (VEIL)** — `activateDeposits`, `registerPool` (0.001 ETH / 1 VEIL, maxRelay 100), ASP sentinel root.
 6. **VeilAttestationRegistry v2 + VeilHook v2** (CREATE2-mined, treasury = `VeilTreasury` mainnet).
 7. **VeilShieldRouter (fixed R1 settle)** — replaces buggy `0x01a0…`; `poolManager()` verified post-deploy — plus **ShieldedPool VEIL 0.5 + VEIL 2** — Mock verifier + association root mirrored from the mainnet ETH pool (provisional, same posture as testnet), guardian = deployer, verified post-deploy.
+8. **VeilZkRouter (single + multi + direct)** — same bytecode as the testnet unified router; constructor `(entrypoint, PoolManager)`, post-deploy `entrypoint()` + `poolManager()` re-read and enforced. Manifest `zkRouter` + env `NEXT_PUBLIC_0XBOW_ZK_ROUTER`. UI mainnet execution wiring ships after migration verification (proof cycle first) — until then `isMainnetZkConfigured()` gates, fail closed.
 
 Outputs: `deployments/privacy-pools-mainnet-latest.json` + env patch
-(`NEXT_PUBLIC_0XBOW_*`, `NEXT_PUBLIC_VEIL_SHIELD_ROUTER`, `NEXT_PUBLIC_VEIL_POOL_05/02`)
+(`NEXT_PUBLIC_0XBOW_*`, `NEXT_PUBLIC_0XBOW_ZK_ROUTER`, `NEXT_PUBLIC_VEIL_SHIELD_ROUTER`, `NEXT_PUBLIC_VEIL_POOL_05/02`)
 into `.env.local` + `.env.mainnet.local`. Checkpoints resume in
 `deployments/migrate-mainnet-pending.json` — a mid-run abort never needs a
 from-scratch rerun (this was the 95%-not-100% hole: fixed by resume).
