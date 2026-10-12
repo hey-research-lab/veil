@@ -69,8 +69,7 @@ Old treasury `0x8cd3…` held 9,000 temp VEIL. Rescued to the deployer in tx
    Documented in `MAINNET_RUNBOOK.md`; do not redeploy, do not mistake for
    testnet pointers.
 
-## 6. Still To Do (post-deploy order)
-1. Proof cycle 0.001 → prove → withdraw on 4663.
+## 6. Still To Do (post-deploy order)1. Proof cycle 0.001 → prove → withdraw on 4663.
 2. `verify-pool-invariant --mainnet` re-run + Blockscout source verification.
 3. UI ZK execution wiring for mainnet + v4 liquidity check/seed.
 4. ASP auto-sync: `POST /api/asp/sync {"chainId":4663}` (route ready, policy v2).
@@ -109,3 +108,26 @@ all `success`, contract addresses match §1–§2). Total gas: 24,586,693.
 | 22 | VeilZkRouter | `0xcf51d624…6202c6208aa5` | 86334911 | 2,365,528 |
 
 Full hashes in the JSON file; explorer links in `mainnet-deploy-cli.mjs` output.
+
+## 8. Proof Cycle 0.001 (2026-10-12, REAL funds) + One Dust Note
+
+**Cycle PASSED.** Deposit
+[`0x3eee36f9…a8784a1e4a`](https://explorer.mainnet.chain.robinhood.com/tx/0x3eee36f9bd1ae425cea82de105ac67e0b5b6ed72b899f805b6949aa8784a1e4a)
+(block 86372444) → ASP publish
+[`0x9fddd994…28600f271`](https://explorer.mainnet.chain.robinhood.com/tx/0x9fddd994e340324549e833933b287098939526158ac031b3a59469528600f271)
+(root `21190888…`, includes the label — not sentinel) → Groth16 prove +
+local verify → relay to self
+[`0x435a3d0e…c2a7843d4ee`](https://explorer.mainnet.chain.robinhood.com/tx/0x435a3d0e4d6c5d2c1c87f7cd951ba55b19a5f1a4ab9a8ae2cb50ec2a7843d4ee)
+(block 86372898, nullifier spent, 0.001 returned home). Script:
+`scripts/mainnet-proof-cycle.mjs` (relay recipient = deployer, secrets
+persisted pre-deposit, spent-note file auto-removed).
+
+**Dust (honest record, same class as testnet dust):** the FIRST cycle attempt
+deposited 0.001 ETH
+([`0x0b328e7c…a3270c2a15`](https://explorer.mainnet.chain.robinhood.com/tx/0x0b328e7c2e527e52469f1336c6b3bbe65d3377126647a99f27eefea3270c2a15),
+block 86370415, label `87025063…`) then crashed on a fresh-tip log-indexing
+lag BEFORE persisting secrets — note unspendable, 0.001 locked in the pool
+forever. No one can take it (not even the operator); invariant still holds
+(lifetime 0.002 − withdrawn 0.001 = balance 0.001). Lesson applied: secrets
+persist pre-deposit, scans retry + assert the label, same-root publishes
+skipped. Post-cycle invariant re-run: **5/5 PASS**.
