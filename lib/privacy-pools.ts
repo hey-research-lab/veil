@@ -138,3 +138,33 @@ export function isTestnetBowV3Configured(): boolean {
     (addr) => isHexAddress(addr) && addr !== "0x0000000000000000000000000000000000000000"
   );
 }
+
+// 0xbow Privacy Pools MAINNET 4663 fresh suite v3 (mirror of the testnet
+// suite above). Sourced from deployments/privacy-pools-mainnet-latest.json,
+// populated by `pnpm migrate:mainnet`. Empty until migration runs — every
+// consumer must gate on isMainnetBowV3Configured() and fail closed.
+export const MAINNET_BOW_V3_ENTRYPOINT =
+  (process.env.NEXT_PUBLIC_0XBOW_ENTRYPOINT as Address | undefined) ||
+  ("" as Address);
+export const MAINNET_BOW_V3_ETH_POOL =
+  (process.env.NEXT_PUBLIC_0XBOW_POOL_ETH as Address | undefined) ||
+  ("" as Address);
+export const MAINNET_BOW_V3_VEIL_POOL =
+  (process.env.NEXT_PUBLIC_0XBOW_POOL_VEIL as Address | undefined) ||
+  ("" as Address);
+export const MAINNET_BOW_V3_VEIL_TOKEN =
+  (process.env.NEXT_PUBLIC_VEIL_TOKEN as Address | undefined) ||
+  ("" as Address);
+// Same fixed 0.001 denomination both sides (audited 0xbow constant, identical
+// on every chain). NOT the entrypoint minimumDeposit floor.
+export const MAINNET_BOW_V3_ETH_DENOMINATION = 1000000000000000n;
+export const MAINNET_BOW_V3_VEIL_DENOMINATION = 1000000000000000n;
+// 0xbow NATIVE_ASSET sentinel for the ETH pool (NOT address(0)).
+export const MAINNET_BOW_V3_NATIVE_ASSET = TESTNET_BOW_V3_NATIVE_ASSET;
+
+/** True when every mainnet v3 suite address is a valid non-zero hex address. */
+export function isMainnetBowV3Configured(): boolean {
+  return [MAINNET_BOW_V3_ENTRYPOINT, MAINNET_BOW_V3_ETH_POOL, MAINNET_BOW_V3_VEIL_POOL, MAINNET_BOW_V3_VEIL_TOKEN].every(
+    (addr) => isHexAddress(addr) && addr !== "0x0000000000000000000000000000000000000000"
+  );
+}

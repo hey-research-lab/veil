@@ -211,7 +211,7 @@ describe("zk router flow wiring (full-ZK UI)", () => {
       /AtomicityViolation/
     );
     expect(mapZkRouterError({ errorName: "RecipientMismatch" })).toMatch(
-      new RegExp(ZK_ROUTER.slice(0, 10), "i")
+      /relay recipient must equal the ZK router/i
     );
     expect(mapZkRouterError({ errorName: "InvalidSwapLeg" })).toMatch(
       /InvalidSwapLeg/

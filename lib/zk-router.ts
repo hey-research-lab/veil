@@ -12,8 +12,16 @@ import {
 import {
   TESTNET_BOW_V3_ENTRYPOINT,
   TESTNET_BOW_V3_ETH_DENOMINATION,
+  TESTNET_BOW_V3_ETH_POOL,
   TESTNET_BOW_V3_VEIL_DENOMINATION,
+  TESTNET_BOW_V3_VEIL_POOL,
   TESTNET_BOW_V3_VEIL_TOKEN,
+  MAINNET_BOW_V3_ENTRYPOINT,
+  MAINNET_BOW_V3_ETH_POOL,
+  MAINNET_BOW_V3_VEIL_POOL,
+  MAINNET_BOW_V3_VEIL_TOKEN,
+  MAINNET_CHAIN_ID,
+  isMainnetBowV3Configured,
 } from "./privacy-pools";
 
 // ---------------------------------------------------------------------------
@@ -51,6 +59,57 @@ export const TESTNET_ZK_ROUTER_MULTI_ADDRESS =
   (process.env.NEXT_PUBLIC_TESTNET_VEIL_ZK_ROUTER_MULTI as Address | undefined) ||
   ("0xc009197da4c4e7134ab8d8969d9442a5c8afb220" as Address);
 
+// Mainnet ZK router (deployments/privacy-pools-mainnet-latest.json, env
+// NEXT_PUBLIC_0XBOW_ZK_ROUTER, populated by `pnpm migrate:mainnet`).
+// Empty until migration runs — use resolveZkSuite, never this directly.
+// (MAINNET_ZK_ROUTER_ADDRESS is declared below; the unified mainnet router
+// serves single + multi + direct, so multi aliases it.)
+
+/** Chain-bound ZK addresses. Defaults keep every existing caller on testnet. */
+export interface ZkChainSuite {
+  chainId: number;
+  /** Single-note + direct router (relay recipient). */
+  router: Address;
+  /** Multi-note router (relay recipient). */
+  multi: Address;
+  /** 0xbow Entrypoint (processooor). */
+  entrypoint: Address;
+  ethPool: Address;
+  veilPool: Address;
+  veilToken: Address;
+}
+
+export const TESTNET_ZK_SUITE: ZkChainSuite = {
+  chainId: TESTNET_ZK_ROUTER_CHAIN_ID,
+  router: TESTNET_ZK_ROUTER_ADDRESS,
+  multi: TESTNET_ZK_ROUTER_MULTI_ADDRESS,
+  entrypoint: TESTNET_ZK_ROUTER_ENTRYPOINT,
+  ethPool: TESTNET_BOW_V3_ETH_POOL,
+  veilPool: TESTNET_BOW_V3_VEIL_POOL,
+  veilToken: TESTNET_BOW_V3_VEIL_TOKEN,
+};
+
+/**
+ * Resolve the ZK suite for a wallet chain. Returns null when the chain is
+ * unsupported or the mainnet suite is unconfigured (migration pending) —
+ * callers fail closed on null. Testnet resolves unconditionally.
+ */
+export function resolveZkSuite(chainId: number | null): ZkChainSuite | null {
+  if (chainId === TESTNET_ZK_ROUTER_CHAIN_ID) return TESTNET_ZK_SUITE;
+  if (chainId === MAINNET_CHAIN_ID && isMainnetBowV3Configured() && isMainnetZkConfigured()) {
+    return {
+      chainId: MAINNET_CHAIN_ID,
+      router: MAINNET_ZK_ROUTER_ADDRESS,
+      multi: MAINNET_ZK_ROUTER_MULTI_ADDRESS,
+      entrypoint: MAINNET_BOW_V3_ENTRYPOINT,
+      ethPool: MAINNET_BOW_V3_ETH_POOL,
+      veilPool: MAINNET_BOW_V3_VEIL_POOL,
+      veilToken: MAINNET_BOW_V3_VEIL_TOKEN,
+    };
+  }
+  return null;
+}
+
 // Zero address shared by the shielded-swap resolvers below. Declared
 // before use so a future edit cannot introduce a TDZ slip (audit F-07).
 export const ZK_ETH_ZERO_ADDRESS = ETH_ZERO_ADDRESS;
@@ -70,6 +129,10 @@ export function isMainnetZkConfigured(): boolean {
     MAINNET_ZK_ROUTER_ADDRESS !== (ZK_ETH_ZERO_ADDRESS as string)
   );
 }
+
+// Unified mainnet router serves single + multi + direct (same bytecode as the
+// testnet unified router), so the multi entry aliases it.
+export const MAINNET_ZK_ROUTER_MULTI_ADDRESS = MAINNET_ZK_ROUTER_ADDRESS;
 
 /** Shielded-swap direction: source asset determines the swap leg. */
 export type ZkShieldedSwapDirection = "ETH_TO_VEIL" | "VEIL_TO_ETH";
@@ -239,6 +302,8 @@ export interface ZkFlowBase {
   depositValue: bigint;
   precommitment: bigint;
   zeroForOne?: boolean;
+  /** Chain suite; defaults to testnet so existing callers are untouched. */
+  suite?: ZkChainSuite;
 }
 
 export interface FullZkFlowArgs extends ZkFlowBase {
@@ -305,16 +370,17 @@ function checkSwapLegBinding(
  * mismatch (recipient, assets, zero values).
  */
 export function buildFullZkFlowArgs(input: BuildFullZkFlowInput): FullZkFlowArgs {
+  const suite = input.suite ?? TESTNET_ZK_SUITE;
   const zeroForOne = input.zeroForOne ?? false;
-  const recipient = input.recipient ?? TESTNET_ZK_ROUTER_ADDRESS;
-  if (recipient.toLowerCase() !== TESTNET_ZK_ROUTER_ADDRESS.toLowerCase()) {
+  const recipient = input.recipient ?? suite.router;
+  if (recipient.toLowerCase() !== suite.router.toLowerCase()) {
     throw new Error(
-      `RecipientMismatch: the relay recipient must equal the ZK router (${TESTNET_ZK_ROUTER_ADDRESS}) so the relay exit chains into the swap input.`
+      `RecipientMismatch: the relay recipient must equal the ZK router (${suite.router}) so the relay exit chains into the swap input.`
     );
   }
-  if (input.withdrawal.processooor.toLowerCase() !== TESTNET_ZK_ROUTER_ENTRYPOINT.toLowerCase()) {
+  if (input.withdrawal.processooor.toLowerCase() !== suite.entrypoint.toLowerCase()) {
     throw new Error(
-      `Invalid withdrawal: processooor must be the fresh suite entrypoint (${TESTNET_ZK_ROUTER_ENTRYPOINT}).`
+      `Invalid withdrawal: processooor must be the fresh suite entrypoint (${suite.entrypoint}).`
     );
   }
   if (input.depositValue <= 0n) throw new Error("Deposit value must be greater than zero.");
@@ -371,7 +437,7 @@ export async function simulateFullZkFlow(
   params: { account: Address; args: FullZkFlowArgs }
 ): Promise<bigint> {
   const { result } = (await client.simulateContract({
-    address: TESTNET_ZK_ROUTER_ADDRESS,
+    address: params.args.recipient,
     abi: VEIL_ZK_ROUTER_ABI,
     functionName: "executeFullZkFlow",
     args: toCallArgs(params.args) as never,
@@ -391,6 +457,8 @@ export interface BuildDirectFullZkFlowInput {
   recipient?: Address;
   quotedSwapOut: bigint;
   slippagePercent: number;
+  /** Chain suite; defaults to testnet so existing callers are untouched. */
+  suite?: ZkChainSuite;
 }
 
 export interface DirectFullZkFlowArgs {
@@ -413,16 +481,17 @@ export interface DirectFullZkFlowArgs {
  * trusted from the caller).
  */
 export function buildDirectFullZkFlowArgs(input: BuildDirectFullZkFlowInput): DirectFullZkFlowArgs {
+  const suite = input.suite ?? TESTNET_ZK_SUITE;
   const zeroForOne = input.zeroForOne ?? false;
-  const recipient = input.recipient ?? TESTNET_ZK_ROUTER_ADDRESS;
-  if (recipient.toLowerCase() !== TESTNET_ZK_ROUTER_ADDRESS.toLowerCase()) {
+  const recipient = input.recipient ?? suite.router;
+  if (recipient.toLowerCase() !== suite.router.toLowerCase()) {
     throw new Error(
-      `RecipientMismatch: the relay recipient must equal the ZK router (${TESTNET_ZK_ROUTER_ADDRESS}) so the relay exit chains into the swap input.`
+      `RecipientMismatch: the relay recipient must equal the ZK router (${suite.router}) so the relay exit chains into the swap input.`
     );
   }
-  if (input.withdrawal.processooor.toLowerCase() !== TESTNET_ZK_ROUTER_ENTRYPOINT.toLowerCase()) {
+  if (input.withdrawal.processooor.toLowerCase() !== suite.entrypoint.toLowerCase()) {
     throw new Error(
-      `Invalid withdrawal: processooor must be the fresh suite entrypoint (${TESTNET_ZK_ROUTER_ENTRYPOINT}).`
+      `Invalid withdrawal: processooor must be the fresh suite entrypoint (${suite.entrypoint}).`
     );
   }
   if (!/^0x[0-9a-fA-F]{40}$/.test(input.outputRecipient) || input.outputRecipient === ETH_ZERO_ADDRESS) {
@@ -477,7 +546,7 @@ export async function simulateDirectFullZkFlow(
   params: { account: Address; args: DirectFullZkFlowArgs }
 ): Promise<bigint> {
   const { result } = (await client.simulateContract({
-    address: TESTNET_ZK_ROUTER_ADDRESS,
+    address: params.args.recipient,
     abi: VEIL_ZK_ROUTER_ABI,
     functionName: "executeFullZkFlowDirect",
     args: toDirectCallArgs(params.args) as never,
@@ -509,8 +578,10 @@ export async function quoteDirectFullZkFlow(
     outputRecipient: Address;
     zeroForOne?: boolean;
     slippagePercent: number;
+    suite?: ZkChainSuite;
   }
 ): Promise<DirectZkQuoteResult> {
+  const suite = params.suite ?? TESTNET_ZK_SUITE;
   const probeBase = {
     withdrawal: params.withdrawal,
     proof: params.proof,
@@ -520,6 +591,7 @@ export async function quoteDirectFullZkFlow(
     zeroForOne: params.zeroForOne,
     quotedSwapOut: 1n,
     slippagePercent: 0,
+    suite,
   };
   const probeArgs = buildDirectFullZkFlowArgs(probeBase);
   const quotedSwapOut = await simulateDirectFullZkFlow(client, {
@@ -527,7 +599,7 @@ export async function quoteDirectFullZkFlow(
     args: { ...probeArgs, minSwapOut: 0n },
   });
   if (quotedSwapOut <= 0n) throw new Error("Direct swap quote must be greater than zero. No transaction was sent.");
-  const args = buildDirectFullZkFlowArgs({ ...probeBase, quotedSwapOut, slippagePercent: params.slippagePercent });
+  const args = buildDirectFullZkFlowArgs({ ...probeBase, quotedSwapOut, slippagePercent: params.slippagePercent, suite });
   await simulateDirectFullZkFlow(client, { account: params.account, args });
   return { args, quotedSwapOut, minSwapOut: args.minSwapOut };
 }
@@ -620,7 +692,7 @@ export function mapZkRouterError(error: unknown, slippagePercent?: number): stri
   if (name === "AtomicityViolation" || /AtomicityViolation/i.test(msg))
     return "Full-ZK flow reverted: the atomic relay-swap-deposit sequence was interrupted (AtomicityViolation). The whole transaction reverts, no funds moved.";
   if (name === "RecipientMismatch" || /RecipientMismatch/i.test(msg))
-    return `Full-ZK flow reverted: the relay recipient must equal the ZK router (${TESTNET_ZK_ROUTER_ADDRESS}) so the relay exit chains into the swap. Rebuild the flow and try again.`;
+    return "Full-ZK flow reverted: the relay recipient must equal the ZK router so the relay exit chains into the swap. Rebuild the flow and try again.";
   if (name === "InvalidSwapLeg" || /InvalidSwapLeg/i.test(msg))
     return "Full-ZK flow reverted: the swap leg direction does not match the withdraw and deposit assets (InvalidSwapLeg). No transaction was sent.";
   if (name === "InvalidDenomination" || /InvalidDenomination/i.test(msg))
@@ -680,10 +752,11 @@ function resolveBase(
   base: ZkFlowBase,
   minSwapOut: bigint
 ): FullZkFlowArgs {
+  const suite = base.suite ?? TESTNET_ZK_SUITE;
   const zeroForOne = base.zeroForOne ?? false;
-  if (base.withdrawal.processooor.toLowerCase() !== TESTNET_ZK_ROUTER_ENTRYPOINT.toLowerCase()) {
+  if (base.withdrawal.processooor.toLowerCase() !== suite.entrypoint.toLowerCase()) {
     throw new Error(
-      `Invalid withdrawal: processooor must be the fresh suite entrypoint (${TESTNET_ZK_ROUTER_ENTRYPOINT}).`
+      `Invalid withdrawal: processooor must be the fresh suite entrypoint (${suite.entrypoint}).`
     );
   }
   if (base.depositValue <= 0n) throw new Error("Deposit value must be greater than zero.");
@@ -693,7 +766,7 @@ function resolveBase(
   return {
     ...base,
     zeroForOne,
-    recipient: TESTNET_ZK_ROUTER_ADDRESS,
+    recipient: suite.router,
     swapLeg,
     minSwapOut,
   };
@@ -882,6 +955,8 @@ export interface ZkMultiFlowBase {
   depositValue: bigint;
   precommitment: bigint;
   zeroForOne?: boolean;
+  /** Chain suite; defaults to testnet so existing callers are untouched. */
+  suite?: ZkChainSuite;
 }
 
 export interface MultiFullZkFlowArgs extends ZkMultiFlowBase {
@@ -925,11 +1000,11 @@ function checkMultiBatchLengths(
   }
 }
 
-function checkMultiEntrypoint(withdrawals: ZkWithdrawalStruct[]): void {
+function checkMultiEntrypoint(withdrawals: ZkWithdrawalStruct[], suite: ZkChainSuite = TESTNET_ZK_SUITE): void {
   for (const w of withdrawals) {
-    if (w.processooor.toLowerCase() !== TESTNET_ZK_ROUTER_ENTRYPOINT.toLowerCase()) {
+    if (w.processooor.toLowerCase() !== suite.entrypoint.toLowerCase()) {
       throw new Error(
-        `Invalid withdrawal: processooor must be the fresh suite entrypoint (${TESTNET_ZK_ROUTER_ENTRYPOINT}).`
+        `Invalid withdrawal: processooor must be the fresh suite entrypoint (${suite.entrypoint}).`
       );
     }
   }
@@ -941,15 +1016,16 @@ function checkMultiEntrypoint(withdrawals: ZkWithdrawalStruct[]): void {
  * mismatch (recipient, assets, zero values, batch shape).
  */
 export function buildMultiFullZkFlowArgs(input: BuildMultiFullZkFlowInput): MultiFullZkFlowArgs {
+  const suite = input.suite ?? TESTNET_ZK_SUITE;
   const zeroForOne = input.zeroForOne ?? false;
-  const recipient = input.recipient ?? TESTNET_ZK_ROUTER_MULTI_ADDRESS;
-  if (recipient.toLowerCase() !== TESTNET_ZK_ROUTER_MULTI_ADDRESS.toLowerCase()) {
+  const recipient = input.recipient ?? suite.multi;
+  if (recipient.toLowerCase() !== suite.multi.toLowerCase()) {
     throw new Error(
-      `RecipientMismatch: the relay recipient must equal the multi-note ZK router (${TESTNET_ZK_ROUTER_MULTI_ADDRESS}) so the relay exits chain into the swap input.`
+      `RecipientMismatch: the relay recipient must equal the multi-note ZK router (${suite.multi}) so the relay exits chain into the swap input.`
     );
   }
   checkMultiBatchLengths(input.withdrawals, input.proofs, input.scopes);
-  checkMultiEntrypoint(input.withdrawals);
+  checkMultiEntrypoint(input.withdrawals, suite);
   if (input.depositValue <= 0n) throw new Error("Deposit value must be greater than zero.");
   if (input.precommitment === 0n) throw new Error("InvalidPrecommitment: precommitment must be non-zero.");
   const swapLeg = buildZkSwapLeg({ zeroForOne });
@@ -1004,7 +1080,7 @@ export async function simulateMultiFullZkFlow(
   params: { account: Address; args: MultiFullZkFlowArgs }
 ): Promise<bigint> {
   const { result } = (await client.simulateContract({
-    address: TESTNET_ZK_ROUTER_MULTI_ADDRESS,
+    address: params.args.recipient,
     abi: VEIL_ZK_ROUTER_ABI,
     functionName: "executeMultiFullZkFlow",
     args: toMultiCallArgs(params.args) as never,
@@ -1014,9 +1090,10 @@ export async function simulateMultiFullZkFlow(
 }
 
 function resolveMultiBase(base: ZkMultiFlowBase, minSwapOut: bigint): MultiFullZkFlowArgs {
+  const suite = base.suite ?? TESTNET_ZK_SUITE;
   const zeroForOne = base.zeroForOne ?? false;
   checkMultiBatchLengths(base.withdrawals, base.proofs, base.scopes);
-  checkMultiEntrypoint(base.withdrawals);
+  checkMultiEntrypoint(base.withdrawals, suite);
   if (base.depositValue <= 0n) throw new Error("Deposit value must be greater than zero.");
   if (base.precommitment === 0n) throw new Error("InvalidPrecommitment: precommitment must be non-zero.");
   const swapLeg = buildZkSwapLeg({ zeroForOne });
@@ -1024,7 +1101,7 @@ function resolveMultiBase(base: ZkMultiFlowBase, minSwapOut: bigint): MultiFullZ
   return {
     ...base,
     zeroForOne,
-    recipient: TESTNET_ZK_ROUTER_MULTI_ADDRESS,
+    recipient: suite.multi,
     swapLeg,
     minSwapOut,
   };
@@ -1174,7 +1251,7 @@ export async function runShieldedSwapPreSendSequence(params: {
       args: params.multiArgs,
     });
     return params.walletClient.writeContract({
-      address: TESTNET_ZK_ROUTER_MULTI_ADDRESS,
+      address: params.multiArgs.recipient,
       abi: VEIL_ZK_ROUTER_ABI,
       functionName: "executeMultiFullZkFlow",
       args: [
@@ -1199,7 +1276,7 @@ export async function runShieldedSwapPreSendSequence(params: {
   });
   console.log("[trace-exec] simulate done, requesting wallet signature");
   return params.walletClient.writeContract({
-    address: TESTNET_ZK_ROUTER_ADDRESS,
+    address: params.singleArgs.recipient,
     abi: VEIL_ZK_ROUTER_ABI,
     functionName: "executeFullZkFlow",
     args: [

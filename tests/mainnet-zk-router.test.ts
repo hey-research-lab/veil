@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
+import {
+  MAINNET_ZK_ROUTER_ADDRESS,
+  isMainnetZkConfigured,
+} from "../lib/zk-router";
 
 describe("mainnet ZK router parity", () => {
   it("migration script deploys VeilZkRouter with checkpoint resume", () => {
@@ -13,14 +17,13 @@ describe("mainnet ZK router parity", () => {
     expect(src).toContain("poolManager");
   });
 
-  it("lib exposes a fail-closed mainnet ZK router address", async () => {
-    const mod = await import("../lib/zk-router");
-    expect(typeof mod.MAINNET_ZK_ROUTER_ADDRESS).toBe("string");
-    expect(typeof mod.isMainnetZkConfigured).toBe("function");
+  it("lib exposes a fail-closed mainnet ZK router address", () => {
+    expect(typeof MAINNET_ZK_ROUTER_ADDRESS).toBe("string");
+    expect(typeof isMainnetZkConfigured).toBe("function");
     // Unconfigured default (empty env) must fail closed, never a zero address.
     if (!process.env.NEXT_PUBLIC_0XBOW_ZK_ROUTER) {
-      expect(mod.MAINNET_ZK_ROUTER_ADDRESS).toBe("");
-      expect(mod.isMainnetZkConfigured()).toBe(false);
+      expect(MAINNET_ZK_ROUTER_ADDRESS).toBe("");
+      expect(isMainnetZkConfigured()).toBe(false);
     }
   });
 

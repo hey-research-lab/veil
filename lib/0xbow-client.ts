@@ -22,8 +22,8 @@ import {
 import { createPublicClient, encodeAbiParameters, http, parseAbiItem, type Address, type PublicClient } from "viem";
 import { fetchPinnedBowArtifact, type BowArtifactName } from "./0xbow-artifacts";
 import { buildBowAssociationProof, buildBowAssociationSet, type BowAssociationSet } from "./0xbow-association";
-import { TESTNET_0XBOW, TESTNET_0XBOW_META, TESTNET_CHAIN_ID } from "./privacy-pools";
-import { robinhoodTestnet } from "./chains";
+import { TESTNET_0XBOW, TESTNET_0XBOW_META, TESTNET_CHAIN_ID, MAINNET_CHAIN_ID } from "./privacy-pools";
+import { robinhoodTestnet, robinhoodMainnet } from "./chains";
 
 export interface BowStateTree {
   leaves: bigint[];
@@ -83,15 +83,20 @@ export function createBowSdk(): PrivacyPoolSDK {
   return new PrivacyPoolSDK(new PinnedBowCircuits());
 }
 
-/** Testnet read client (veil RPC pattern from lib/balances.ts, testnet chain object). */
-export function createTestnetBowPublicClient(rpcUrl?: string): PublicClient {
+/** Chain-aware read client (veil RPC pattern from lib/balances.ts). Testnet behavior unchanged. */
+export function createBowPublicClient(chainId: number, rpcUrl?: string): PublicClient {
+  const mainnet = chainId === MAINNET_CHAIN_ID;
   const endpoint =
     rpcUrl ||
     (typeof window !== "undefined"
-      ? `${window.location.origin}/api/rpc?chainId=${TESTNET_CHAIN_ID}`
-      : process.env.ROBINHOOD_TESTNET_RPC_URL || "https://rpc.testnet.chain.robinhood.com");
+      ? `${window.location.origin}/api/rpc?chainId=${chainId}`
+      : process.env.ROBINHOOD_TESTNET_RPC_URL && !mainnet
+        ? process.env.ROBINHOOD_TESTNET_RPC_URL
+        : mainnet
+          ? "https://rpc.mainnet.chain.robinhood.com"
+          : "https://rpc.testnet.chain.robinhood.com");
   return createPublicClient({
-    chain: robinhoodTestnet,
+    chain: mainnet ? robinhoodMainnet : robinhoodTestnet,
     transport: http(endpoint, {
       fetchOptions: {
         headers: {
@@ -100,6 +105,11 @@ export function createTestnetBowPublicClient(rpcUrl?: string): PublicClient {
       },
     }),
   }) as unknown as PublicClient;
+}
+
+/** Testnet read client (veil RPC pattern from lib/balances.ts, testnet chain object). */
+export function createTestnetBowPublicClient(rpcUrl?: string): PublicClient {
+  return createBowPublicClient(TESTNET_CHAIN_ID, rpcUrl);
 }
 
 export function getTestnetPoolInfo(scope: bigint): PoolInfo {
@@ -219,6 +229,17 @@ export class BowTestnetDataService extends DataService {
 
 export function isTestnetChainId(chainId: number | undefined): boolean {
   return chainId === TESTNET_CHAIN_ID;
+}
+
+// Mainnet entrypoint-proxy deployment block (tx ledger nonce 5, block
+// 86334089). Event scans start here; mirrors TESTNET_0XBOW_META above.
+export const MAINNET_BOW_DEPLOYMENT_BLOCK = 86334089n;
+
+/** Chain-aware event-scan start block (fail closed on unknown chains). */
+export function resolveBowStartBlock(chainId: number | null): bigint | null {
+  if (chainId === TESTNET_CHAIN_ID) return TESTNET_0XBOW_META.poolDeploymentBlock;
+  if (chainId === MAINNET_CHAIN_ID) return MAINNET_BOW_DEPLOYMENT_BLOCK;
+  return null;
 }
 
 export interface BowRelayContextArgs {

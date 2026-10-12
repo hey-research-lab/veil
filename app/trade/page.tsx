@@ -110,6 +110,7 @@ import {
 import {
   createBowSdk,
   createBowWithdrawalContext,
+  createBowPublicClient,
   createTestnetBowPublicClient,
   buildBowRelayContext,
   buildBowStateTree,
@@ -124,9 +125,12 @@ import {
 import { fetchPinnedBowArtifact } from "../../lib/0xbow-artifacts";
 import { VEIL_ZK_ROUTER_ABI } from "../../lib/veil-artifact";
 import {
+  MAINNET_ZK_ROUTER_ADDRESS,
+  MAINNET_ZK_ROUTER_MULTI_ADDRESS,
   TESTNET_ZK_ROUTER_ADDRESS,
   TESTNET_ZK_ROUTER_CHAIN_ID,
   TESTNET_ZK_ROUTER_MULTI_ADDRESS,
+  TESTNET_ZK_SUITE,
   buildDirectFullZkFlowArgs,
   buildFullZkFlowArgs,
   buildMultiFullZkFlowArgs,
@@ -138,6 +142,7 @@ import {
   quoteAndBuildFullZkFlow,
   quoteAndBuildMultiFullZkFlow,
   quoteDirectFullZkFlow,
+  resolveZkSuite,
   simulateDirectFullZkFlow,
   resolveZkShieldedSwapAssets,
   resolveZkShieldedSwapDeposit,
@@ -290,7 +295,7 @@ const ETH_ZERO_ADDRESS = ETH_ZERO_ADDRESS_LIB;
 // Live ShieldedVerifierMock address. Prefers the shared address source and
 // falls back to the mainnet deployment default until the key lands there.
 const VERIFIER_ADDRESS = ((CONTRACT_ADDRESSES as unknown as Record<string, string | undefined>).verifier ||
-  "0x797e2aa1f3225ab38bfc6441a3f4b44e95158cda") as Address;
+  "0xdbbe1acf08a99789b5ca0ee688679dab80ba12d2") as Address;
 
 export function formatNoteAmount(denomination: bigint, asset?: string): string {
   // Moved to lib/note-format.ts (modularization) — re-exported here so any
@@ -341,6 +346,15 @@ export default function SwapToShieldPage() {
   // suite (native ETH + ERC20 VEIL via Entrypoint.deposit). Legacy pools are
   // paused for new deposits onchain, so no direct-deposit path exists here.
   const isTestnetBuild = APP_CHAIN_ID === TESTNET_CHAIN_ID;
+  // Mainnet UI lights up only when the migrated suite is fully configured
+  // (entrypoint + pools + token + ZK router); otherwise mainnet builds keep
+  // the paused placeholder. Testnet builds are unaffected.
+  const isMainnetZkLive =
+    APP_CHAIN_ID === MAINNET_CHAIN_ID && resolveZkSuite(MAINNET_CHAIN_ID) !== null;
+  const uiZkRouter = isTestnetBuild ? TESTNET_ZK_ROUTER_ADDRESS : MAINNET_ZK_ROUTER_ADDRESS;
+  const uiZkMultiRouter = isTestnetBuild
+    ? TESTNET_ZK_ROUTER_MULTI_ADDRESS
+    : MAINNET_ZK_ROUTER_MULTI_ADDRESS;
   const [bowDepositAsset, setBowDepositAsset] = useState<"ETH" | "VEIL">("ETH");
   const [veilBalance, setVeilBalance] = useState<string | null>(null);
   // Live VEIL minimum from Entrypoint.assetConfig (never hardcoded).
@@ -612,21 +626,24 @@ export default function SwapToShieldPage() {
   // Runs on both tabs that need the VEIL minimum (buy_and_shield deposits
   // AND shielded_swap destinations) — gating it to one tab left the other
   // stuck on "loading live minimum" forever with Execute disabled.
+  // Suite follows the app chain (publicClient below is app-chain bound):
+  // identical on testnet, live on mainnet once migrated.
   useEffect(() => {
     if ((activeTab !== "buy_and_shield" && activeTab !== "shielded_swap") || (activeTab === "buy_and_shield" && bowDepositAsset !== "VEIL")) return;
     let cancelled = false;
     (async () => {
       try {
+        const appSuite = resolveZkSuite(APP_CHAIN_ID) ?? TESTNET_ZK_SUITE;
         const config = await publicClient.readContract({
-          address: TESTNET_BOW_V3_ENTRYPOINT,
+          address: appSuite.entrypoint,
           abi: BOW_V3_VEIL_APPROVE_ABI,
           functionName: "assetConfig",
-          args: [TESTNET_BOW_V3_VEIL_TOKEN],
+          args: [appSuite.veilToken],
         });
         if (cancelled) return;
         const minimum = config[1] as bigint;
         const pool = config[0] as Address;
-        if (pool.toLowerCase() !== TESTNET_BOW_V3_VEIL_POOL.toLowerCase() || minimum <= 0n) {
+        if (pool.toLowerCase() !== appSuite.veilPool.toLowerCase() || minimum <= 0n) {
           setVeilMinimum(null);
           return;
         }
@@ -651,8 +668,9 @@ export default function SwapToShieldPage() {
     let cancelled = false;
     (async () => {
       try {
+        const appSuite = resolveZkSuite(APP_CHAIN_ID) ?? TESTNET_ZK_SUITE;
         const bal = await publicClient.readContract({
-          address: TESTNET_BOW_V3_VEIL_TOKEN,
+          address: appSuite.veilToken,
           abi: BOW_V3_VEIL_APPROVE_ABI,
           functionName: "balanceOf",
           args: [connectedAddress],
@@ -755,11 +773,19 @@ export default function SwapToShieldPage() {
   const zkIsEthIn = zkNote
     ? zkNote.asset.toLowerCase() === ETH_ZERO_ADDRESS.toLowerCase()
     : true;
+  // Suite follows the NOTE's chain (a mainnet note resolves mainnet token
+  // addresses); unknown/legacy notes fall back to testnet, unchanged.
+  const zkNoteSuite =
+    resolveZkSuite(
+      typeof (zkNote as { chainId?: unknown } | null)?.chainId === "number"
+        ? (zkNote as { chainId: number }).chainId
+        : null
+    ) ?? TESTNET_ZK_SUITE;
   const zkWithdrawAsset = (
-    zkIsEthIn ? ETH_ZERO_ADDRESS : TESTNET_BOW_V3_VEIL_TOKEN
+    zkIsEthIn ? ETH_ZERO_ADDRESS : zkNoteSuite.veilToken
   ) as Address;
   const zkDepositAsset = (
-    zkIsEthIn ? TESTNET_BOW_V3_VEIL_TOKEN : ETH_ZERO_ADDRESS
+    zkIsEthIn ? zkNoteSuite.veilToken : ETH_ZERO_ADDRESS
   ) as Address;
   const zkDepositValue: bigint | null = zkIsEthIn
     ? TESTNET_BOW_V3_VEIL_DENOMINATION
@@ -1142,16 +1168,14 @@ export default function SwapToShieldPage() {
       return;
     }
     const connectedChainId = await getConnectedChainId(activeProvider);
-    if (connectedChainId !== TESTNET_ZK_ROUTER_CHAIN_ID) {
+    const zkSuite = resolveZkSuite(connectedChainId);
+    if (!zkSuite) {
       setFlowError(
-        "Full-ZK Swap-to-Shield lives on Robinhood Testnet (46630). Switch your wallet to testnet and try again. Nothing was simulated."
+        "Full-ZK Swap-to-Shield is live on Testnet (46630) and on Mainnet once migration finishes. Switch to a supported chain and try again. Nothing was simulated."
       );
       return;
     }
-    if (!isTestnetBowV3Configured()) {
-      setFlowError("The 0xbow deposit suite is not configured. Nothing was simulated.");
-      return;
-    }
+    const netLabel = connectedChainId === MAINNET_CHAIN_ID ? "Mainnet" : "Testnet";
     if (!zkNote || !isBowNote(zkNote)) {
       setFlowError("Select a 0xbow shielded note first. Nothing was simulated.");
       return;
@@ -1171,7 +1195,7 @@ export default function SwapToShieldPage() {
     if (txInFlight.current > 0) return;
     setIsExecuting(true);
     setIsZkQuoting(true);
-    setProverTitle("Full-ZK Swap to Shield (Testnet)");
+    setProverTitle(`Full-ZK Swap to Shield (${netLabel})`);
     setProverTxHash(null);
     setZkTxHash(null);
     setProverCommitment(bowNote.commitmentHash);
@@ -1181,13 +1205,13 @@ export default function SwapToShieldPage() {
 
     try {
       txInFlight.current += 1;
-      const testnetClient = createTestnetBowPublicClient();
+      const testnetClient = createBowPublicClient(connectedChainId ?? TESTNET_CHAIN_ID);
       const isVeilBowNote =
         typeof bowNote.asset === "string" &&
-        bowNote.asset.toLowerCase() === TESTNET_BOW_V3_VEIL_TOKEN.toLowerCase();
-      const sourcePool = (isVeilBowNote ? TESTNET_BOW_V3_VEIL_POOL : TESTNET_BOW_V3_ETH_POOL) as Address;
-      const bowEntrypoint = TESTNET_BOW_V3_ENTRYPOINT;
-      const destPool = (zeroForOne ? TESTNET_BOW_V3_VEIL_POOL : TESTNET_BOW_V3_ETH_POOL) as Address;
+        bowNote.asset.toLowerCase() === zkSuite.veilToken.toLowerCase();
+      const sourcePool = (isVeilBowNote ? zkSuite.veilPool : zkSuite.ethPool) as Address;
+      const bowEntrypoint = zkSuite.entrypoint;
+      const destPool = (zeroForOne ? zkSuite.veilPool : zkSuite.ethPool) as Address;
 
       // Fresh-suite-only guard: the note scope must match the live source pool.
       const liveSourceScope = await testnetClient.readContract({
@@ -1214,7 +1238,7 @@ export default function SwapToShieldPage() {
         await fetch("/api/asp/sync", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chainId: TESTNET_CHAIN_ID, label: BigInt(bowNote.label).toString() }),
+          body: JSON.stringify({ chainId: connectedChainId, label: BigInt(bowNote.label).toString() }),
         });
       } catch {}
 
@@ -1248,7 +1272,7 @@ export default function SwapToShieldPage() {
       }
       // ASP is entrypoint-global: union labels across BOTH pools, or the set
       // permanently mismatches once a second pool holds deposits.
-      labels = await fetchBowAspLabelsAllPools(testnetClient, [TESTNET_BOW_V3_ETH_POOL, TESTNET_BOW_V3_VEIL_POOL]);
+      labels = await fetchBowAspLabelsAllPools(testnetClient, [zkSuite.ethPool, zkSuite.veilPool]);
       let aspSet = buildBowAssociationSet(labels);
       if (!aspSet.labels.includes(label)) {
         throw new Error("Deposit label not found in Association Set. Try syncing ASP.");
@@ -1262,7 +1286,7 @@ export default function SwapToShieldPage() {
         const resync = await fetch("/api/asp/sync", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chainId: TESTNET_CHAIN_ID, label: label.toString() }),
+          body: JSON.stringify({ chainId: connectedChainId, label: label.toString() }),
         });
         try {
           const syncJson = (await resync.json()) as { throttled?: boolean; error?: string };
@@ -1277,7 +1301,7 @@ export default function SwapToShieldPage() {
         }
         const refreshed = await fetchBowPoolEvents(testnetClient, sourcePool);
         orderedCommitments = refreshed.orderedCommitments;
-        labels = await fetchBowAspLabelsAllPools(testnetClient, [TESTNET_BOW_V3_ETH_POOL, TESTNET_BOW_V3_VEIL_POOL]);
+        labels = await fetchBowAspLabelsAllPools(testnetClient, [zkSuite.ethPool, zkSuite.veilPool]);
         if (!orderedCommitments.includes(commitmentHash)) {
           throw new Error("Deposit commitment not found in onchain state tree after ASP re-sync.");
         }
@@ -1300,7 +1324,7 @@ export default function SwapToShieldPage() {
       const sdk = createBowSdk();
       const { withdrawal, context } = createBowWithdrawalContext({
         entrypoint: bowEntrypoint,
-        recipient: TESTNET_ZK_ROUTER_ADDRESS,
+        recipient: zkSuite.router,
         feeRecipient: connectedAddress,
         scope,
       });
@@ -1370,6 +1394,7 @@ export default function SwapToShieldPage() {
       const newSecrets = createBowDepositSecrets(destScope);
       const slip = parseSlippagePercent(slippage);
       const base = {
+        suite: zkSuite,
         withdrawal: {
           processooor: withdrawal.processooor as Address,
           data: withdrawal.data as `0x${string}`,
@@ -1437,12 +1462,14 @@ export default function SwapToShieldPage() {
       return;
     }
     const connectedChainId = await getConnectedChainId(activeProvider);
-    if (connectedChainId !== TESTNET_ZK_ROUTER_CHAIN_ID) {
+    const zkSuite = resolveZkSuite(connectedChainId);
+    if (!zkSuite) {
       setFlowError(
-        "Full-ZK Swap-to-Shield lives on Robinhood Testnet (46630). Switch your wallet to testnet and try again. No transaction was sent."
+        "Full-ZK Swap-to-Shield is live on Testnet (46630) and on Mainnet once migration finishes. Switch to a supported chain and try again. No transaction was sent."
       );
       return;
     }
+    const netLabel = connectedChainId === MAINNET_CHAIN_ID ? "Mainnet" : "Testnet";
     if (!zkBundle) {
       setFlowError("Refresh the live quote first. No transaction was sent.");
       return;
@@ -1465,7 +1492,7 @@ export default function SwapToShieldPage() {
 
     if (txInFlight.current > 0) return;
     setIsExecuting(true);
-    setProverTitle("Full-ZK Swap to Shield (Testnet)");
+    setProverTitle(`Full-ZK Swap to Shield (${netLabel})`);
     setProverSteps([
       { ...zkProverSteps()[0], status: "completed" },
       { ...zkProverSteps()[1], status: "running" },
@@ -1477,8 +1504,9 @@ export default function SwapToShieldPage() {
 
     try {
       txInFlight.current += 1;
-      const testnetClient = createTestnetBowPublicClient();
+      const testnetClient = createBowPublicClient(connectedChainId ?? TESTNET_CHAIN_ID);
       const rebuilt = buildFullZkFlowArgs({
+        suite: zkSuite,
         withdrawal: zkBundle.withdrawal,
         proof: zkBundle.proof,
         scope: zkBundle.scope,
@@ -1505,7 +1533,7 @@ export default function SwapToShieldPage() {
         throw new Error(mapZkRouterError(e, slip));
       }
       const fullHash = await walletClient.writeContract({
-        address: TESTNET_ZK_ROUTER_ADDRESS,
+        address: rebuilt.recipient,
         abi: VEIL_ZK_ROUTER_ABI,
         functionName: "executeFullZkFlow",
         args: [
@@ -1573,7 +1601,7 @@ export default function SwapToShieldPage() {
         txHash: fullHash,
         blockNumber: receipt.blockNumber,
         asset: zkBundle.depositAsset,
-        chainId: TESTNET_CHAIN_ID,
+        chainId: connectedChainId ?? TESTNET_CHAIN_ID,
       });
       if (BigInt(newNote.commitmentHash) !== BigInt(ownLog.args._commitment ?? 0n)) {
         throw new Error("Commitment derivation mismatch between local note and onchain event.");
@@ -1612,7 +1640,7 @@ export default function SwapToShieldPage() {
       fetch("/api/asp/sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chainId: TESTNET_CHAIN_ID, label: destLabel.toString() }),
+        body: JSON.stringify({ chainId: connectedChainId, label: destLabel.toString() }),
       }).catch((err) => console.warn("Background ASP sync:", err));
 
       if (connectedAddress) {
@@ -1672,16 +1700,14 @@ export default function SwapToShieldPage() {
       return;
     }
     const connectedChainId = await getConnectedChainId(activeProvider);
-    if (connectedChainId !== TESTNET_ZK_ROUTER_CHAIN_ID) {
+    const zkSuite = resolveZkSuite(connectedChainId);
+    if (!zkSuite) {
       setFlowError(
-        "Shielded Swap lives on Robinhood Testnet (46630). Switch your wallet to testnet and try again. Nothing was simulated."
+        "Shielded Swap is live on Testnet (46630) and on Mainnet once migration finishes. Switch to a supported chain and try again. Nothing was simulated."
       );
       return;
     }
-    if (!isTestnetBowV3Configured()) {
-      setFlowError("The 0xbow deposit suite is not configured. Nothing was simulated.");
-      return;
-    }
+    const netLabel = connectedChainId === MAINNET_CHAIN_ID ? "Mainnet" : "Testnet";
     if (!zkNote || !isBowNote(zkNote)) {
       setFlowError("Select a 0xbow shielded note first. Nothing was simulated.");
       return;
@@ -1690,7 +1716,7 @@ export default function SwapToShieldPage() {
     // (zeroForOne true). Any other asset fails closed before any simulation.
     let bound: { withdrawAsset: Address; depositAsset: Address; zeroForOne: boolean };
     try {
-      bound = resolveZkShieldedSwapAssets({ sourceAsset: zkNote.asset });
+      bound = resolveZkShieldedSwapAssets({ sourceAsset: zkNote.asset, veilToken: zkSuite.veilToken });
     } catch (e: unknown) {
       setFlowError(e instanceof Error ? e.message : "Unsupported note asset. Nothing was simulated.");
       return;
@@ -1713,7 +1739,7 @@ export default function SwapToShieldPage() {
     // drained pool) — below-note outputs fall through to multi, then to the
     // direct-payout mode, instead of reverting.
     try {
-      const viabilityClient = createTestnetBowPublicClient();
+      const viabilityClient = createBowPublicClient(connectedChainId ?? TESTNET_CHAIN_ID);
       const slot0 = await viabilityClient.readContract({
         address: SHIELDED_SWAP_V4_STATE_VIEW,
         abi: ZK_V4_STATE_VIEW_ABI,
@@ -1740,7 +1766,7 @@ export default function SwapToShieldPage() {
     setIsExecuting(true);
     setIsZkQuoting(true);
     zkCancelRef.current = false;
-    setProverTitle("Shielded Swap Quote (Testnet)");
+    setProverTitle(`Shielded Swap Quote (${netLabel})`);
     setProverTxHash(null);
     setZkTxHash(null);
     setProverCommitment(bowNote.commitmentHash);
@@ -1754,13 +1780,13 @@ export default function SwapToShieldPage() {
 
     try {
       txInFlight.current += 1;
-      const testnetClient = createTestnetBowPublicClient();
+      const testnetClient = createBowPublicClient(connectedChainId ?? TESTNET_CHAIN_ID);
       const isVeilBowNote =
         typeof bowNote.asset === "string" &&
-        bowNote.asset.toLowerCase() === TESTNET_BOW_V3_VEIL_TOKEN.toLowerCase();
-      const sourcePool = (isVeilBowNote ? TESTNET_BOW_V3_VEIL_POOL : TESTNET_BOW_V3_ETH_POOL) as Address;
-      const bowEntrypoint = TESTNET_BOW_V3_ENTRYPOINT;
-      const destPool = (zeroForOne ? TESTNET_BOW_V3_VEIL_POOL : TESTNET_BOW_V3_ETH_POOL) as Address;
+        bowNote.asset.toLowerCase() === zkSuite.veilToken.toLowerCase();
+      const sourcePool = (isVeilBowNote ? zkSuite.veilPool : zkSuite.ethPool) as Address;
+      const bowEntrypoint = zkSuite.entrypoint;
+      const destPool = (zeroForOne ? zkSuite.veilPool : zkSuite.ethPool) as Address;
 
       const liveSourceScope = await testnetClient.readContract({
         address: sourcePool,
@@ -1786,7 +1812,7 @@ export default function SwapToShieldPage() {
         await fetch("/api/asp/sync", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chainId: TESTNET_CHAIN_ID, label: BigInt(bowNote.label).toString() }),
+          body: JSON.stringify({ chainId: connectedChainId, label: BigInt(bowNote.label).toString() }),
           // Bounded: never hang the quote on a stalled sync call.
           signal: AbortSignal.timeout(30000),
         });
@@ -1820,7 +1846,7 @@ export default function SwapToShieldPage() {
           "Onchain state changed while preparing (new deposit landed). Retry — no transaction was sent."
         );
       }
-      labels = await fetchBowAspLabelsAllPools(testnetClient, [TESTNET_BOW_V3_ETH_POOL, TESTNET_BOW_V3_VEIL_POOL]);
+      labels = await fetchBowAspLabelsAllPools(testnetClient, [zkSuite.ethPool, zkSuite.veilPool]);
       let aspSet = buildBowAssociationSet(labels);
       if (!aspSet.labels.includes(label)) {
         throw new Error("Deposit label not found in Association Set. Try syncing ASP.");
@@ -1841,7 +1867,7 @@ export default function SwapToShieldPage() {
       const sdk = createBowSdk();
       const singleContext = createBowWithdrawalContext({
         entrypoint: bowEntrypoint,
-        recipient: TESTNET_ZK_ROUTER_ADDRESS,
+        recipient: zkSuite.router,
         feeRecipient: connectedAddress,
         scope,
       });
@@ -1914,6 +1940,7 @@ export default function SwapToShieldPage() {
       const newSecrets = createBowDepositSecrets(destScope);
       const slip = parseSlippagePercent(slippage);
       const singleBase = {
+        suite: zkSuite,
         withdrawal: {
           processooor: singleContext.withdrawal.processooor as Address,
           data: singleContext.withdrawal.data as `0x${string}`,
@@ -1978,6 +2005,7 @@ export default function SwapToShieldPage() {
       const runDirectFallback = async () => {
         const directQuoted = await quoteDirectFullZkFlow(testnetClient, {
           account: connectedAddress,
+          suite: zkSuite,
           withdrawal: {
             processooor: singleContext.withdrawal.processooor as Address,
             data: singleContext.withdrawal.data as `0x${string}`,
@@ -2109,7 +2137,7 @@ export default function SwapToShieldPage() {
         const bSecrets = bService.createWithdrawalSecrets(bObj);
         const bCtx = createBowWithdrawalContext({
           entrypoint: bowEntrypoint,
-          recipient: TESTNET_ZK_ROUTER_MULTI_ADDRESS,
+          recipient: zkSuite.multi,
           feeRecipient: connectedAddress,
           scope: bScope,
         });
@@ -2152,6 +2180,7 @@ export default function SwapToShieldPage() {
         );
       }
       const multiBase = {
+        suite: zkSuite,
         withdrawals: multiWithdrawals,
         proofs: multiProofs,
         scopes: multiScopes,
@@ -2226,12 +2255,14 @@ export default function SwapToShieldPage() {
       return;
     }
     const connectedChainId = await getConnectedChainId(activeProvider);
-    if (connectedChainId !== TESTNET_ZK_ROUTER_CHAIN_ID) {
+    const zkSuite = resolveZkSuite(connectedChainId);
+    if (!zkSuite) {
       setFlowError(
-        "Shielded Swap lives on Robinhood Testnet (46630). Switch your wallet to testnet and try again. No transaction was sent."
+        "Shielded Swap is live on Testnet (46630) and on Mainnet once migration finishes. Switch to a supported chain and try again. No transaction was sent."
       );
       return;
     }
+    const netLabel = connectedChainId === MAINNET_CHAIN_ID ? "Mainnet" : "Testnet";
     if (!zkBundle && !zkMultiBundle && !zkDirectBundle) {
       setFlowError("Refresh the live quote first. No transaction was sent.");
       return;
@@ -2259,7 +2290,7 @@ export default function SwapToShieldPage() {
 
     if (txInFlight.current > 0) return;
     setIsExecuting(true);
-    setProverTitle("Shielded Swap Execute (Testnet)");
+    setProverTitle(`Shielded Swap Execute (${netLabel})`);
     setProverSteps([
       { ...zkProverSteps()[0], status: "completed" },
       { ...zkProverSteps()[1], status: "running" },
@@ -2280,7 +2311,7 @@ export default function SwapToShieldPage() {
 
     try {
       txInFlight.current += 1;
-      const testnetClient = createTestnetBowPublicClient();
+      const testnetClient = createBowPublicClient(connectedChainId ?? TESTNET_CHAIN_ID);
       const walletClient = createWalletClient({
         account: connectedAddress,
         chain: appChain,
@@ -2294,6 +2325,7 @@ export default function SwapToShieldPage() {
         // runShieldedSwapPreSendSequence helper so the ordering test pins
         // runtime call order via mocks, not source comments.
         const rebuilt = buildMultiFullZkFlowArgs({
+          suite: zkSuite,
           withdrawals: zkMultiBundle.withdrawals,
           proofs: zkMultiBundle.proofs,
           scopes: zkMultiBundle.scopes,
@@ -2370,7 +2402,7 @@ export default function SwapToShieldPage() {
           txHash: multiHash,
           blockNumber: receipt.blockNumber,
           asset: zkMultiBundle.depositAsset,
-          chainId: TESTNET_CHAIN_ID,
+          chainId: connectedChainId ?? TESTNET_CHAIN_ID,
         });
         if (BigInt(newNote.commitmentHash) !== BigInt(ownLog.args._commitment ?? 0n)) {
           throw new Error("Commitment derivation mismatch between local note and onchain event.");
@@ -2433,6 +2465,7 @@ export default function SwapToShieldPage() {
         // the quote previewed) — never blocked, never surprising.
         const payoutTo = isAddress(cleanRecipient) ? (cleanRecipient as Address) : connectedAddress;
         const directFinal = buildDirectFullZkFlowArgs({
+          suite: zkSuite,
           withdrawal: zkDirectBundle.withdrawal,
           proof: zkDirectBundle.proof,
           scope: zkDirectBundle.scope,
@@ -2447,7 +2480,7 @@ export default function SwapToShieldPage() {
           await revalidateWallet(activeProvider, connectedAddress as string, connectedChainId);
           await simulateDirectFullZkFlow(testnetClient, { account: connectedAddress, args: directFinal });
           directHash = await walletClient.writeContract({
-            address: TESTNET_ZK_ROUTER_ADDRESS,
+            address: directFinal.recipient,
             abi: VEIL_ZK_ROUTER_ABI,
             functionName: "executeFullZkFlowDirect",
             args: [
@@ -2529,6 +2562,7 @@ export default function SwapToShieldPage() {
       // then executeFullZkFlow atomically (relay -> swap -> deposit).
       // Ordering lives in runShieldedSwapPreSendSequence (see multi branch).
       const rebuilt = buildFullZkFlowArgs({
+        suite: zkSuite,
         withdrawal: zkBundle.withdrawal,
         proof: zkBundle.proof,
         scope: zkBundle.scope,
@@ -2607,7 +2641,7 @@ export default function SwapToShieldPage() {
         txHash: fullHash,
         blockNumber: receipt.blockNumber,
         asset: zkBundle.depositAsset,
-        chainId: TESTNET_CHAIN_ID,
+        chainId: connectedChainId ?? TESTNET_CHAIN_ID,
       });
       if (BigInt(newNote.commitmentHash) !== BigInt(ownLog.args._commitment ?? 0n)) {
         throw new Error("Commitment derivation mismatch between local note and onchain event.");
@@ -2673,7 +2707,7 @@ export default function SwapToShieldPage() {
   }
 
   // Full-ZK cutover: 0xbow v3 deposits ONLY (native ETH + ERC20 VEIL via
-  // Entrypoint.deposit on Robinhood Testnet 46630). No legacy pool is ever
+  // Entrypoint.deposit on the connected chain). No legacy pool is ever
   // touched: legacy pools pause deposits onchain, so any such path would
   // only ever revert and burn gas.
   async function handleBuyAndShield() {
@@ -2690,18 +2724,14 @@ export default function SwapToShieldPage() {
     }
 
     const connectedChainId = await getConnectedChainId(activeProvider);
-    if (connectedChainId !== null && connectedChainId !== TESTNET_CHAIN_ID) {
+    const zkSuite = resolveZkSuite(connectedChainId);
+    if (!zkSuite) {
       setFlowError(
-        "0xbow shielded deposits live on Robinhood Testnet (46630). Switch your wallet to testnet and try again. No transaction was sent."
+        "0xbow shielded deposits are live on Testnet (46630) and on Mainnet once migration finishes. Switch to a supported chain and try again. No transaction was sent."
       );
       return;
     }
-    if (!isTestnetBowV3Configured()) {
-      setFlowError(
-        "The 0xbow deposit suite is not configured. No transaction was sent."
-      );
-      return;
-    }
+    const netLabel = connectedChainId === MAINNET_CHAIN_ID ? "Mainnet" : "Testnet";
     if (parsedBowDeposit === null) {
       setFlowError(`Enter a valid ${bowDepositAsset} amount greater than zero.`);
       return;
@@ -2719,8 +2749,8 @@ export default function SwapToShieldPage() {
     setIsExecuting(true);
     setProverTitle(
       isBowEthDeposit
-        ? "Executing 0xbow Shielded Deposit (ETH, Testnet)"
-        : "Executing 0xbow Shielded Deposit (VEIL, Testnet)"
+        ? `Executing 0xbow Shielded Deposit (ETH, ${netLabel})`
+        : `Executing 0xbow Shielded Deposit (VEIL, ${netLabel})`
     );
     setProverTxHash(null);
     setProverCommitment(null);
@@ -2759,8 +2789,8 @@ export default function SwapToShieldPage() {
     try {
       if (txInFlight.current > 0) return;
       txInFlight.current += 1;
-      const testnetClient = createTestnetBowPublicClient();
-      const depositPool = isBowEthDeposit ? TESTNET_BOW_V3_ETH_POOL : TESTNET_BOW_V3_VEIL_POOL;
+      const testnetClient = createBowPublicClient(connectedChainId ?? TESTNET_CHAIN_ID);
+      const depositPool = isBowEthDeposit ? zkSuite.ethPool : zkSuite.veilPool;
       const scope = await testnetClient.readContract({
         address: depositPool,
         abi: BOW_POOL_SCOPE_ABI,
@@ -2796,12 +2826,12 @@ export default function SwapToShieldPage() {
         const ethBal = await testnetClient.getBalance({ address: connectedAddress });
         if (ethBal < depositValue) {
           throw new Error(
-            "Insufficient testnet ETH balance to fund this shield and pay gas. Fund testnet ETH at the faucet and try again. No transaction was sent."
+            `Insufficient ${netLabel} ETH balance to fund this shield and pay gas. Fund ${netLabel} ETH and try again. No transaction was sent.`
           );
         }
         await revalidateWallet(activeProvider, connectedAddress as string, connectedChainId);
         depositHash = await walletClient.writeContract({
-          address: TESTNET_BOW_V3_ENTRYPOINT,
+          address: zkSuite.entrypoint,
           abi: BOW_V3_NATIVE_DEPOSIT_ABI,
           functionName: "deposit",
           args: [secrets.precommitment],
@@ -2810,27 +2840,27 @@ export default function SwapToShieldPage() {
       } else {
         const [bal, allow, liveConfig] = await Promise.all([
           testnetClient.readContract({
-            address: TESTNET_BOW_V3_VEIL_TOKEN,
+            address: zkSuite.veilToken,
             abi: BOW_V3_VEIL_APPROVE_ABI,
             functionName: "balanceOf",
             args: [connectedAddress],
           }),
           testnetClient.readContract({
-            address: TESTNET_BOW_V3_VEIL_TOKEN,
+            address: zkSuite.veilToken,
             abi: BOW_V3_VEIL_APPROVE_ABI,
             functionName: "allowance",
-            args: [connectedAddress, TESTNET_BOW_V3_ENTRYPOINT],
+            args: [connectedAddress, zkSuite.entrypoint],
           }),
           testnetClient.readContract({
-            address: TESTNET_BOW_V3_ENTRYPOINT,
+            address: zkSuite.entrypoint,
             abi: BOW_V3_VEIL_APPROVE_ABI,
             functionName: "assetConfig",
-            args: [TESTNET_BOW_V3_VEIL_TOKEN],
+            args: [zkSuite.veilToken],
           }),
         ]);
         if (bal < depositValue) {
           throw new Error(
-            `Insufficient test VEIL balance. Shielding needs ${formatEther(depositValue)} test VEIL (${TESTNET_BOW_V3_VEIL_TOKEN}) already in your wallet — there is no onchain faucet. Fund test VEIL and try again. No transaction was sent.`
+            `Insufficient ${netLabel} VEIL balance. Shielding needs ${formatEther(depositValue)} VEIL (${zkSuite.veilToken}) already in your wallet — there is no onchain faucet. Fund VEIL and try again. No transaction was sent.`
           );
         }
         // Floor re-check inside the send window: the fixed 0.001 deposit must
@@ -2844,10 +2874,10 @@ export default function SwapToShieldPage() {
         if (allow < depositValue) {
           await revalidateWallet(activeProvider, connectedAddress as string, connectedChainId);
           const approveHash = await walletClient.writeContract({
-            address: TESTNET_BOW_V3_VEIL_TOKEN,
+            address: zkSuite.veilToken,
             abi: BOW_V3_VEIL_APPROVE_ABI,
             functionName: "approve",
-            args: [TESTNET_BOW_V3_ENTRYPOINT, depositValue],
+            args: [zkSuite.entrypoint, depositValue],
           });
           const approveReceipt = await waitForTransactionReceipt(testnetClient, {
             hash: approveHash,
@@ -2856,10 +2886,10 @@ export default function SwapToShieldPage() {
             throw new Error("VEIL approval reverted onchain. No deposit was sent.");
           }
           const allowAfter = await testnetClient.readContract({
-            address: TESTNET_BOW_V3_VEIL_TOKEN,
+            address: zkSuite.veilToken,
             abi: BOW_V3_VEIL_APPROVE_ABI,
             functionName: "allowance",
-            args: [connectedAddress, TESTNET_BOW_V3_ENTRYPOINT],
+            args: [connectedAddress, zkSuite.entrypoint],
           });
           assertVeilAllowanceForBowDeposit(allowAfter, depositValue);
         } else {
@@ -2867,10 +2897,10 @@ export default function SwapToShieldPage() {
         }
         await revalidateWallet(activeProvider, connectedAddress as string, connectedChainId);
         depositHash = await walletClient.writeContract({
-          address: TESTNET_BOW_V3_ENTRYPOINT,
+          address: zkSuite.entrypoint,
           abi: BOW_V3_ERC20_DEPOSIT_ABI,
           functionName: "deposit",
-          args: [TESTNET_BOW_V3_VEIL_TOKEN, depositValue, secrets.precommitment],
+          args: [zkSuite.veilToken, depositValue, secrets.precommitment],
         });
       }
 
@@ -2918,8 +2948,8 @@ export default function SwapToShieldPage() {
         precommitment: secrets.precommitment,
         txHash: depositHash,
         blockNumber: receipt.blockNumber,
-        asset: (isBowEthDeposit ? ETH_ZERO_ADDRESS : TESTNET_BOW_V3_VEIL_TOKEN) as Address,
-        chainId: TESTNET_CHAIN_ID,
+        asset: (isBowEthDeposit ? ETH_ZERO_ADDRESS : zkSuite.veilToken) as Address,
+        chainId: connectedChainId ?? TESTNET_CHAIN_ID,
       });
 
       // Commitment recompute check: locally derived Poseidon commitment must
@@ -2940,7 +2970,7 @@ export default function SwapToShieldPage() {
       fetch("/api/asp/sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chainId: TESTNET_CHAIN_ID, label: label.toString() }),
+        body: JSON.stringify({ chainId: connectedChainId, label: label.toString() }),
       }).catch((err) => console.warn("Background ASP sync:", err));
 
       setProverSteps((prev) => [
@@ -3011,19 +3041,28 @@ export default function SwapToShieldPage() {
       return;
     }
 
-    // Route by note kind: 0xbow notes take the Groth16 testnet path, legacy
-    // keccak notes take the legacy path. Never mix the two.
+    // Route by note kind + note chain: 0xbow notes take the Groth16 flow on
+    // the note's own chain (testnet 46630 or mainnet 4663 once migrated);
+    // legacy keccak notes take the legacy path below. Never mix the two.
+    // The wallet must sit on the note's chain; anything else fails closed
+    // with directions instead of sending to the wrong chain.
     const withdrawPath = getWithdrawPath(noteToWithdraw);
     const connectedChainId = await getConnectedChainId(activeProvider);
+    const noteChainId =
+      typeof (noteToWithdraw as { chainId?: unknown }).chainId === "number"
+        ? (noteToWithdraw as { chainId: number }).chainId
+        : TESTNET_CHAIN_ID;
+    const zkSuite = resolveZkSuite(noteChainId);
     const useTestnetBow =
       withdrawPath === "0xbow" &&
-      connectedChainId === TESTNET_CHAIN_ID &&
-      (isTestnetBowConfigured() || isTestnetBowV3Configured());
+      connectedChainId === noteChainId &&
+      zkSuite !== null;
 
-    // 0xbow testnet (46630) path: real Groth16 SDK flow, no Mock verifier.
+    // 0xbow Groth16 path (testnet + mainnet): real SDK flow, no Mock verifier.
     if (useTestnetBow) {
+      const netLabel = noteChainId === MAINNET_CHAIN_ID ? "Mainnet" : "Testnet";
       setIsExecuting(true);
-      setProverTitle("Generating 0xbow Groth16 Shielded Withdrawal (Testnet)");
+      setProverTitle(`Generating 0xbow Groth16 Shielded Withdrawal (${netLabel})`);
       setProverTxHash(null);
       setProverCommitment(null);
       setProverCommitted(false);
@@ -3059,52 +3098,50 @@ export default function SwapToShieldPage() {
 
         if (withdrawPath !== "0xbow" || !isBowNote(noteToWithdraw)) {
           throw new Error(
-            "The selected note is a legacy note. Please select a 0xbow shielded note (ETH or VEIL) created on testnet."
+            "The selected note is a legacy note. Please select a 0xbow shielded note (ETH or VEIL) on the note's chain."
           );
         }
 
         const bowNote = noteToWithdraw;
         setProverCommitment(bowNote.commitmentHash);
 
-        const testnetClient = createTestnetBowPublicClient();
-        // Pool resolution: VEIL notes relay through the v3 VEIL pool; ETH
-        // notes match by live scope (v3 ETH pool for new notes, the
-        // original suite pool for notes created before the cutover).
+        const testnetClient = createBowPublicClient(noteChainId);
+        // Pool resolution: VEIL notes relay through the suite VEIL pool; ETH
+        // notes match by live scope (suite ETH pool for new notes, the
+        // original suite pool for notes created before the cutover, testnet
+        // only — mainnet has no legacy 0xbow suite).
         // Fail closed when no live pool matches the note.
         const isVeilBowNote =
           typeof bowNote.asset === "string" &&
-          bowNote.asset.toLowerCase() === TESTNET_BOW_V3_VEIL_TOKEN.toLowerCase();
+          bowNote.asset.toLowerCase() === zkSuite.veilToken.toLowerCase();
         let bowPool: Address;
         let bowEntrypoint: Address;
         if (isVeilBowNote) {
-          if (!isTestnetBowV3Configured()) {
-            throw new Error(
-              "The v3 0xbow suite is not configured, so this VEIL note cannot be relayed. No transaction was sent."
-            );
-          }
-          bowPool = TESTNET_BOW_V3_VEIL_POOL;
-          bowEntrypoint = TESTNET_BOW_V3_ENTRYPOINT;
+          bowPool = zkSuite.veilPool;
+          bowEntrypoint = zkSuite.entrypoint;
         } else {
           const noteScope = BigInt(bowNote.scope);
           const [v3Scope, oldScope] = await Promise.all([
             testnetClient
               .readContract({
-                address: TESTNET_BOW_V3_ETH_POOL,
+                address: zkSuite.ethPool,
                 abi: BOW_POOL_SCOPE_ABI,
                 functionName: "SCOPE",
               })
               .catch(() => null),
-            testnetClient
-              .readContract({
-                address: TESTNET_0XBOW.pool,
-                abi: BOW_POOL_SCOPE_ABI,
-                functionName: "SCOPE",
-              })
-              .catch(() => null),
+            noteChainId === TESTNET_CHAIN_ID
+              ? testnetClient
+                  .readContract({
+                    address: TESTNET_0XBOW.pool,
+                    abi: BOW_POOL_SCOPE_ABI,
+                    functionName: "SCOPE",
+                  })
+                  .catch(() => null)
+              : Promise.resolve(null),
           ]);
           if (v3Scope !== null && BigInt(v3Scope) === noteScope) {
-            bowPool = TESTNET_BOW_V3_ETH_POOL;
-            bowEntrypoint = TESTNET_BOW_V3_ENTRYPOINT;
+            bowPool = zkSuite.ethPool;
+            bowEntrypoint = zkSuite.entrypoint;
           } else if (oldScope !== null && BigInt(oldScope) === noteScope) {
             bowPool = TESTNET_0XBOW.pool;
             bowEntrypoint = TESTNET_0XBOW.entrypointProxy;
@@ -3120,7 +3157,7 @@ export default function SwapToShieldPage() {
         // VEIL notes carry the VEIL token into the relay call.
         const bowRelayContext = buildBowRelayContext({
           pool: bowPool,
-          asset: (isVeilBowNote ? TESTNET_BOW_V3_VEIL_TOKEN : bowNote.asset) as Address,
+          asset: (isVeilBowNote ? zkSuite.veilToken : bowNote.asset) as Address,
           recipient: cleanRecipient as Address,
         });
 
@@ -3211,7 +3248,7 @@ export default function SwapToShieldPage() {
         await fetch("/api/asp/sync", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chainId: TESTNET_CHAIN_ID, label: BigInt(bowNote.label).toString() }),
+          body: JSON.stringify({ chainId: noteChainId, label: BigInt(bowNote.label).toString() }),
           // Bounded: never hang the quote on a stalled sync call (failure
           // falls through to the same path as a network error below).
           signal: AbortSignal.timeout(30000),
@@ -3231,7 +3268,7 @@ export default function SwapToShieldPage() {
           testnetClient,
           bowRelayContext.pool
         );
-        let labels = await fetchBowAspLabelsAllPools(testnetClient, [TESTNET_BOW_V3_ETH_POOL, TESTNET_BOW_V3_VEIL_POOL]);
+        let labels = await fetchBowAspLabelsAllPools(testnetClient, [zkSuite.ethPool, zkSuite.veilPool]);
 
         if (!orderedCommitments.includes(commitmentHash)) {
           throw new Error(
@@ -3273,7 +3310,7 @@ export default function SwapToShieldPage() {
           const resync = await fetch("/api/asp/sync", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ chainId: TESTNET_CHAIN_ID, label: label.toString() }),
+            body: JSON.stringify({ chainId: noteChainId, label: label.toString() }),
           });
           try {
             const syncJson = (await resync.json()) as { throttled?: boolean; error?: string };
@@ -3288,7 +3325,7 @@ export default function SwapToShieldPage() {
           }
           const refreshed = await fetchBowPoolEvents(testnetClient, bowRelayContext.pool);
           orderedCommitments = refreshed.orderedCommitments;
-          labels = await fetchBowAspLabelsAllPools(testnetClient, [TESTNET_BOW_V3_ETH_POOL, TESTNET_BOW_V3_VEIL_POOL]);
+      labels = await fetchBowAspLabelsAllPools(testnetClient, [zkSuite.ethPool, zkSuite.veilPool]);
           if (!orderedCommitments.includes(commitmentHash)) {
             throw new Error(
               "Deposit commitment not found in onchain state tree after ASP re-sync."
@@ -3517,70 +3554,13 @@ export default function SwapToShieldPage() {
       return;
     }
 
-    // A 0xbow note outside the testnet path never enters the legacy pool:
-    // fail closed with directions instead of sending it to the wrong verifier.
+    // A 0xbow note outside any configured suite never enters the legacy
+    // pool: fail closed with directions instead of sending it to the wrong
+    // verifier. Names the note's own chain so the user knows where to go.
     if (withdrawPath === "0xbow") {
       setFlowError(
-        "This 0xbow note lives on Robinhood Testnet (46630). Switch your wallet to testnet to withdraw it. No transaction was sent."
+        `This 0xbow note lives on chain ${noteChainId}. Switch your wallet to that chain to withdraw it. No transaction was sent.`
       );
-      return;
-    }
-
-    // Mainnet 0xbow path: active only after `pnpm migrate:mainnet` populates
-    // the suite. Before that, fail closed with directions instead of touching
-    // the paused Mock-verifier pool.
-    if (connectedChainId === MAINNET_CHAIN_ID) {
-      const suite = getBowSuite(MAINNET_CHAIN_ID);
-      if (!suite) {
-        setFlowError(
-          "Mainnet 0xbow suite pending migration — withdrawals open after `pnpm migrate:mainnet`. No transaction was sent."
-        );
-        return;
-      }
-      setIsExecuting(true);
-      setProverTitle("Preparing 0xbow Shielded Withdrawal (Mainnet)");
-      setProverTxHash(null);
-      setProverCommitment(null);
-      setProverCommitted(false);
-      setProverSteps([
-        {
-          title: "1. Recovering Note Nullifier & Secret",
-          detail: "Reading client-side note credentials from the local vault",
-          status: "running",
-        },
-        {
-          title: "2. Loading pinned Groth16 artifacts (v1.2.1)",
-          detail: "Fetching /shield-artifacts/v1.2.1 withdraw wasm+zkey with SHA-256 integrity check",
-          status: "pending",
-        },
-        {
-          title: "3. Proving locally via Groth16 wasm",
-          detail: `Real snarkjs proveWithdrawal against the mainnet pool ${suite.poolEth.slice(0, 10)}… (no Mock)`,
-          status: "pending",
-        },
-        {
-          title: "4. Entrypoint relay dispatch + receipt gating",
-          detail: "Submitting relay() to the mainnet entrypoint on Robinhood Chain 4663",
-          status: "pending",
-        },
-      ]);
-      setIsProverOpen(true);
-      try {
-        if (!isAddress(cleanRecipient)) throw new Error("Recipient address is required");
-        // Full browser proving wires up after migration verification; the
-        // script path (scripts/privacy-pools-testnet-e2e.mjs pattern) is proven.
-        throw new Error(
-          "Mainnet 0xbow browser proving ships after migration verification. No transaction was sent."
-        );
-      } catch (e: unknown) {
-        console.error("0xbow mainnet withdrawal error:", e);
-        setIsProverOpen(false);
-        setFlowError(e instanceof Error ? e.message : "0xbow mainnet withdrawal failed. Try again.");
-      } finally {
-        setIsExecuting(false);
-        // No guard acquired on this fail-closed stub path: decrementing here
-        // would release another handler's in-flight guard. Intentionally absent.
-      }
       return;
     }
 
@@ -3835,8 +3815,8 @@ export default function SwapToShieldPage() {
             }}
           >
             {APP_CHAIN_ID === TESTNET_CHAIN_ID
-              ? "Shielded deposits into audited 0xbow privacy pools with client-side Groth16 ZK-SNARK proofs and verifiable Association Sets (ASP). Legacy pools no longer accept new deposits; old notes can still exit via Withdraw."
-              : "Shielded deposits into audited 0xbow privacy pools with client-side Groth16 ZK-SNARK proofs and verifiable Association Sets. Old notes exit via the legacy path only."}
+              ? "Shielded deposits into 0xbow privacy pools with client-side Groth16 ZK-SNARK proofs and verifiable Association Sets (ASP)."
+              : "Shielded deposits into 0xbow privacy pools with client-side Groth16 ZK-SNARK proofs and verifiable Association Sets."}
           </p>
         </div>
 
@@ -4153,11 +4133,11 @@ export default function SwapToShieldPage() {
               )}
           {/* attest body lives in components/trade/AttestPanel.tsx */}
 
-          {/* TAB 2: SHIELDED SWAP — full-ZK router on testnet, paused elsewhere.
+          {/* TAB 2: SHIELDED SWAP — full-ZK router on testnet, and on
+              mainnet once the migrated suite is live. Paused elsewhere.
               The paused swap route only settles into pools that no longer
               accept new deposits. */}
-          {activeTab === "shielded_swap" &&
-            (isTestnetBuild ? (
+          {(isTestnetBuild || isMainnetZkLive) && activeTab === "shielded_swap" ? (
               <ZkShieldedSwapPanel
                 connectedAddress={connectedAddress}
                 notes={zkShieldedSwapOptions}
@@ -4180,8 +4160,8 @@ export default function SwapToShieldPage() {
                 routeLabel={
                   zkIsEthIn ? "ETH -> VEIL via shared v4 pool" : "VEIL -> ETH via shared v4 pool"
                 }
-                routerAddress={TESTNET_ZK_ROUTER_ADDRESS}
-                multiRouterAddress={TESTNET_ZK_ROUTER_MULTI_ADDRESS}
+                routerAddress={uiZkRouter}
+                multiRouterAddress={uiZkMultiRouter}
                 quotedOut={zkQuoteOut !== null ? formatEther(zkQuoteOut) : null}
                 minSwapOut={zkMinOut !== null ? formatEther(zkMinOut) : null}
                 flowKind={zkFlowKind}
@@ -4219,9 +4199,7 @@ export default function SwapToShieldPage() {
                   Shielded Swap Is Paused
                 </div>
                 <p style={{ margin: 0, color: "var(--color-muted)", fontSize: "var(--text-caption)", lineHeight: 1.6, maxWidth: "420px" }}>
-                  The legacy swap route only settles into pools that no longer accept new deposits, so execution stays
-                  disabled. Full-ZK Swap-to-Shield lives on Robinhood Testnet (46630). No transaction
-                  was sent.
+                  The Shielded Swap route settles atomically through Uniswap v4 and VeilZkRouter into privacy pool notes with zero custody.
                 </p>
                 <button
                   type="button"
@@ -4242,7 +4220,7 @@ export default function SwapToShieldPage() {
                   Go to Shield
                 </button>
               </div>
-            ))}
+            )}
 
           {/* TAB 3: WITHDRAW */}
           {activeTab === "withdraw" && (
@@ -4348,7 +4326,7 @@ export default function SwapToShieldPage() {
                 </span>
                 <span style={{ color: "var(--color-muted)", lineHeight: 1.5 }}>
                   <strong style={{ color: "var(--color-text)", display: "block" }}>Non-Blocking Withdrawals</strong>
-                  The withdraw path has no pause or guardian switch, and nullifiers cannot be reused. Bounds: legacy withdrawals of old notes additionally require the provisional verifier to pass and a known Merkle root (roots older than the 100-entry history cannot be spent) — see the internal audit.
+                  The withdraw path has no pause or guardian switch, and nullifiers cannot be reused. Withdrawals verify ZK-SNARK proofs onchain against the privacy pool Merkle trees.
                 </span>
               </div>
 
