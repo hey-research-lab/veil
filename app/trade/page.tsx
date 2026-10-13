@@ -116,6 +116,7 @@ import {
   TESTNET_BOW_V3_VEIL_TOKEN,
   TESTNET_BOW_V3_ETH_DENOMINATION,
   TESTNET_BOW_V3_VEIL_DENOMINATION,
+  MAINNET_BOW_V3_VEIL_TOKEN,
   isTestnetBowConfigured,
   isTestnetBowV3Configured,
   getBowSuite,
@@ -192,6 +193,13 @@ const LEGACY_EXIT_VEIL_POOL_2 = "0x172e9cc542cf9349813f74548eec6e0a1df65e17" as 
 // Retired legacy ETH pool (paused + guardian renounced at cutover).
 // EXIT ONLY: old ETH notes live here and exits stay open by promise.
 const LEGACY_EXIT_ETH_POOL = "0x1b1d39e4da649747ecc0e93e7a06452a3061de17" as Address;
+// Mainnet legacy pools (manifest deployments/privacy-pools-mainnet-latest.json).
+// EXIT ONLY on mainnet builds: deployer test dust lives here; exits stay
+// open by code. Testnet lists above never apply on mainnet and vice versa.
+const MAINNET_LEGACY_ETH_POOL = "0x15f7e378410719438dd20b12d4c440ba1863e892" as Address;
+const MAINNET_LEGACY_VEIL_POOL_05 = "0x493f64d4163fe1f966c423f9338cd955e80a99df" as Address;
+const MAINNET_LEGACY_VEIL_POOL_2 = "0x3783db43f4f08294da849747ecc0e93e7a06452a3061de17" as Address;
+const MAINNET_MOCK_VERIFIER = "0xae2c219e462ca1b80473375bcbcad2b025cae610" as Address;
 
 const POOL_WITHDRAW_ABI = parseAbi([
   "function withdraw(bytes proof, bytes32 root, bytes32 nullifierHash, address recipient, uint256 fee)",
@@ -3726,17 +3734,30 @@ export default function SwapToShieldPage() {
       // notes -> the live-matching VEIL pool. Verified live (denomination +
       // asset) inside the resolver; a paused pool still serves exits (pause
       // gates deposits only); fail closed when nothing matches.
+      // Chain-aware: mainnet notes resolve against mainnet legacy pools
+      // (manifest), testnet notes against the retired testnet set. The two
+      // lists must never mix — cross-chain resolution always fails closed
+      // in the live-denomination check below, but matching the right pools
+      // first gives honest errors instead of mysterious ones.
+      const legacyCandidates: LegacyPoolCandidate[] =
+        noteChainId === MAINNET_CHAIN_ID
+          ? ([
+              { pool: MAINNET_LEGACY_ETH_POOL, asset: ETH_ZERO_ADDRESS },
+              { pool: MAINNET_LEGACY_VEIL_POOL_05, asset: MAINNET_BOW_V3_VEIL_TOKEN },
+              { pool: MAINNET_LEGACY_VEIL_POOL_2, asset: MAINNET_BOW_V3_VEIL_TOKEN },
+            ] as LegacyPoolCandidate[])
+          : ([
+              { pool: SHIELDED_POOL_ETH, asset: ETH_ZERO_ADDRESS },
+              { pool: TESTNET_VEIL_POOL_05, asset: TESTNET_BOW_V3_VEIL_TOKEN },
+              { pool: TESTNET_VEIL_POOL_2, asset: TESTNET_BOW_V3_VEIL_TOKEN },
+              { pool: LEGACY_EXIT_ETH_POOL, asset: ETH_ZERO_ADDRESS },
+              { pool: LEGACY_EXIT_VEIL_POOL_05, asset: TESTNET_BOW_V3_VEIL_TOKEN },
+              { pool: LEGACY_EXIT_VEIL_POOL_2, asset: TESTNET_BOW_V3_VEIL_TOKEN },
+            ] as LegacyPoolCandidate[]);
       const withdrawPool = await resolveLegacyPoolForNote(
         publicClient,
         legacyNote,
-        [
-          { pool: SHIELDED_POOL_ETH, asset: ETH_ZERO_ADDRESS },
-          { pool: TESTNET_VEIL_POOL_05, asset: TESTNET_BOW_V3_VEIL_TOKEN },
-          { pool: TESTNET_VEIL_POOL_2, asset: TESTNET_BOW_V3_VEIL_TOKEN },
-          { pool: LEGACY_EXIT_ETH_POOL, asset: ETH_ZERO_ADDRESS },
-          { pool: LEGACY_EXIT_VEIL_POOL_05, asset: TESTNET_BOW_V3_VEIL_TOKEN },
-          { pool: LEGACY_EXIT_VEIL_POOL_2, asset: TESTNET_BOW_V3_VEIL_TOKEN },
-        ] as LegacyPoolCandidate[]
+        legacyCandidates
       );
       const idx = await publicClient.readContract({
         address: withdrawPool,
@@ -3744,11 +3765,21 @@ export default function SwapToShieldPage() {
         functionName: "nextIndex",
       });
       if (idx === 0) throw new Error("Pool is empty, nothing to withdraw against.");
-      const pass = await publicClient.readContract({
-        address: VERIFIER_ADDRESS,
-        abi: VERIFIER_ABI,
-        functionName: "shouldPass",
-      });
+      // Provisional-verifier kill-switch follows the note's chain: mainnet
+      // legacy pools answer to the mainnet Mock, testnet to the shared one.
+      // A Mock without shouldPass (or any read failure) fails closed.
+      const legacyVerifier =
+        noteChainId === MAINNET_CHAIN_ID ? MAINNET_MOCK_VERIFIER : VERIFIER_ADDRESS;
+      let pass = false;
+      try {
+        pass = await publicClient.readContract({
+          address: legacyVerifier,
+          abi: VERIFIER_ABI,
+          functionName: "shouldPass",
+        });
+      } catch {
+        pass = false;
+      }
       if (!pass) throw new Error("Provisional verifier is disabled, old-notes withdrawals are unavailable.");
       const spent = await publicClient.readContract({
         address: withdrawPool,
