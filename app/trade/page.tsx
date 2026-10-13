@@ -65,19 +65,21 @@ import { calculateSlippageBound } from "../../lib/router-client";
 import {
   buildGatedHookInnerHash,
   buildGatedPoolId,
+  buildGatedPoolKey,
   buildGatedSwapTxArgs,
   buildSelfAttestInnerHash,
   buildSelfAttestProofRoot,
   decodeGatedSwapOutput,
   describeGatedSimRevert,
   encodeGatedHookData,
+  GATED_ETH_ZERO_ADDRESS,
   GATED_EXPLORER_ADDRESS_BASE,
   GATED_EXPLORER_TX_BASE,
   GATED_HOOK_ADDRESS,
   GATED_POOL_ID,
   GATED_REGISTRY_ADDRESS,
-  GATED_SWAPPER_ABI,
   GATED_SWAPPER_ADDRESS,
+  GATED_SWAPPER_ABI,
   GATED_TESTNET_CHAIN_ID,
   GATED_VEIL_TOKEN,
   isGatedExecuteDisabled,
@@ -88,7 +90,9 @@ import {
   readGatingConfig,
   readVeilAllowanceGated,
   readVeilBalanceGated,
+  resolveGatedSuite,
   simulateGatedSwapCall,
+  TESTNET_GATED_SUITE,
   VEIL_ERC20_MIN_ABI,
   type AttestationStatus,
   type GatingConfig,
@@ -351,6 +355,11 @@ export default function SwapToShieldPage() {
   // the paused placeholder. Testnet builds are unaffected.
   const isMainnetZkLive =
     APP_CHAIN_ID === MAINNET_CHAIN_ID && resolveZkSuite(MAINNET_CHAIN_ID) !== null;
+  // Mainnet gated UI lights up only when the migrated gated suite is fully
+  // configured (registry + hook + token + swapper); otherwise mainnet builds
+  // keep attest/gated hidden. Testnet builds are unaffected.
+  const isMainnetGatedLive =
+    APP_CHAIN_ID === MAINNET_CHAIN_ID && resolveGatedSuite(MAINNET_CHAIN_ID) !== null;
   const uiZkRouter = isTestnetBuild ? TESTNET_ZK_ROUTER_ADDRESS : MAINNET_ZK_ROUTER_ADDRESS;
   const uiZkMultiRouter = isTestnetBuild
     ? TESTNET_ZK_ROUTER_MULTI_ADDRESS
@@ -591,9 +600,11 @@ export default function SwapToShieldPage() {
 
   // Task 3 live reads: attestation status + gating config from chain for the
   // connected address (never localStorage). Refreshes on wallet change.
-  // Placed after connectedAddress is declared (TDZ-safe).
+  // Placed after connectedAddress is declared (TDZ-safe). Suite follows the
+  // app chain: identical on testnet builds, live on mainnet once configured.
   useEffect(() => {
-    if (!isTestnetBuild || activeTab !== "buy_and_shield" || !connectedAddress) {
+    const gatedSuite = resolveGatedSuite(APP_CHAIN_ID) ?? TESTNET_GATED_SUITE;
+    if (activeTab !== "buy_and_shield" || !connectedAddress) {
       setAttestation(null);
       setGating(null);
       return;
@@ -603,8 +614,14 @@ export default function SwapToShieldPage() {
     (async () => {
       try {
         const [status, config] = await Promise.all([
-          readAttestationStatus(publicClient, connectedAddress),
-          readGatingConfig(publicClient),
+          readAttestationStatus(publicClient, connectedAddress, gatedSuite.registry),
+          readGatingConfig(publicClient, buildGatedPoolId({
+            currency0: GATED_ETH_ZERO_ADDRESS,
+            currency1: gatedSuite.veilToken,
+            fee: 3000,
+            tickSpacing: 60,
+            hooks: gatedSuite.hook,
+          }), gatedSuite.hook),
         ]);
         if (cancelled) return;
         setAttestation(status);
@@ -840,9 +857,20 @@ export default function SwapToShieldPage() {
     if (!connectedAddress) return;
     setIsAttestLoading(true);
     try {
+      const appSuite = resolveGatedSuite(APP_CHAIN_ID) ?? TESTNET_GATED_SUITE;
       const [status, config] = await Promise.all([
-        readAttestationStatus(publicClient, connectedAddress),
-        readGatingConfig(publicClient),
+        readAttestationStatus(publicClient, connectedAddress, appSuite.registry),
+        readGatingConfig(
+          publicClient,
+          buildGatedPoolId({
+            currency0: GATED_ETH_ZERO_ADDRESS,
+            currency1: appSuite.veilToken,
+            fee: 3000,
+            tickSpacing: 60,
+            hooks: appSuite.hook,
+          }),
+          appSuite.hook
+        ),
       ]);
       setAttestation(status);
       setGating(config);
@@ -870,9 +898,10 @@ export default function SwapToShieldPage() {
       return;
     }
     const connectedChainId = await getConnectedChainId(activeProvider);
-    if (connectedChainId !== GATED_TESTNET_CHAIN_ID) {
+    const gatedSuite = resolveGatedSuite(connectedChainId);
+    if (!gatedSuite || gatedSuite.chainId !== MAINNET_CHAIN_ID) {
       setFlowError(
-        "Self-attestation lives on Robinhood Testnet (46630). Switch your wallet to testnet and try again. No transaction was sent."
+        "Veil UI is mainnet-only. Switch your wallet to Robinhood Mainnet (4663) and try again. No transaction was sent."
       );
       return;
     }
@@ -880,7 +909,7 @@ export default function SwapToShieldPage() {
     try {
       if (txInFlight.current > 0) return;
       txInFlight.current += 1;
-      const live = await readAttestationStatus(publicClient, connectedAddress);
+      const live = await readAttestationStatus(publicClient, connectedAddress, gatedSuite.registry);
       setAttestation(live);
       if (live.attested) {
         setAttestNote("This address is already attested onchain. No transaction was sent.");
@@ -889,8 +918,8 @@ export default function SwapToShieldPage() {
       const proofRoot = buildSelfAttestProofRoot();
       const deadline = BigInt(Math.floor(Date.now() / 1000) + userDeadlineSeconds());
       const inner = buildSelfAttestInnerHash({
-        registry: GATED_REGISTRY_ADDRESS,
-        chainId: BigInt(GATED_TESTNET_CHAIN_ID),
+        registry: gatedSuite.registry,
+        chainId: BigInt(gatedSuite.chainId),
         user: connectedAddress,
         proofRoot,
         nonce: live.nonce,
@@ -904,7 +933,7 @@ export default function SwapToShieldPage() {
       const signature = await walletClient.signMessage({ message: { raw: inner } });
       await revalidateWallet(activeProvider, connectedAddress as string, connectedChainId);
       const attestHash = await walletClient.writeContract({
-        address: GATED_REGISTRY_ADDRESS,
+        address: gatedSuite.registry,
         abi: CONTRACT_ABIS.VeilAttestationRegistry,
         functionName: "selfAttest",
         args: [proofRoot, deadline, signature],
@@ -943,9 +972,10 @@ export default function SwapToShieldPage() {
       return;
     }
     const connectedChainId = await getConnectedChainId(activeProvider);
-    if (connectedChainId !== GATED_TESTNET_CHAIN_ID) {
+    const gatedSuite = resolveGatedSuite(connectedChainId);
+    if (!gatedSuite || gatedSuite.chainId !== MAINNET_CHAIN_ID) {
       setFlowError(
-        "The gated pool lives on Robinhood Testnet (46630). Switch your wallet to testnet and try again. Nothing was simulated."
+        "Veil UI is mainnet-only. Switch your wallet to Robinhood Mainnet (4663) and try again. Nothing was simulated."
       );
       return;
     }
@@ -966,10 +996,16 @@ export default function SwapToShieldPage() {
       });
       const deadline = BigInt(Math.floor(Date.now() / 1000) + userDeadlineSeconds());
       const inner = buildGatedHookInnerHash({
-        hook: GATED_HOOK_ADDRESS,
-        chainId: BigInt(GATED_TESTNET_CHAIN_ID),
+        hook: gatedSuite.hook,
+        chainId: BigInt(gatedSuite.chainId),
         user: connectedAddress,
-        poolId: buildGatedPoolId(),
+        poolId: buildGatedPoolId({
+          currency0: GATED_ETH_ZERO_ADDRESS,
+          currency1: gatedSuite.veilToken,
+          fee: 3000,
+          tickSpacing: 60,
+          hooks: gatedSuite.hook,
+        }),
         deadline,
       });
       const signature = await walletClient.signMessage({ message: { raw: inner } });
@@ -978,6 +1014,7 @@ export default function SwapToShieldPage() {
         from: connectedAddress,
         amountIn,
         hookData,
+        suite: gatedSuite,
       });
       if (result.ok) {
         setGatedSimNote(
@@ -1011,9 +1048,10 @@ export default function SwapToShieldPage() {
       return;
     }
     const connectedChainId = await getConnectedChainId(activeProvider);
-    if (connectedChainId !== GATED_TESTNET_CHAIN_ID) {
+    const gatedSuite = resolveGatedSuite(connectedChainId);
+    if (!gatedSuite || gatedSuite.chainId !== MAINNET_CHAIN_ID) {
       setFlowError(
-        "The gated pool lives on Robinhood Testnet (46630). Switch your wallet to testnet and try again. No transaction was sent."
+        "Veil UI is mainnet-only. Switch your wallet to Robinhood Mainnet (4663) and try again. No transaction was sent."
       );
       return;
     }
@@ -1025,7 +1063,7 @@ export default function SwapToShieldPage() {
       setFlowError("Enter a valid VEIL amount greater than zero.");
       return;
     }
-    const live = await readAttestationStatus(publicClient, connectedAddress);
+    const live = await readAttestationStatus(publicClient, connectedAddress, gatedSuite.registry);
     setAttestation(live);
     if (!live.attested) {
       setFlowError(
@@ -1033,10 +1071,10 @@ export default function SwapToShieldPage() {
       );
       return;
     }
-    const veilBal = await readVeilBalanceGated(publicClient, connectedAddress);
+    const veilBal = await readVeilBalanceGated(publicClient, connectedAddress, gatedSuite.veilToken);
     if (veilBal < amountIn) {
       setFlowError(
-        `Insufficient test VEIL balance. The gated route needs ${formatEther(amountIn)} test VEIL (${GATED_VEIL_TOKEN}) already in your wallet — there is no onchain faucet. Fund test VEIL and try again.`
+        `Insufficient VEIL balance. The gated route needs ${formatEther(amountIn)} VEIL already in your wallet — there is no onchain faucet. Fund VEIL and try again.`
       );
       return;
     }
@@ -1049,14 +1087,19 @@ export default function SwapToShieldPage() {
         chain: appChain,
         transport: custom(activeProvider),
       });
-      const allowance = await readVeilAllowanceGated(publicClient, connectedAddress);
+      const allowance = await readVeilAllowanceGated(
+        publicClient,
+        connectedAddress,
+        gatedSuite.swapper,
+        gatedSuite.veilToken
+      );
       if (allowance < amountIn) {
           await revalidateWallet(activeProvider, connectedAddress as string, connectedChainId);
           const approveHash = await walletClient.writeContract({
-              address: GATED_VEIL_TOKEN,
+              address: gatedSuite.veilToken,
               abi: VEIL_ERC20_MIN_ABI,
               functionName: "approve",
-              args: [GATED_SWAPPER_ADDRESS, amountIn],
+              args: [gatedSuite.swapper, amountIn],
             });
         const approveReceipt = await waitForTransactionReceipt(publicClient, {
           hash: approveHash,
@@ -1067,10 +1110,16 @@ export default function SwapToShieldPage() {
       }
       const deadline = BigInt(Math.floor(Date.now() / 1000) + userDeadlineSeconds());
       const inner = buildGatedHookInnerHash({
-        hook: GATED_HOOK_ADDRESS,
-        chainId: BigInt(GATED_TESTNET_CHAIN_ID),
+        hook: gatedSuite.hook,
+        chainId: BigInt(gatedSuite.chainId),
         user: connectedAddress,
-        poolId: buildGatedPoolId(),
+        poolId: buildGatedPoolId({
+          currency0: GATED_ETH_ZERO_ADDRESS,
+          currency1: gatedSuite.veilToken,
+          fee: 3000,
+          tickSpacing: 60,
+          hooks: gatedSuite.hook,
+        }),
         deadline,
       });
       const signature = await walletClient.signMessage({ message: { raw: inner } });
@@ -1089,6 +1138,7 @@ export default function SwapToShieldPage() {
         from: connectedAddress,
         amountIn,
         hookData,
+        suite: gatedSuite,
       });
       if (!preSim.ok) {
         throw new Error(
@@ -1101,10 +1151,11 @@ export default function SwapToShieldPage() {
         amountIn,
         hookData,
         minOut: calculateSlippageBound(simOut, simSlippage),
+        suite: gatedSuite,
       });
       await revalidateWallet(activeProvider, connectedAddress as string, connectedChainId);
       const swapHash = await walletClient.writeContract({
-        address: GATED_SWAPPER_ADDRESS,
+        address: gatedSuite.swapper,
         abi: GATED_SWAPPER_ABI,
         functionName: "swapExactIn",
         args: [...txArgs],
@@ -4111,8 +4162,8 @@ export default function SwapToShieldPage() {
           )}
           {/* Buy & Shield tab body lives in components/trade/BuyAndShieldPanel.tsx */}
 
-              {/* Self-attestation + gated pool (Task 3, testnet only) */}
-              {isTestnetBuild && activeTab === "buy_and_shield" && (
+              {/* Self-attestation + gated pool (Task 3: testnet suite, mainnet suite once migrated) */}
+              {(isTestnetBuild || isMainnetGatedLive) && activeTab === "buy_and_shield" && (
                 <AttestPanel
                   connectedAddress={connectedAddress}
                   attestation={attestation}

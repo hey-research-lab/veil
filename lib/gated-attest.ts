@@ -31,6 +31,8 @@ import {
 
 export const GATED_TESTNET_CHAIN_ID = 46630;
 
+export const MAINNET_CHAIN_ID_GATED = 4663;
+
 export const GATED_REGISTRY_ADDRESS =
   "0x0a9bc900d7831d9e2589fb44f6b0754d3f572f36" as Address;
 export const GATED_HOOK_ADDRESS =
@@ -42,6 +44,24 @@ export const GATED_ETH_ZERO_ADDRESS =
 // TestnetSwapHelper from scripts/gated-swap-v2.mjs (proven swapExactIn path).
 export const GATED_SWAPPER_ADDRESS =
   "0x14c27b66fba1b561a920bd03970ae20c53608dff" as Address;
+
+// Mainnet suite (deployments/privacy-pools-mainnet-latest.json + swap helper
+// from scripts/mainnet-gated-pool.mjs). Env-overridable, empty until set —
+// use resolveGatedSuite, never these directly.
+export const GATED_MAINNET_REGISTRY_ADDRESS =
+  (process.env.NEXT_PUBLIC_VEIL_ATTESTATION_REGISTRY as Address | undefined) ||
+  ("" as Address);
+export const GATED_MAINNET_HOOK_ADDRESS =
+  (process.env.NEXT_PUBLIC_VEIL_HOOK as Address | undefined) || ("" as Address);
+export const GATED_MAINNET_VEIL_TOKEN =
+  (process.env.NEXT_PUBLIC_VEIL_TOKEN as Address | undefined) || ("" as Address);
+export const GATED_MAINNET_SWAPPER_ADDRESS =
+  (process.env.NEXT_PUBLIC_MAINNET_SWAP_HELPER as Address | undefined) ||
+  ("" as Address);
+export const GATED_MAINNET_EXPLORER_TX_BASE =
+  "https://explorer.mainnet.chain.robinhood.com/tx/";
+export const GATED_MAINNET_EXPLORER_ADDRESS_BASE =
+  "https://explorer.mainnet.chain.robinhood.com/address/";
 
 // Proven gated poolKey, verbatim from scripts/gated-swap-v2.mjs:
 // { currency0: ETH, currency1: VEIL, fee: 3000, tickSpacing: 60, hooks: v2 }.
@@ -72,13 +92,75 @@ export const GATED_HOOKDATA_TTL_SECONDS = 600;
 export const PROVEN_GATED_VEIL_AMOUNT_IN = "0.5";
 export const GATED_SWAP_MIN_OUT = 1n;
 
-export function buildGatedPoolKey(): typeof GATED_POOL_KEY {
+/** Chain-bound gated addresses. Defaults keep every existing caller on testnet. */
+export interface GatedChainSuite {
+  chainId: number;
+  registry: Address;
+  hook: Address;
+  veilToken: Address;
+  swapper: Address;
+  explorerTxBase: string;
+  explorerAddressBase: string;
+}
+
+export const TESTNET_GATED_SUITE: GatedChainSuite = {
+  chainId: GATED_TESTNET_CHAIN_ID,
+  registry: GATED_REGISTRY_ADDRESS,
+  hook: GATED_HOOK_ADDRESS,
+  veilToken: GATED_VEIL_TOKEN,
+  swapper: GATED_SWAPPER_ADDRESS,
+  explorerTxBase: GATED_EXPLORER_TX_BASE,
+  explorerAddressBase: GATED_EXPLORER_ADDRESS_BASE,
+};
+
+function isHexAddress(value: string): value is Address {
+  return /^0x[0-9a-fA-F]{40}$/.test(value);
+}
+
+export function isMainnetGatedConfigured(): boolean {
+  return [
+    GATED_MAINNET_REGISTRY_ADDRESS,
+    GATED_MAINNET_HOOK_ADDRESS,
+    GATED_MAINNET_VEIL_TOKEN,
+    GATED_MAINNET_SWAPPER_ADDRESS,
+  ].every(
+    (a) => isHexAddress(a) && a !== "0x0000000000000000000000000000000000000000"
+  );
+}
+
+/**
+ * Resolve the gated suite for a wallet chain. Null when unsupported or the
+ * mainnet suite is unconfigured — callers fail closed on null.
+ */
+export function resolveGatedSuite(chainId: number | null): GatedChainSuite | null {
+  if (chainId === GATED_TESTNET_CHAIN_ID) return TESTNET_GATED_SUITE;
+  if (chainId === MAINNET_CHAIN_ID_GATED && isMainnetGatedConfigured()) {
+    return {
+      chainId: MAINNET_CHAIN_ID_GATED,
+      registry: GATED_MAINNET_REGISTRY_ADDRESS,
+      hook: GATED_MAINNET_HOOK_ADDRESS,
+      veilToken: GATED_MAINNET_VEIL_TOKEN,
+      swapper: GATED_MAINNET_SWAPPER_ADDRESS,
+      explorerTxBase: GATED_MAINNET_EXPLORER_TX_BASE,
+      explorerAddressBase: GATED_MAINNET_EXPLORER_ADDRESS_BASE,
+    };
+  }
+  return null;
+}
+
+export function buildGatedPoolKey(suite: GatedChainSuite = TESTNET_GATED_SUITE): {
+  currency0: Address;
+  currency1: Address;
+  fee: number;
+  tickSpacing: number;
+  hooks: Address;
+} {
   return {
-    currency0: GATED_POOL_KEY.currency0,
-    currency1: GATED_POOL_KEY.currency1,
-    fee: GATED_POOL_KEY.fee,
-    tickSpacing: GATED_POOL_KEY.tickSpacing,
-    hooks: GATED_POOL_KEY.hooks,
+    currency0: GATED_ETH_ZERO_ADDRESS,
+    currency1: suite.veilToken,
+    fee: 3000,
+    tickSpacing: 60,
+    hooks: suite.hook,
   };
 }
 
@@ -440,29 +522,27 @@ export interface GatedSimCallArgs {
   amountIn: bigint;
   hookData: `0x${string}`;
   minOut?: bigint;
+  /** Chain suite; defaults to testnet so existing callers are untouched. */
+  suite?: GatedChainSuite;
 }
 
 export function buildGatedSwapCalldata(args: GatedSimCallArgs): `0x${string}` {
   if (args.amountIn <= 0n) throw new Error("VEIL input amount must be greater than zero.");
+  const suite = args.suite ?? TESTNET_GATED_SUITE;
+  const key = buildGatedPoolKey(suite);
   return encodeFunctionData({
     abi: GATED_SWAPPER_ABI,
     functionName: "swapExactIn",
     args: [
       {
-        key: {
-          currency0: GATED_POOL_KEY.currency0,
-          currency1: GATED_POOL_KEY.currency1,
-          fee: GATED_POOL_KEY.fee,
-          tickSpacing: GATED_POOL_KEY.tickSpacing,
-          hooks: GATED_POOL_KEY.hooks,
-        },
+        key,
         // zeroForOne=false: VEIL (currency1) in -> ETH (currency0) out,
         // verbatim from scripts/gated-swap-v2.mjs swapAs.
         zeroForOne: false,
         amountIn: args.amountIn,
         minOut: args.minOut ?? GATED_SWAP_MIN_OUT,
         hookData: args.hookData,
-        inputToken: GATED_VEIL_TOKEN,
+        inputToken: suite.veilToken,
       },
     ],
   });
@@ -490,20 +570,16 @@ export function decodeGatedSwapOutput(returnData: `0x${string}`): bigint {
  */
 export function buildGatedSwapTxArgs(args: GatedSimCallArgs) {
   if (args.amountIn <= 0n) throw new Error("VEIL input amount must be greater than zero.");
+  const suite = args.suite ?? TESTNET_GATED_SUITE;
+  const key = buildGatedPoolKey(suite);
   return [
     {
-      key: {
-        currency0: GATED_POOL_KEY.currency0,
-        currency1: GATED_POOL_KEY.currency1,
-        fee: GATED_POOL_KEY.fee,
-        tickSpacing: GATED_POOL_KEY.tickSpacing,
-        hooks: GATED_POOL_KEY.hooks,
-      },
+      key,
       zeroForOne: false,
       amountIn: args.amountIn,
       minOut: args.minOut ?? GATED_SWAP_MIN_OUT,
       hookData: args.hookData,
-      inputToken: GATED_VEIL_TOKEN,
+      inputToken: suite.veilToken,
     },
   ] as const;
 }
@@ -526,13 +602,14 @@ export async function simulateGatedSwapCall(
   client: PublicClient,
   args: GatedSimCallArgs
 ): Promise<GatedSimResult> {
+  const suite = args.suite ?? TESTNET_GATED_SUITE;
   const data = buildGatedSwapCalldata(args);
-  const override = buildFundedSimOverride(args.from, args.amountIn);
+  const override = buildFundedSimOverride(args.from, args.amountIn, suite.veilToken, suite.swapper);
   try {
     const returnData = (await client.request({
       method: "eth_call",
       params: [
-        { from: args.from, to: GATED_SWAPPER_ADDRESS, data },
+        { from: args.from, to: suite.swapper, data },
         "latest",
         override,
       ],
@@ -580,14 +657,16 @@ function toWord(value: bigint): Hash {
 
 export function buildFundedSimOverride(
   from: Address,
-  amount: bigint
+  amount: bigint,
+  veilToken: Address = GATED_VEIL_TOKEN,
+  swapper: Address = GATED_SWAPPER_ADDRESS
 ): Record<Address, { stateDiff: Record<Hash, Hash> }> {
   const funded = toWord(amount);
   return {
-    [GATED_VEIL_TOKEN]: {
+    [veilToken]: {
       stateDiff: {
         [buildVeilBalanceSlot(from)]: funded,
-        [buildVeilAllowanceSlot(from, GATED_SWAPPER_ADDRESS)]: funded,
+        [buildVeilAllowanceSlot(from, swapper)]: funded,
       },
     },
   };
@@ -636,7 +715,7 @@ export function mapSelfAttestError(error: unknown): string {
   const msg = messageOf(error);
   if (/already attested/i.test(msg)) return msg;
   if (error instanceof Error && error.message) return error.message;
-  return "Self-attestation failed before execution. Check your wallet and testnet connection, then try again.";
+  return "Self-attestation failed before execution. Check your wallet connection, then try again.";
 }
 
 /** Honest English errors for gated-swap execution failures. */
@@ -654,9 +733,9 @@ export function mapGatedSwapError(error: unknown): string {
   if (/insufficient allowance|ERC20InsufficientAllowance|exceeds allowance/i.test(msg))
     return "The gated swapper is not approved to spend this VEIL yet. Approve VEIL for the swapper during execution, then retry.";
   if (/insufficient balance|ERC20InsufficientBalance/i.test(msg))
-    return `Insufficient test VEIL balance. The gated route needs test VEIL (${GATED_VEIL_TOKEN}) already in your wallet — there is no onchain faucet. Fund test VEIL and try again.`;
+    return "Insufficient VEIL balance. The gated route needs VEIL already in your wallet — there is no onchain faucet. Fund VEIL and try again.";
   if (error instanceof Error && error.message) return error.message;
-  return "Gated swap failed before execution. Check your wallet, testnet connection, and VEIL balance, then try again.";
+  return "Gated swap failed before execution. Check your wallet, network connection, and VEIL balance, then try again.";
 }
 
 export function isGatedExecuteDisabled(args: {
@@ -678,10 +757,11 @@ export function isGatedExecuteDisabled(args: {
 
 export async function readVeilBalanceGated(
   client: PublicClient,
-  owner: Address
+  owner: Address,
+  veilToken: Address = GATED_VEIL_TOKEN
 ): Promise<bigint> {
   return client.readContract({
-    address: GATED_VEIL_TOKEN,
+    address: veilToken,
     abi: VEIL_ERC20_MIN_ABI,
     functionName: "balanceOf",
     args: [owner],
@@ -691,21 +771,24 @@ export async function readVeilBalanceGated(
 export async function readVeilAllowanceGated(
   client: PublicClient,
   owner: Address,
-  spender: Address = GATED_SWAPPER_ADDRESS
+  spender: Address = GATED_SWAPPER_ADDRESS,
+  veilToken: Address = GATED_VEIL_TOKEN
 ): Promise<bigint> {
   return client.readContract({
-    address: GATED_VEIL_TOKEN,
+    address: veilToken,
     abi: VEIL_ERC20_MIN_ABI,
     functionName: "allowance",
     args: [owner, spender],
   });
 }
 
-export function gatedExplorerTxUrl(hash: string): string {
+export function gatedExplorerTxUrl(hash: string, chainId?: number): string {
+  if (chainId === MAINNET_CHAIN_ID_GATED) return `${GATED_MAINNET_EXPLORER_TX_BASE}${hash}`;
   return `${GATED_EXPLORER_TX_BASE}${hash}`;
 }
 
-export function gatedExplorerAddressUrl(address: string): string {
+export function gatedExplorerAddressUrl(address: string, chainId?: number): string {
+  if (chainId === MAINNET_CHAIN_ID_GATED) return `${GATED_MAINNET_EXPLORER_ADDRESS_BASE}${address}`;
   return `${GATED_EXPLORER_ADDRESS_BASE}${address}`;
 }
 
