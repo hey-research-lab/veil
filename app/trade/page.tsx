@@ -3613,9 +3613,9 @@ export default function SwapToShieldPage() {
         ]);
         setIsProverOpen(true);
       } catch (e: unknown) {
-        console.error("0xbow testnet withdrawal error:", e);
+        console.error("0xbow withdrawal error:", e);
         setIsProverOpen(false);
-        setFlowError(e instanceof Error ? e.message : "0xbow testnet withdrawal failed. Try again.");
+        setFlowError(e instanceof Error ? e.message : "0xbow withdrawal failed. Try again.");
       } finally {
         setIsExecuting(false);
         txInFlight.current = Math.max(0, txInFlight.current - 1);

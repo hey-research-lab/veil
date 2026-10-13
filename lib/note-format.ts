@@ -1,16 +1,19 @@
 import { formatEther, formatUnits } from "viem";
 import { SUPPORTED_TOKENS } from "../components/TokenSelectModal";
 import { TESTNET_VEIL_TOKEN } from "./router-swap";
+import { MAINNET_BOW_V3_VEIL_TOKEN } from "./privacy-pools";
 
 // Canonical zero address for native-ETH notes/pools (moved from
 // app/trade/page.tsx during modularization).
 export const ETH_ZERO_ADDRESS =
   "0x0000000000000000000000000000000000000000" as const;
 
-// Pool tokens not listed in SUPPORTED_TOKENS (e.g. test VEIL has no faucet
-// entry) still need correct labels — a mislabeled VEIL note reads as ETH.
+// Pool tokens not listed in SUPPORTED_TOKENS still need correct labels —
+// a mislabeled VEIL note reads as ETH. Mainnet entry is explicit so an
+// env-missing build can never misformat mainnet VEIL as ETH.
 const KNOWN_ASSETS: Readonly<Record<string, { symbol: string; decimals: number }>> = {
   [TESTNET_VEIL_TOKEN.toLowerCase()]: { symbol: "VEIL", decimals: 18 },
+  [MAINNET_BOW_V3_VEIL_TOKEN.toLowerCase()]: { symbol: "VEIL", decimals: 18 },
 };
 
 // Display helpers for shielded-note amounts/symbols. Pure (read-only token

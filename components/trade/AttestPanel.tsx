@@ -148,7 +148,7 @@ export const AttestPanel: React.FC<AttestPanelProps> = ({
               : !gating.gated
               ? "Not gated — any address can swap"
               : gating.active
-              ? `Active — temporary test window, ends ${gating.windowEndsAt !== null ? new Date(Number(gating.windowEndsAt) * 1000).toUTCString() : "never (permanent)"}`
+              ? `Active — temporary ${isMainnet ? "gating" : "test"} window, ends ${gating.windowEndsAt !== null ? new Date(Number(gating.windowEndsAt) * 1000).toUTCString() : "never (permanent)"}`
               : "Window elapsed — pool currently accepts any address"}
           </span>
         </div>

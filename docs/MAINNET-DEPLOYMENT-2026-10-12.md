@@ -266,3 +266,13 @@ extTokenId=3752545, onchain PM live). Root cause unproven; documented, not chase
 - Accepted risks (documented, no code change): lib/contracts.ts display fallbacks stay fail-open (all logic paths fail closed; only cosmetics); 7 stale Vercel env keys (wire-or-remove later); legacy-exit resolver may not match mainnet legacy notes (legacy path only); testnet notes unwithdrawable in mainnet-only build (by design).
 - Local: tsc 0, vitest 39 files / 232 tests PASS.
 
+
+
+## 19. Second Audit: Roots Proven, Last Testnet Strings Killed (2026-10-13, no sends)
+
+- Pool-id proof: buildZkPoolId(mainnet) reads exactly 50000000000000000 liquidity onchain. Viability gate now targets the real pool.
+- State proof: ethPool holds exactly 1000000000000000 wei (dust only, all notes withdrawn); veilPool 0; both unpaused; VEIL minimum 100000000000000.
+- Fixed: AttestPanel gating-window wording + VEIL hint chain-aware; '0xbow testnet withdrawal failed' -> chain-agnostic; KNOWN_ASSETS gains explicit mainnet VEIL entry (env-missing builds can never misformat mainnet VEIL as ETH).
+- Verified non-issues: LEANIMT is the correct 0xbow tree name (not a typo); swapHelper 0x08b1 is the live swap contract (proven by 0x4228), only missing from manifest records; chains.mjs divergence unreachable from browser; codosContent stale section is dead data (not rendered); entrypoint 163B is the UUPS proxy (expected).
+- Local: tsc 0, vitest 39 files / 232 tests PASS. UI mainnet testing: READY.
+
