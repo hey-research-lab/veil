@@ -45,6 +45,7 @@ export const BuyAndShieldPanel: React.FC<BuyAndShieldPanelProps> = ({
   onExecute,
 }) => {
   const assetNavRef = useRef<HTMLDivElement>(null);
+  const [multiplier, setMultiplier] = useState<number>(1);
   const [assetIndicatorStyle, setAssetIndicatorStyle] = useState<{ left: number; width: number; opacity: number }>({
     left: 0,
     width: 0,
@@ -232,6 +233,57 @@ export const BuyAndShieldPanel: React.FC<BuyAndShieldPanelProps> = ({
           </div>
         </div>
 
+        {/* Quick Note Multiplier Presets */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px", paddingTop: "4px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-muted)", fontWeight: 500 }}>
+              Note Multiplier Presets
+            </span>
+            <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: multiplier > 1 ? "var(--color-accent-ink)" : "var(--color-text)", fontWeight: 600 }}>
+              {multiplier === 1 ? `1 Note (${denomLabel})` : `${multiplier} Notes (${(0.001 * multiplier).toFixed(3)} ${depositAsset})`}
+            </span>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "6px" }}>
+            {[
+              { mult: 1, label: "1x Note", val: "0.001" },
+              { mult: 2, label: "2x Notes", val: "0.002" },
+              { mult: 5, label: "5x Notes", val: "0.005" },
+              { mult: 10, label: "10x Notes", val: "0.010" },
+            ].map((preset) => {
+              const isSelected = multiplier === preset.mult;
+              return (
+                <button
+                  key={preset.mult}
+                  type="button"
+                  onClick={() => {
+                    setMultiplier(preset.mult);
+                    onDepositAmount(isEth ? formatEther(ethDenomination) : "0.001");
+                  }}
+                  style={{
+                    padding: "6px 8px",
+                    borderRadius: "var(--radius-sm)",
+                    border: isSelected ? "1px solid var(--color-accent)" : "1px solid var(--color-border)",
+                    backgroundColor: isSelected ? "rgba(255, 140, 0, 0.08)" : "#ffffff",
+                    color: isSelected ? "var(--color-accent-ink)" : "var(--color-text)",
+                    cursor: "pointer",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "2px",
+                    transition: "all var(--duration-fast)",
+                  }}
+                >
+                  <span style={{ fontSize: "12px", fontWeight: isSelected ? 700 : 500 }}>{preset.label}</span>
+                  <span style={{ fontSize: "10px", fontFamily: "var(--font-mono)", color: isSelected ? "var(--color-accent-ink)" : "var(--color-muted)" }}>
+                    {preset.val} {depositAsset}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Why Fixed Helper Strip */}
         <div
           style={{
@@ -243,7 +295,11 @@ export const BuyAndShieldPanel: React.FC<BuyAndShieldPanelProps> = ({
             borderTop: "1px solid var(--color-hairline)",
           }}
         >
-          Each deposit mints 1 private note of exactly {denomLabel} to keep all commitments identical and unlinkable onchain.
+          {multiplier === 1 ? (
+            <span>Each deposit mints 1 private note of exactly {denomLabel} to keep all commitments identical and unlinkable onchain.</span>
+          ) : (
+            <span>Targeting {multiplier} notes ({(0.001 * multiplier).toFixed(3)} {depositAsset}). The privacy pool mints 0.001 per transaction to ensure maximum anonymity set cardinality. Mint sequential notes to fulfill this target.</span>
+          )}
         </div>
       </div>
 

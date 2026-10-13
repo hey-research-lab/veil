@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Copy, Download } from "lucide-react";
+import { Copy, Download, FileText, Check } from "lucide-react";
 import { isBowNote, type AnyShieldedNote } from "../../lib/note";
 import { formatNoteAmount, getNoteAssetSymbol } from "../../lib/note-format";
 import { TokenIcon } from "../TokenLogos";
@@ -19,6 +19,7 @@ export interface VaultPanelProps {
 /** Vault tab: local encrypted-note list with copy + withdraw shortcuts. */
 export const VaultPanel: React.FC<VaultPanelProps> = ({ notes, onBackup, onBackupNote, onWithdrawNote, onRemoveNote, onGoShield }) => {
   const [copiedCommitment, setCopiedCommitment] = useState<string | null>(null);
+  const [copiedReceiptIndex, setCopiedReceiptIndex] = useState<number | null>(null);
   // Confirm-remove modal target. Removing only drops the LOCAL entry
   // (onchain funds are untouched) — used for spent/duplicate notes.
   const [confirmRemove, setConfirmRemove] = useState<AnyShieldedNote | null>(null);
@@ -218,6 +219,59 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({ notes, onBackup, onBacku
                   Storage: Encrypted on this device
                 </span>
                 <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const commitmentStr = isBowNote(note) ? note.commitmentHash : note.commitment;
+                      const text = [
+                        "================================================================",
+                        "             VEIL PROTOCOL · ENCRYPTED NOTE RECEIPT",
+                        "             0xbow Privacy Pool (v1.2.1 · Cancun EVM)",
+                        "================================================================",
+                        `Note ID:          #${index + 1}`,
+                        `Asset:            ${getNoteAssetSymbol(note.asset)}`,
+                        `Denomination:     ${formatNoteAmount(note.denomination, note.asset)}`,
+                        `Commitment:       ${commitmentStr}`,
+                        `Nullifier:        ${note.nullifier}`,
+                        `Cryptography:     Groth16 SNARK / Poseidon / LeanIMT Depth 20`,
+                        `Network:          Robinhood Chain (Chain ID: 4663)`,
+                        `Storage:          Client-Side Encrypted Local Storage`,
+                        "================================================================",
+                      ].join("\n");
+                      navigator.clipboard.writeText(text);
+                      setCopiedReceiptIndex(index);
+                      setTimeout(() => setCopiedReceiptIndex(null), 2000);
+                    }}
+                    aria-label={`Copy anonymous receipt for note ${index + 1}`}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      padding: "5px 10px",
+                      minHeight: "28px",
+                      borderRadius: "var(--radius-sm)",
+                      backgroundColor: copiedReceiptIndex === index ? "rgba(0, 194, 45, 0.1)" : "transparent",
+                      border: copiedReceiptIndex === index ? "1px solid rgba(0, 194, 45, 0.4)" : "1px solid var(--color-border)",
+                      color: copiedReceiptIndex === index ? "#00c22d" : "var(--color-muted)",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      transition: "all var(--duration-fast)",
+                    }}
+                  >
+                    {copiedReceiptIndex === index ? (
+                      <>
+                        <Check className="w-3 h-3 text-[#00c22d]" />
+                        <span>Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="w-3 h-3" />
+                        <span>Receipt</span>
+                      </>
+                    )}
+                  </button>
+
                   <button
                     type="button"
                     onClick={() => onBackupNote(note.nullifier)}

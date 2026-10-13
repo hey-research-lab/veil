@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeft, LogOut, Copy, Check, ChevronDown } from "lucide-react";
+import { ArrowLeft, LogOut, Copy, Check, ChevronDown, Menu, X as CloseIcon, Shield, FileText, Flame, ExternalLink, Activity, BookOpen } from "lucide-react";
 import { WalletModal } from "./WalletModal";
 import { VeilLogo } from "./VeilLogo";
 import { RobinhoodLogo, XLogo } from "./TokenLogos";
@@ -19,12 +19,12 @@ import {
   type EvmWalletId,
 } from "@/lib/wallets";
 
-
 export function Navbar() {
   const pathname = usePathname();
   const [wallet, setWallet] = useState<{ id: EvmWalletId; address: string } | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isNavDrawerOpen, setIsNavDrawerOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [balances, setBalances] = useState<Record<string, string>>({});
   const [balancesLoading, setBalancesLoading] = useState(false);
@@ -127,6 +127,7 @@ export function Navbar() {
             <Link
               href="/"
               className="group"
+              aria-label="Back to Home"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -148,7 +149,7 @@ export function Navbar() {
                 className="transition-transform duration-200 group-hover:-translate-x-0.5"
                 style={{ color: "var(--color-muted)" }}
               />
-              <span>Back to Home</span>
+              <span className="hidden sm:inline">Back to Home</span>
             </Link>
 
             <div
@@ -164,10 +165,10 @@ export function Navbar() {
           </div>
 
           {/* Right: Network Indicator & Multi-Wallet Connect */}
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", position: "relative" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", position: "relative" }}>
             <div
+              className="hidden md:inline-flex"
               style={{
-                display: "inline-flex",
                 alignItems: "center",
                 height: "2.25rem",
                 flexShrink: 0,
@@ -430,9 +431,201 @@ export function Navbar() {
                 <span>Connect Wallet</span>
               </button>
             )}
+
+            {/* Mobile Navigation Drawer Trigger */}
+            <button
+              type="button"
+              onClick={() => setIsNavDrawerOpen(true)}
+              aria-label="Open Navigation Menu"
+              className="inline-flex md:hidden"
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+                width: "2.25rem",
+                height: "2.25rem",
+                borderRadius: "var(--radius-md)",
+                backgroundColor: "rgba(26, 26, 26, 0.04)",
+                border: "1px solid var(--color-border)",
+                color: "var(--color-text)",
+                cursor: "pointer",
+                padding: 0,
+                flexShrink: 0,
+                transition: "all var(--duration-fast)",
+              }}
+            >
+              <Menu size={18} />
+            </button>
           </div>
         </div>
       </header>
+
+      {/* Mobile Navigation Drawer Modal */}
+      {isNavDrawerOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation Menu"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 100,
+            display: "flex",
+            justifyContent: "flex-end",
+          }}
+        >
+          {/* Backdrop */}
+          <div
+            onClick={() => setIsNavDrawerOpen(false)}
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.45)",
+              backdropFilter: "blur(2px)",
+            }}
+          />
+
+          {/* Drawer Panel */}
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+              maxWidth: "320px",
+              height: "100%",
+              backgroundColor: "#ffffff",
+              boxShadow: "-8px 0 32px rgba(0, 0, 0, 0.18)",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              padding: "var(--space-5)",
+              boxSizing: "border-box",
+              zIndex: 101,
+              overflowY: "auto",
+            }}
+          >
+            <div>
+              {/* Drawer Top / Header */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  paddingBottom: "16px",
+                  borderBottom: "1px solid var(--color-border)",
+                }}
+              >
+                <VeilLogo href="/" size="md" />
+                <button
+                  type="button"
+                  onClick={() => setIsNavDrawerOpen(false)}
+                  aria-label="Close navigation menu"
+                  style={{
+                    width: "32px",
+                    height: "32px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "var(--radius-sm)",
+                    border: "1px solid var(--color-border)",
+                    backgroundColor: "rgba(26, 26, 26, 0.04)",
+                    color: "var(--color-text)",
+                    cursor: "pointer",
+                  }}
+                >
+                  <CloseIcon size={16} />
+                </button>
+              </div>
+
+              {/* Navigation Links */}
+              <nav style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "18px" }}>
+                {[
+                  { href: "/trade", label: "Trade Terminal", icon: Shield, active: pathname === "/trade" },
+                  { href: "/status", label: "Protocol Status & Proofs", icon: Activity, active: pathname === "/status" },
+                  { href: "/contracts", label: "Verified Contracts", icon: FileText, active: pathname === "/contracts" },
+                  { href: "/burn", label: "Burn & Buyback Flywheel", icon: Flame, active: pathname === "/burn" },
+                  { href: "/docs/decisions", label: "Architecture Decisions", icon: BookOpen, active: pathname.startsWith("/docs/decisions") },
+                  { href: "/docs/asp-policy", label: "ASP Policy & Proofs", icon: Shield, active: pathname.startsWith("/docs/asp-policy") },
+                  { href: "/privacy", label: "Privacy Policy", icon: FileText, active: pathname === "/privacy" },
+                  { href: "/terms", label: "Terms of Service", icon: FileText, active: pathname === "/terms" },
+                ].map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setIsNavDrawerOpen(false)}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        padding: "10px 12px",
+                        borderRadius: "var(--radius-md)",
+                        backgroundColor: item.active ? "rgba(255, 140, 0, 0.08)" : "transparent",
+                        color: item.active ? "var(--color-accent-ink)" : "var(--color-text)",
+                        border: item.active ? "1px solid rgba(255, 140, 0, 0.25)" : "1px solid transparent",
+                        textDecoration: "none",
+                        fontWeight: item.active ? 700 : 500,
+                        fontSize: "13.5px",
+                        fontFamily: "var(--font-body)",
+                        transition: "all var(--duration-fast)",
+                      }}
+                    >
+                      <Icon size={16} style={{ color: item.active ? "var(--color-accent-ink)" : "var(--color-muted)" }} />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+
+            {/* Drawer Bottom */}
+            <div
+              style={{
+                paddingTop: "16px",
+                borderTop: "1px solid var(--color-border)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "12px",
+              }}
+            >
+              <a
+                href="https://x.com/veilpools"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  padding: "10px 14px",
+                  borderRadius: "var(--radius-md)",
+                  backgroundColor: "var(--color-text)",
+                  color: "var(--color-bg)",
+                  textDecoration: "none",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                }}
+              >
+                <XLogo size={14} color="var(--color-bg)" />
+                <span>Follow @veilpools on X</span>
+              </a>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  fontSize: "11px",
+                  fontFamily: "var(--font-mono)",
+                  color: "var(--color-muted)",
+                }}
+              >
+                <span>Robinhood Chain ({APP_CHAIN_ID})</span>
+                <span>Mainnet v1.2.1</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <WalletModal
         open={isModalOpen}

@@ -286,6 +286,53 @@ export const WithdrawPanel: React.FC<WithdrawPanelProps> = ({
                 })}
               </div>
             )}
+
+            {/* Quick Note Switcher Presets */}
+            {notes.length > 1 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "10px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-muted)" }}>
+                    Quick Note Selector ({notes.length} available)
+                  </span>
+                  <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-accent-ink)", fontWeight: 600 }}>
+                    Active: #{notes.findIndex((n) => n.nullifier === activeNote.nullifier) + 1}
+                  </span>
+                </div>
+                <div style={{ display: "flex", gap: "6px", overflowX: "auto", paddingBottom: "2px" }}>
+                  {notes.map((n, idx) => {
+                    const isCurrent = n.nullifier === activeNote.nullifier;
+                    return (
+                      <button
+                        key={n.nullifier}
+                        type="button"
+                        onClick={() => onSelectNote(n.nullifier)}
+                        style={{
+                          padding: "5px 10px",
+                          borderRadius: "var(--radius-sm)",
+                          border: isCurrent ? "1px solid var(--color-accent)" : "1px solid var(--color-border)",
+                          backgroundColor: isCurrent ? "rgba(255, 140, 0, 0.08)" : "#ffffff",
+                          color: isCurrent ? "var(--color-accent-ink)" : "var(--color-text)",
+                          fontSize: "11.5px",
+                          fontFamily: "var(--font-mono)",
+                          fontWeight: isCurrent ? 700 : 500,
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "5px",
+                          whiteSpace: "nowrap",
+                          transition: "all var(--duration-fast)",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <TokenIcon symbol={getNoteAssetSymbol(n.asset)} size={12} />
+                        <span>#{idx + 1}</span>
+                        <span>({formatNoteAmount(n.denomination, n.asset)})</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

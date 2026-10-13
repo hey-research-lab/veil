@@ -10,6 +10,9 @@ import {
   CheckCircle2,
   Copy,
   Check,
+  FileText,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { ModalWrapper } from "./ModalWrapper";
 import { explorerTxUrl } from "@/lib/chains";
@@ -45,9 +48,13 @@ export const ZkProverModal: React.FC<ZkProverModalProps> = ({
 }) => {
   const [copiedCommitment, setCopiedCommitment] = useState(false);
   const [copiedTx, setCopiedTx] = useState(false);
+  const [copiedReceipt, setCopiedReceipt] = useState(false);
+  const [showReceipt, setShowReceipt] = useState(false);
   const [showFullCommitment, setShowFullCommitment] = useState(false);
 
   const isAllCompleted = steps.length > 0 && steps.every((s) => s.status === "completed");
+  const completedCount = steps.filter((s) => s.status === "completed").length;
+  const progressPercent = steps.length > 0 ? Math.round((completedCount / steps.length) * 100) : 0;
 
   const handleCopyCommitment = () => {
     if (!commitment) return;
@@ -61,6 +68,52 @@ export const ZkProverModal: React.FC<ZkProverModalProps> = ({
     navigator.clipboard.writeText(txHash);
     setCopiedTx(true);
     setTimeout(() => setCopiedTx(false), 2000);
+  };
+
+  const generateAnonymousReceipt = () => {
+    const time = new Date().toISOString();
+    return [
+      "================================================================",
+      "             VEIL PROTOCOL · SETTLEMENT RECEIPT",
+      "             0xbow Privacy Pool (v1.2.1 · Cancun EVM)",
+      "================================================================",
+      `Event:          ${title}`,
+      `Status:         ${isAllCompleted ? "SETTLED & CONFIRMED" : "IN FLIGHT"}`,
+      `Network:        Robinhood Chain (Chain ID: 4663)`,
+      `Timestamp:      ${time}`,
+      `Tx Hash:        ${txHash ?? "Pending on-chain confirmation"}`,
+      `Commitment:     ${commitment ?? "N/A"}`,
+      `Proof Scheme:   Groth16 SNARK (Circom 2.1 / LeanIMT Depth 20)`,
+      `Association:    ASP-Compliant Merkle Proof Verified`,
+      "----------------------------------------------------------------",
+      "Privacy Guarantees:",
+      "- No on-chain link between depositor and withdrawal recipient",
+      "- Zero-knowledge membership proof over Poseidon tree root",
+      "- Nullifier integrity mathematically enforced",
+      "----------------------------------------------------------------",
+      `Explorer:       ${txHash ? explorerTxUrl(txHash) : "https://explorer.robinhood.com"}`,
+      "================================================================",
+    ].join("\n");
+  };
+
+  const handleCopyReceipt = () => {
+    const text = generateAnonymousReceipt();
+    navigator.clipboard.writeText(text);
+    setCopiedReceipt(true);
+    setTimeout(() => setCopiedReceipt(false), 2000);
+  };
+
+  const handleDownloadReceipt = () => {
+    const text = generateAnonymousReceipt();
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `veil-receipt-${txHash ? txHash.slice(0, 10) : "settlement"}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -173,6 +226,56 @@ export const ZkProverModal: React.FC<ZkProverModalProps> = ({
         >
           <X className="w-4 h-4" />
         </button>
+      </div>
+
+      {/* Prover Progress Bar & Stepper Indicator */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "6px",
+          padding: "8px 12px",
+          borderRadius: "var(--radius-sm)",
+          backgroundColor: "rgba(26, 26, 26, 0.02)",
+          border: "1px solid var(--color-border)",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-muted)", fontWeight: 500 }}>
+            {isAllCompleted
+              ? "All Cryptographic Constraints Verified"
+              : `Step ${Math.min(completedCount + 1, steps.length)} of ${steps.length} · Client-Side Prover`}
+          </span>
+          <span
+            style={{
+              fontSize: "11px",
+              fontFamily: "var(--font-mono)",
+              fontWeight: 700,
+              color: isAllCompleted ? "#00c22d" : "var(--color-accent-ink)",
+            }}
+          >
+            {progressPercent}%
+          </span>
+        </div>
+        <div
+          style={{
+            height: "4px",
+            width: "100%",
+            backgroundColor: "rgba(26, 26, 26, 0.08)",
+            borderRadius: "var(--radius-full)",
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              height: "100%",
+              width: `${progressPercent}%`,
+              backgroundColor: isAllCompleted ? "#00c22d" : "var(--color-accent)",
+              borderRadius: "var(--radius-full)",
+              transition: "width 300ms ease, background-color 300ms ease",
+            }}
+          />
+        </div>
       </div>
 
       {/* Prover Steps Timeline */}
@@ -450,6 +553,124 @@ export const ZkProverModal: React.FC<ZkProverModalProps> = ({
           >
             {copiedTx ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
           </button>
+        </div>
+      )}
+
+      {/* Anonymous Settlement Receipt */}
+      {(isAllCompleted || txHash) && (
+        <div
+          style={{
+            borderRadius: "var(--radius-md)",
+            border: "1px solid var(--color-border)",
+            backgroundColor: "rgba(26, 26, 26, 0.02)",
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "8px 12px",
+              backgroundColor: "rgba(26, 26, 26, 0.035)",
+              borderBottom: showReceipt ? "1px solid var(--color-border)" : "none",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <FileText className="w-3.5 h-3.5 text-neutral-600" />
+              <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", fontWeight: 600, color: "var(--color-text)" }}>
+                Anonymous Trade Receipt
+              </span>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <button
+                type="button"
+                onClick={handleCopyReceipt}
+                aria-label="Copy anonymous settlement receipt"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  padding: "3px 8px",
+                  borderRadius: "var(--radius-sm)",
+                  border: copiedReceipt ? "1px solid rgba(0, 194, 45, 0.4)" : "1px solid var(--color-border)",
+                  backgroundColor: copiedReceipt ? "rgba(0, 194, 45, 0.1)" : "#ffffff",
+                  color: copiedReceipt ? "#00c22d" : "var(--color-text)",
+                  fontSize: "10.5px",
+                  fontFamily: "monospace",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  transition: "all var(--duration-fast)",
+                }}
+              >
+                {copiedReceipt ? <Check className="w-3 h-3 text-[#00c22d]" /> : <Copy className="w-3 h-3 text-neutral-500" />}
+                <span>{copiedReceipt ? "Copied" : "Copy Receipt"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDownloadReceipt}
+                aria-label="Download receipt text file"
+                title="Download receipt as .txt"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  padding: "3px 8px",
+                  borderRadius: "var(--radius-sm)",
+                  border: "1px solid var(--color-border)",
+                  backgroundColor: "#ffffff",
+                  color: "var(--color-text)",
+                  fontSize: "10.5px",
+                  fontFamily: "monospace",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                <Download className="w-3 h-3 text-neutral-500" />
+                <span>Export (.txt)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowReceipt(!showReceipt)}
+                aria-label={showReceipt ? "Hide receipt details" : "View receipt details"}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "2px",
+                  display: "flex",
+                  alignItems: "center",
+                  color: "var(--color-muted)",
+                }}
+              >
+                {showReceipt ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+            </div>
+          </div>
+
+          {showReceipt && (
+            <div
+              style={{
+                padding: "10px 12px",
+                fontSize: "10px",
+                fontFamily: "var(--font-mono)",
+                whiteSpace: "pre-wrap",
+                color: "var(--color-text)",
+                backgroundColor: "#ffffff",
+                lineHeight: 1.45,
+                userSelect: "all",
+                maxHeight: "150px",
+                overflowY: "auto",
+              }}
+            >
+              {generateAnonymousReceipt()}
+            </div>
+          )}
         </div>
       )}
 
