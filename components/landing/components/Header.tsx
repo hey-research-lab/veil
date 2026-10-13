@@ -2,6 +2,7 @@
 
 import React from "react";
 import { VeilLogo } from "../../VeilLogo";
+import { XLogo } from "../../TokenLogos";
 
 export const Header: React.FC = () => {
   return (
@@ -86,6 +87,29 @@ export const Header: React.FC = () => {
           }}
         >
           FAQ
+        </a>
+        <a
+          href="https://x.com/veilpools"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Official X (Twitter) Account"
+          title="Official X: @veilpools"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "2.25rem",
+            height: "2.25rem",
+            borderRadius: "var(--radius-md)",
+            backgroundColor: "rgba(255, 255, 255, 0.06)",
+            border: "1px solid rgba(255, 255, 255, 0.12)",
+            color: "#ffffff",
+            transition: "all var(--duration-fast) var(--ease-out)",
+            flexShrink: 0,
+          }}
+          className="hover:bg-white/10 active:scale-95"
+        >
+          <XLogo size={14} color="#ffffff" />
         </a>
         <a
           href="/trade"

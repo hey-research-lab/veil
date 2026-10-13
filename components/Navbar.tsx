@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { ArrowLeft, LogOut, Copy, Check, ChevronDown } from "lucide-react";
 import { WalletModal } from "./WalletModal";
 import { VeilLogo } from "./VeilLogo";
-import { RobinhoodLogo } from "./TokenLogos";
+import { RobinhoodLogo, XLogo } from "./TokenLogos";
 import { APP_CHAIN_ID, appChain } from "@/lib/chains";
 import { fetchAllTokenBalances } from "@/lib/balances";
 import { SUPPORTED_TOKENS } from "./TokenSelectModal";
@@ -200,6 +200,30 @@ export function Navbar() {
             >
               <RobinhoodLogo height={24} style={{ opacity: 0.92 }} />
             </div>
+
+            <a
+              href="https://x.com/veilpools"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Official X (Twitter) Account"
+              title="Official X: @veilpools"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "2.25rem",
+                height: "2.25rem",
+                borderRadius: "var(--radius-md)",
+                backgroundColor: "rgba(26, 26, 26, 0.04)",
+                border: "1px solid var(--color-border)",
+                color: "var(--color-text)",
+                transition: "all var(--duration-fast) var(--ease-out)",
+                flexShrink: 0,
+              }}
+              className="hover:border-[var(--color-border-strong)] hover:bg-[rgba(26,26,26,0.08)] active:scale-95"
+            >
+              <XLogo size={14} />
+            </a>
 
             {wallet ? (
               <div style={{ position: "relative" }} ref={walletMenuRef}>
