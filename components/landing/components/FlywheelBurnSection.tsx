@@ -10,9 +10,9 @@ import { RevealBox } from "./RevealBox";
 import { CountUp } from "./CountUp";
 
 const TREASURY_ADDRESS = (CONTRACT_ADDRESSES.treasury ||
-  "0x8cd39f9195bd00b193a164f0790f3fc0dc4f3b34") as Address;
+  "0xb68c3d25e5e9902363e8e10d5c0a471e65be8152") as Address;
 const HOOK_ADDRESS = (CONTRACT_ADDRESSES.hook ||
-  "0x9df0b52bf290a13e11c73c56c4c533e3887760c4") as Address;
+  "0xf95f041462ee34c2ea7b953a879838133ef820c4") as Address;
 const EXPLORER = appChain.blockExplorers.default.url;
 
 // Event name verified in lib/veil-artifact.ts VEIL_TREASURY_ABI — never invented.

@@ -11,7 +11,7 @@ interface FaqItem {
 const faqItems: FaqItem[] = [
   {
     q: "How does Veil guarantee privacy on a public blockchain?",
-      a: "Veil shields assets in fixed-denomination Merkle pools. When you deposit, only a commitment enters the onchain tree while the secret stays in your browser; the withdraw call carries no depositor address. The onchain verifier is provisional for old notes only; Groth16 serves the live 0xbow paths.",
+    a: "Veil shields assets in fixed-denomination Merkle pools. When you deposit, only a commitment enters the onchain tree while the secret stays in your browser; withdrawals submit client-side Groth16 ZK-SNARK proofs verifying ownership without revealing depositor address or note history.",
   },
   {
     q: "How does Veil protect swaps from MEV and front-running?",
@@ -19,11 +19,11 @@ const faqItems: FaqItem[] = [
   },
   {
     q: "What chains are supported?",
-    a: "Veil is natively deployed on Robinhood Chain (Testnet 46630 and Mainnet 4663) leveraging Uniswap v4's custom hook architecture for high-throughput, low-fee execution. Mainnet pools are paused pending the 0xbow migration — live activity happens on testnet.",
+    a: "Veil is natively deployed on Robinhood Chain (Testnet 46630 and Mainnet 4663) leveraging Uniswap v4's custom hook architecture and 0xbow Privacy Pool circuits for high-throughput, low-fee execution.",
   },
   {
     q: "Can anyone freeze my funds or block withdrawals?",
-      a: "The withdraw path has no pause or guardian switch, and nullifiers cannot be reused. Bounds apply on the legacy path for old notes: the provisional verifier must pass and the Merkle root must be within the 100-entry onchain history. See the published internal audit for the full picture.",
+    a: "The withdraw path has no pause or guardian switch, and nullifiers cannot be reused. Withdrawals verify ZK-SNARK proofs onchain against the privacy pool Merkle trees, ensuring non-custodial and trustless exits.",
   },
 ];
 

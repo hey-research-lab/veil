@@ -21,40 +21,68 @@ interface ContractRow {
 
 const ROWS: ContractRow[] = [
   {
+    key: "hook",
+    label: "Veil Hook v2 (Uniswap v4)",
+    address: BOOK.hook || "0xf95f041462ee34c2ea7b953a879838133ef820c4",
+    note: "CREATE2 flag 0x20c4 (salt 0x4b7d)",
+  },
+  {
+    key: "bowEntrypoint",
+    label: "0xbow Privacy Pool Entrypoint",
+    address: process.env.NEXT_PUBLIC_0XBOW_ENTRYPOINT || "0x96cb8b1836d341a6f5f1f54428bd6696c8b950b1",
+    note: "ERC1967 Proxy entrypoint",
+  },
+  {
+    key: "bowPoolEth",
+    label: "0xbow Privacy Pool (ETH)",
+    address: process.env.NEXT_PUBLIC_0XBOW_POOL_ETH || "0x10c17b7538e13c63b890fea52708846e88bb1932",
+    note: "0.001 ETH fixed denomination",
+  },
+  {
+    key: "bowPoolVeil",
+    label: "0xbow Privacy Pool (VEIL)",
+    address: process.env.NEXT_PUBLIC_0XBOW_POOL_VEIL || "0xdb9f182670da2cc6c5ddd432ec98a45e4f2290d1",
+    note: "0.001 VEIL fixed denomination",
+  },
+  {
+    key: "zkRouter",
+    label: "Veil ZkRouter",
+    address: process.env.NEXT_PUBLIC_0XBOW_ZK_ROUTER || "0x0fb48c9552154ea028cbd812430e1ea3465a9b4c",
+    note: "Shielded ZK Swap Router",
+  },
+  {
     key: "router",
     label: "Veil Shield Router",
-    address: BOOK.router || "0x01a05f87c2c227a1b382cbc2e7e63b186538c86d",
-  },
-  {
-    key: "hook",
-    label: "Veil Hook (Uniswap v4)",
-    address: BOOK.hook || "0x9df0b52bf290a13e11c73c56c4c533e3887760c4",
-  },
-  {
-    key: "poolEth",
-    label: "Shielded Pool (ETH)",
-    address: BOOK.poolEth || "0xdd0fb7fc7f1398fd1398a594f7a0ce934caa7ea0",
+    address: BOOK.router || "0x3db4ae3429f1507aa0cd31c740a0fd276e22a55c",
+    note: "Periphery Router (Fixed R1)",
   },
   {
     key: "treasury",
     label: "Veil Treasury",
-    address: BOOK.treasury || "0x8cd39f9195bd00b193a164f0790f3fc0dc4f3b34",
+    address: BOOK.treasury || "0xb68c3d25e5e9902363e8e10d5c0a471e65be8152",
   },
   {
     key: "registry",
-    label: "Attestation Registry",
-    address: BOOK.registry || "0xa7f7e7887a4fa00cc934abe39cdd470cfdc9a855",
+    label: "Attestation Registry v2",
+    address: BOOK.registry || "0xd1f17c70067f1cc2b478606b3f0faa18ee8add1d",
+    note: "Open self-attestation",
   },
   {
-    key: "verifier",
-    label: "Shielded Verifier",
-    address: BOOK.verifier || "0x797e2aa1f3225ab38bfc6441a3f4b44e95158cda",
-    note: "Provisional verifier (old notes only)",
+    key: "withdrawalVerifier",
+    label: "Groth16 Withdrawal Verifier",
+    address: "0xdbbe1acf08a99789b5ca0ee688679dab80ba12d2",
+    note: "Audited Circom/Groth16 verifier",
+  },
+  {
+    key: "commitmentVerifier",
+    label: "Groth16 Commitment Verifier",
+    address: "0xfdb7161a993fa914bbb734b3d52c4342501836eb",
+    note: "Audited Circom/Groth16 verifier",
   },
   {
     key: "deployer",
     label: "Create2 Deployer",
-    address: BOOK.deployer || "0xe4c3615db1bdeaf7b82b5568bd73f20f5666f008",
+    address: BOOK.deployer || "0xea48e6a7ae296ebbd7d58792091b8087032d3aa4",
   },
   {
     key: "token",

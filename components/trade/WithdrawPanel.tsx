@@ -156,7 +156,7 @@ export const WithdrawPanel: React.FC<WithdrawPanelProps> = ({
                         fontWeight: 500,
                       }}
                     >
-                      {isBowNote(activeNote) ? "0xbow v1.2.1 · Groth16" : "Old note · legacy exit"}
+                      0xbow v1.2.1 · Groth16
                     </span>
                   </div>
                   <div style={{ fontSize: "11px", color: "var(--color-muted)", fontFamily: "monospace", marginTop: "2px" }}>

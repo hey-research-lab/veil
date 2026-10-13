@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Copy, Check } from "lucide-react";
-import { parseAbi, formatEther, type Address } from "viem";
+import { parseAbi, formatEther, toHex, type Address } from "viem";
 import { publicClient } from "@/lib/balances";
 import { CONTRACT_ADDRESSES, CONTRACT_ABIS } from "@/lib/contracts";
 import { APP_CHAIN_ID } from "@/lib/chains";
@@ -10,13 +10,20 @@ import { APP_CHAIN_ID } from "@/lib/chains";
 // Live Robinhood Mainnet 4663 deployments via the shared address source.
 // Literals below are fallbacks only and match lib/contracts.ts defaults.
 const POOL_ADDRESS = (CONTRACT_ADDRESSES.poolEth ||
-  "0xdd0fb7fc7f1398fd1398a594f7a0ce934caa7ea0") as Address;
+  "0x10c17b7538e13c63b890fea52708846e88bb1932") as Address;
 const TREASURY_ADDRESS = (CONTRACT_ADDRESSES.treasury ||
-  "0x8cd39f9195bd00b193a164f0790f3fc0dc4f3b34") as Address;
+  "0xb68c3d25e5e9902363e8e10d5c0a471e65be8152") as Address;
 const HOOK_ADDRESS = (CONTRACT_ADDRESSES.hook ||
-  "0x9df0b52bf290a13e11c73c56c4c533e3887760c4") as Address;
+  "0xf95f041462ee34c2ea7b953a879838133ef820c4") as Address;
 
 const EMPTY_ROOT = ("0x" + "00".repeat(32)) as `0x${string}`;
+
+const BOW_POOL_ABI = parseAbi([
+  "function currentTreeSize() view returns (uint256)",
+  "function currentTreeDepth() view returns (uint256)",
+  "function currentRoot() view returns (uint256)",
+  "function DEPOSIT_DENOMINATION() view returns (uint256)",
+]);
 
 const POOL_ABI = parseAbi([
   "function nextIndex() view returns (uint32)",
@@ -55,22 +62,7 @@ export const ZkShieldRadar: React.FC = () => {
 
     async function loadTelemetry() {
       try {
-        const [nextIdx, totalDep, depth, bps, perms] = await Promise.all([
-          publicClient.readContract({
-            address: POOL_ADDRESS,
-            abi: POOL_ABI,
-            functionName: "nextIndex",
-          }),
-          publicClient.readContract({
-            address: POOL_ADDRESS,
-            abi: POOL_ABI,
-            functionName: "totalDeposits",
-          }),
-          publicClient.readContract({
-            address: POOL_ADDRESS,
-            abi: POOL_ABI,
-            functionName: "TREE_DEPTH",
-          }),
+        const [bps, perms] = await Promise.all([
           publicClient.readContract({
             address: TREASURY_ADDRESS,
             abi: TREASURY_ABI,
@@ -83,20 +75,76 @@ export const ZkShieldRadar: React.FC = () => {
           }),
         ]);
 
-        const root =
-          Number(nextIdx) > 0
-            ? await publicClient.readContract({
-                address: POOL_ADDRESS,
-                abi: POOL_ABI,
-                functionName: "rootHistory",
-                args: [BigInt(Number(nextIdx) - 1)],
-              })
-            : EMPTY_ROOT;
+        let nextIdx = 0;
+        let totalEth = "0";
+        let depth = 32;
+        let root: `0x${string}` = EMPTY_ROOT;
+
+        try {
+          // Primary: 0xbow live privacy pool
+          const [treeSize, treeDepthRaw, rootRaw, denom] = await Promise.all([
+            publicClient.readContract({
+              address: POOL_ADDRESS,
+              abi: BOW_POOL_ABI,
+              functionName: "currentTreeSize",
+            }),
+            publicClient.readContract({
+              address: POOL_ADDRESS,
+              abi: BOW_POOL_ABI,
+              functionName: "currentTreeDepth",
+            }),
+            publicClient.readContract({
+              address: POOL_ADDRESS,
+              abi: BOW_POOL_ABI,
+              functionName: "currentRoot",
+            }),
+            publicClient.readContract({
+              address: POOL_ADDRESS,
+              abi: BOW_POOL_ABI,
+              functionName: "DEPOSIT_DENOMINATION",
+            }),
+          ]);
+
+          nextIdx = Number(treeSize);
+          depth = Number(treeDepthRaw) || 32;
+          totalEth = Number(formatEther(treeSize * denom)).toFixed(3);
+          root = toHex(rootRaw, { size: 32 });
+        } catch {
+          // Fallback: legacy pool ABI
+          const [legacyIdx, legacyTotal, legacyDepth] = await Promise.all([
+            publicClient.readContract({
+              address: POOL_ADDRESS,
+              abi: POOL_ABI,
+              functionName: "nextIndex",
+            }),
+            publicClient.readContract({
+              address: POOL_ADDRESS,
+              abi: POOL_ABI,
+              functionName: "totalDeposits",
+            }),
+            publicClient.readContract({
+              address: POOL_ADDRESS,
+              abi: POOL_ABI,
+              functionName: "TREE_DEPTH",
+            }),
+          ]);
+          nextIdx = Number(legacyIdx);
+          totalEth = Number(formatEther(legacyTotal)).toFixed(3);
+          depth = Number(legacyDepth);
+          if (nextIdx > 0) {
+            root = await publicClient.readContract({
+              address: POOL_ADDRESS,
+              abi: POOL_ABI,
+              functionName: "rootHistory",
+              args: [BigInt(nextIdx - 1)],
+            });
+          }
+        }
 
         if (isMounted) {
-          setNextIndex(Number(nextIdx));
-          setTotalDepositsEth(Number(formatEther(totalDep)).toFixed(3));
-          setTreeDepth(Number(depth));
+          setNextIndex(nextIdx);
+          setTotalDepositsEth(totalEth);
+          setTreeDepth(depth);
           setBuybackBps(bps);
           setHookPermissions({ ...(perms as unknown as HookPermissions) });
           setMerkleRoot(root);

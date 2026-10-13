@@ -19,3 +19,5 @@ DevBrief-Veil.md
 deployments/tmp-*.json
 deployments/*-note.json
 deployments/*-note.tmp.json
+verification/stdjson/
+

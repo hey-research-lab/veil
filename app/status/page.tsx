@@ -1,15 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { formatEther, parseAbiItem, type Address } from "viem";
+import { formatEther, parseAbi, parseAbiItem, toHex, type Address } from "viem";
 import { publicClient } from "@/lib/balances";
 import { CONTRACT_ADDRESSES, CONTRACT_ABIS, POOL_DEPLOYMENT_BLOCK } from "@/lib/contracts";
 import { appChain, APP_CHAIN_ID } from "@/lib/chains";
+import { BOW_DEPOSITED_EVENT, BOW_WITHDRAWN_EVENT } from "@/lib/0xbow-client";
 
 const POOL_ADDRESS = (CONTRACT_ADDRESSES.poolEth ||
-  "0xdd0fb7fc7f1398fd1398a594f7a0ce934caa7ea0") as Address;
+  "0x10c17b7538e13c63b890fea52708846e88bb1932") as Address;
 
-// Event names verified in lib/veil-artifact.ts SHIELDED_POOL_ABI — never invented.
+const BOW_POOL_ABI = parseAbi([
+  "function currentTreeSize() view returns (uint256)",
+  "function DEPOSIT_DENOMINATION() view returns (uint256)",
+  "function LIFETIME_DEPOSIT_CAP() view returns (uint256)",
+  "function guardian() view returns (address)",
+  "function depositsPaused() view returns (bool)",
+  "function currentRoot() view returns (uint256)",
+]);
+
 const DEPOSIT_EVENT = parseAbiItem(
   "event Deposit(uint32 indexed index, bytes32 indexed commitment, uint256 leafIndex, uint256 timestamp)"
 );
@@ -49,95 +58,183 @@ export default function StatusPage() {
     let mounted = true;
     async function load() {
       try {
-        const [idx, total, denom, cap, guard, paused] = await Promise.all([
-          publicClient.readContract({
-            address: POOL_ADDRESS,
-            abi: CONTRACT_ABIS.ShieldedPool,
-            functionName: "nextIndex",
-          }),
-          publicClient.readContract({
-            address: POOL_ADDRESS,
-            abi: CONTRACT_ABIS.ShieldedPool,
-            functionName: "totalDeposits",
-          }),
-          publicClient.readContract({
-            address: POOL_ADDRESS,
-            abi: CONTRACT_ABIS.ShieldedPool,
-            functionName: "denomination",
-          }),
-          publicClient.readContract({
-            address: POOL_ADDRESS,
-            abi: CONTRACT_ABIS.ShieldedPool,
-            functionName: "poolCap",
-          }),
-          publicClient.readContract({
-            address: POOL_ADDRESS,
-            abi: CONTRACT_ABIS.ShieldedPool,
-            functionName: "guardian",
-          }),
-          publicClient.readContract({
-            address: POOL_ADDRESS,
-            abi: CONTRACT_ABIS.ShieldedPool,
-            functionName: "depositsPaused",
-          }),
-        ]);
+        let idxNum = 0;
+        let totalStr = "0";
+        let denomStr = "0.001";
+        let capStr = "10.0";
+        let guardStr = "";
+        let pausedBool = false;
+        let rootStr: `0x${string}` | null = null;
+        let isKnown: boolean | null = true;
+        let depRows: DepositRow[] = [];
+        let wdRows: WithdrawRow[] = [];
 
-        const idxNum = Number(idx);
-        let root: `0x${string}` | null = null;
-        let known: boolean | null = null;
-        if (idxNum > 0) {
-          root = await publicClient.readContract({
-            address: POOL_ADDRESS,
-            abi: CONTRACT_ABIS.ShieldedPool,
-            functionName: "rootHistory",
-            args: [BigInt(idxNum - 1)],
-          });
-          known = await publicClient.readContract({
-            address: POOL_ADDRESS,
-            abi: CONTRACT_ABIS.ShieldedPool,
-            functionName: "isKnownRoot",
-            args: [root],
-          });
+        try {
+          // Primary: 0xbow Privacy Pool
+          const [treeSize, denom, cap, guard, paused, rootRaw] = await Promise.all([
+            publicClient.readContract({
+              address: POOL_ADDRESS,
+              abi: BOW_POOL_ABI,
+              functionName: "currentTreeSize",
+            }),
+            publicClient.readContract({
+              address: POOL_ADDRESS,
+              abi: BOW_POOL_ABI,
+              functionName: "DEPOSIT_DENOMINATION",
+            }),
+            publicClient.readContract({
+              address: POOL_ADDRESS,
+              abi: BOW_POOL_ABI,
+              functionName: "LIFETIME_DEPOSIT_CAP",
+            }),
+            publicClient.readContract({
+              address: POOL_ADDRESS,
+              abi: BOW_POOL_ABI,
+              functionName: "guardian",
+            }),
+            publicClient.readContract({
+              address: POOL_ADDRESS,
+              abi: BOW_POOL_ABI,
+              functionName: "depositsPaused",
+            }),
+            publicClient.readContract({
+              address: POOL_ADDRESS,
+              abi: BOW_POOL_ABI,
+              functionName: "currentRoot",
+            }),
+          ]);
+
+          idxNum = Number(treeSize);
+          totalStr = formatEther(treeSize * denom);
+          denomStr = formatEther(denom);
+          capStr = formatEther(cap);
+          guardStr = guard;
+          pausedBool = paused;
+          rootStr = toHex(rootRaw, { size: 32 });
+          isKnown = idxNum > 0;
+
+          const [bowDeps, bowWds] = await Promise.all([
+            publicClient.getLogs({
+              address: POOL_ADDRESS,
+              event: BOW_DEPOSITED_EVENT,
+              fromBlock: POOL_DEPLOYMENT_BLOCK,
+            }),
+            publicClient.getLogs({
+              address: POOL_ADDRESS,
+              event: BOW_WITHDRAWN_EVENT,
+              fromBlock: POOL_DEPLOYMENT_BLOCK,
+            }),
+          ]);
+
+          depRows = bowDeps.map((l, i) => ({
+            txHash: l.transactionHash ?? "",
+            blockNumber: l.blockNumber ?? 0n,
+            index: String(i),
+            commitment: l.args._commitment ? toHex(BigInt(l.args._commitment), { size: 32 }) : "",
+          }));
+
+          wdRows = bowWds.map((l) => ({
+            txHash: l.transactionHash ?? "",
+            blockNumber: l.blockNumber ?? 0n,
+            nullifierHash: l.args._spentNullifier ? toHex(BigInt(l.args._spentNullifier), { size: 32 }) : "",
+            recipient: String(l.args._processooor ?? ""),
+          }));
+        } catch {
+          // Fallback: legacy ShieldedPool
+          const [idx, total, denom, cap, guard, paused] = await Promise.all([
+            publicClient.readContract({
+              address: POOL_ADDRESS,
+              abi: CONTRACT_ABIS.ShieldedPool,
+              functionName: "nextIndex",
+            }),
+            publicClient.readContract({
+              address: POOL_ADDRESS,
+              abi: CONTRACT_ABIS.ShieldedPool,
+              functionName: "totalDeposits",
+            }),
+            publicClient.readContract({
+              address: POOL_ADDRESS,
+              abi: CONTRACT_ABIS.ShieldedPool,
+              functionName: "denomination",
+            }),
+            publicClient.readContract({
+              address: POOL_ADDRESS,
+              abi: CONTRACT_ABIS.ShieldedPool,
+              functionName: "poolCap",
+            }),
+            publicClient.readContract({
+              address: POOL_ADDRESS,
+              abi: CONTRACT_ABIS.ShieldedPool,
+              functionName: "guardian",
+            }),
+            publicClient.readContract({
+              address: POOL_ADDRESS,
+              abi: CONTRACT_ABIS.ShieldedPool,
+              functionName: "depositsPaused",
+            }),
+          ]);
+
+          idxNum = Number(idx);
+          totalStr = formatEther(total);
+          denomStr = formatEther(denom);
+          capStr = formatEther(cap);
+          guardStr = guard;
+          pausedBool = paused;
+
+          if (idxNum > 0) {
+            rootStr = await publicClient.readContract({
+              address: POOL_ADDRESS,
+              abi: CONTRACT_ABIS.ShieldedPool,
+              functionName: "rootHistory",
+              args: [BigInt(idxNum - 1)],
+            });
+            isKnown = await publicClient.readContract({
+              address: POOL_ADDRESS,
+              abi: CONTRACT_ABIS.ShieldedPool,
+              functionName: "isKnownRoot",
+              args: [rootStr],
+            });
+          }
+
+          const [legacyDeps, legacyWds] = await Promise.all([
+            publicClient.getLogs({
+              address: POOL_ADDRESS,
+              event: DEPOSIT_EVENT,
+              fromBlock: POOL_DEPLOYMENT_BLOCK,
+            }),
+            publicClient.getLogs({
+              address: POOL_ADDRESS,
+              event: WITHDRAW_EVENT,
+              fromBlock: POOL_DEPLOYMENT_BLOCK,
+            }),
+          ]);
+
+          depRows = legacyDeps.map((l) => ({
+            txHash: l.transactionHash ?? "",
+            blockNumber: l.blockNumber ?? 0n,
+            index: String(l.args.index ?? ""),
+            commitment: String(l.args.commitment ?? ""),
+          }));
+
+          wdRows = legacyWds.map((l) => ({
+            txHash: l.transactionHash ?? "",
+            blockNumber: l.blockNumber ?? 0n,
+            nullifierHash: String(l.args.nullifierHash ?? ""),
+            recipient: String(l.args.recipient ?? ""),
+          }));
         }
-
-        const [depositLogs, withdrawLogs] = await Promise.all([
-          publicClient.getLogs({
-            address: POOL_ADDRESS,
-            event: DEPOSIT_EVENT,
-            fromBlock: POOL_DEPLOYMENT_BLOCK,
-          }),
-          publicClient.getLogs({
-            address: POOL_ADDRESS,
-            event: WITHDRAW_EVENT,
-            fromBlock: POOL_DEPLOYMENT_BLOCK,
-          }),
-        ]);
 
         if (mounted) {
           setNextIndex(idxNum);
-          setTotalDeposits(formatEther(total));
-          setDenomination(formatEther(denom));
-          setPoolCap(formatEther(cap));
-          setGuardian(guard);
-          setDepositsPaused(paused);
-          setLatestRoot(root);
-          setRootKnown(known);
-          setDeposits(
-            depositLogs.map((l) => ({
-              txHash: l.transactionHash ?? "",
-              blockNumber: l.blockNumber ?? 0n,
-              index: String(l.args.index ?? ""),
-              commitment: String(l.args.commitment ?? ""),
-            }))
-          );
-          setWithdrawals(
-            withdrawLogs.map((l) => ({
-              txHash: l.transactionHash ?? "",
-              blockNumber: l.blockNumber ?? 0n,
-              nullifierHash: String(l.args.nullifierHash ?? ""),
-              recipient: String(l.args.recipient ?? ""),
-            }))
-          );
+          setTotalDeposits(totalStr);
+          setDenomination(denomStr);
+          setPoolCap(capStr);
+          setGuardian(guardStr);
+          setDepositsPaused(pausedBool);
+          setLatestRoot(rootStr);
+          setRootKnown(isKnown);
+          setDeposits(depRows);
+          setWithdrawals(wdRows);
           setLoading(false);
           setRpcError(false);
         }

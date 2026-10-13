@@ -7,7 +7,7 @@ import { CONTRACT_ADDRESSES, CONTRACT_ABIS, TREASURY_DEPLOYMENT_BLOCK } from "@/
 import { appChain, APP_CHAIN_ID } from "@/lib/chains";
 
 const TREASURY_ADDRESS = (CONTRACT_ADDRESSES.treasury ||
-  "0x8cd39f9195bd00b193a164f0790f3fc0dc4f3b34") as Address;
+  "0xb68c3d25e5e9902363e8e10d5c0a471e65be8152") as Address;
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const EXPLORER = appChain.blockExplorers.default.url;
 

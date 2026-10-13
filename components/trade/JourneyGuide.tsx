@@ -42,7 +42,7 @@ const STEPS: Step[] = [
   {
     id: "shielded_swap",
     num: "2",
-    title: "Swap",
+    title: "ZK Swap",
     desc: "Private trade via v4 pool",
     icon: ArrowLeftRight,
   },
@@ -354,7 +354,7 @@ export const JourneyGuide: React.FC<JourneyGuideProps> = ({
                     marginLeft: "auto",
                   }}
                 >
-                  Trader Pool Gating <ArrowRight size={11} />
+                  Gated Pool <ArrowRight size={11} />
                 </button>
               )}
             </div>

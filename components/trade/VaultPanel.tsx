@@ -117,7 +117,7 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({ notes, onBackup, onBacku
                       fontWeight: 500,
                     }}
                   >
-                    {isBowNote(note) ? "0xbow v1.2.1 · Groth16" : "Legacy · Depth 20"}
+                    0xbow v1.2.1 · Groth16
                   </span>
                 </div>
                 <span style={{ fontFamily: "monospace", fontSize: "1.1rem", color: "var(--color-accent-ink)", fontWeight: 700 }}>
