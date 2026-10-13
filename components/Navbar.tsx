@@ -165,30 +165,6 @@ export function Navbar() {
 
           {/* Right: Network Indicator & Multi-Wallet Connect */}
           <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", position: "relative" }}>
-            {pathname !== "/trade" && (
-              <Link
-                href="/trade"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  padding: "6px 14px",
-                  borderRadius: "var(--radius-full)",
-                  backgroundColor: "var(--color-text)",
-                  color: "#ffffff",
-                  textDecoration: "none",
-                  fontFamily: "var(--font-body)",
-                  fontSize: "var(--text-body-sm)",
-                  fontWeight: 600,
-                  transition: "all var(--duration-fast) var(--ease-out)",
-                  boxShadow: "0 2px 6px rgba(0, 0, 0, 0.08)",
-                }}
-                className="hover:opacity-90 active:scale-95"
-              >
-                <span>Trade</span>
-                <span aria-hidden="true">→</span>
-              </Link>
-            )}
             <div
               style={{
                 display: "inline-flex",
@@ -227,6 +203,33 @@ export function Navbar() {
             >
               <XLogo size={15} color="var(--color-bg)" />
             </a>
+
+            {pathname !== "/trade" && (
+              <Link
+                href="/trade"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "0 14px",
+                  minHeight: "2.25rem",
+                  height: "2.25rem",
+                  borderRadius: "var(--radius-md)",
+                  backgroundColor: "var(--color-text)",
+                  color: "var(--color-bg)",
+                  textDecoration: "none",
+                  fontFamily: "var(--font-body)",
+                  fontSize: "var(--text-body-sm)",
+                  fontWeight: 600,
+                  transition: "all var(--duration-fast) var(--ease-out)",
+                  boxSizing: "border-box",
+                }}
+                className="hover:opacity-90 active:scale-95"
+              >
+                <span>Trade</span>
+                <span aria-hidden="true">→</span>
+              </Link>
+            )}
 
             {wallet ? (
               <div style={{ position: "relative" }} ref={walletMenuRef}>
