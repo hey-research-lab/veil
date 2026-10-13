@@ -285,3 +285,12 @@ extTokenId=3752545, onchain PM live). Root cause unproven; documented, not chase
 - FIXED HERE: README test counts 34/204 -> 39/232.
 - REMAINING (honest): multi-note mainnet execution (implemented contract+UI, needs 0.002-0.003 lock); UI click-through with user wallet+browser; Pons token + setVeilToken/70%/domain/X (external dependency).
 
+
+
+## 24. Fourth Audit: Calldata Parity + Dead-End Matrix (2026-10-13, no sends)
+
+- PARITY PROVEN: UI builders emit byte-identical calldata to proven-live scripts. Gated hookData (hook/chain/user/poolId/deadline + personal_sign raw + encode(user,deadline,sig)) matches mainnet-gated-pool.mjs that produced 0x4228. Full-ZK args (suite-aware leg, recipient=router, minOut from bracketed quote never commitment) match single-zk-resume that produced 0xa0c58d. Page passes suite: zkSuite at all 6 quote/build sites.
+- DEAD-ENDS FIXED: 'Go to Shield' CTAs added to Swap picker empty state, Withdraw empty box, Vault empty state (paused placeholder already had one). Swap shows amber honesty warning when spending an unbacked note (non-blocking; Withdraw keeps its hard ack gate). VEIL-minimum loading hint added (was silent disabled button). Withdraw prover step 'on Robinhood Testnet' -> chain-aware netLabel.
+- TRIAGED (no change, safe): disconnected-CTA labels, VEIL-min floor (impossible by guard math), router-unconfigured messaging (dev-only), legacy-withdraw chain guard (no mainnet legacy notes), gated-tab disappearance (dev-only), telemetry Reading-stuck (warn-only, non-blocking), ASP-429 generic message (no send).
+- Local: tsc 0, vitest 39 files / 232 tests PASS.
+
