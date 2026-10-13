@@ -238,3 +238,11 @@ extTokenId=3752545, onchain PM live). Root cause unproven; documented, not chase
 - EXECUTED: 0xa0c58d8baa518e9d908743391b2bfcdbb579bc5209c5ccfa986f3b2bb44f5412 block 87212914 (gas 940045). VERIFIED: FullZkFlowExecuted + 0.001 VEIL note minted + ETH nullifier spent. Output VEIL note saved (spendable). ETH dust accounting closes exactly (deepen used 0.000309/0.506, flow dust +0.902).
 - Wallet now: 0.0001628 ETH + 8997.36 VEIL + 0.001 shielded VEIL note. Single-ZK arc COMPLETE: deposit -> ASP -> prove -> relay -> swap -> shield, all live on mainnet 4663.
 
+
+
+## 16. Withdraw Tab Proven: VEIL Relay to Fresh Recipient (2026-10-13, REAL funds)
+
+- The Withdraw tab (app/trade handleWithdraw) was code-reviewed end to end: integrity checks, ASP sync, state-freshness gate, browser proving, pre-send ASP re-check, spent check, relay, post-receipt spent assert. Mainnet notes reach the 0xbow path (resolveZkSuite(4663).chainId === MAINNET_CHAIN_ID). Its contract call is entrypoint.relay(note -> cleanRecipient).
+- Headless tab-equivalent test, scripts/mainnet-veil-relay.mjs: shielded 0.001 VEIL note -> fresh decoupled 0x8d49842f8810f6fefb8c6d6a525ecf55799d322f. ASP republished 0xadff52010c81ab1d0a6ff0661cc4e7296107d242fa93e702d59cac31691eec49 (VEIL label was new), relay 0x4f24a9da4d0e484bf97eb416c338521ff744b8a013df57357a3816d7b261a7e3 block 87216572, nullifier spent, recipient 0 -> exactly 1000000000000000.
+- First-ever VEIL (ERC20-leg) relay on mainnet. Withdraw coverage now: ETH notes 3x + VEIL notes 1x + decoupled recipient 1x. Remaining UI-only (untestable without user wallet): browser proving + vault storage — same code runs on testnet.
+
