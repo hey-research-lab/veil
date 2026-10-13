@@ -211,3 +211,12 @@ extTokenId=3752545, onchain PM live). Root cause unproven; documented, not chase
 - Chain quirk documented: this node rejects txs carrying explicit maxFeePerGas/maxPriorityFeePerGas ('gas required exceeds allowance' / 'code storage out of gas' on estimation). Sends must omit fee fields; spike protection via pre-send gasPrice re-check (calmNetwork) instead. Script: scripts/mainnet-micro-roundtrip.mjs (fresh + HELPER=/LIQ= resume/skip-seed modes).
 - Wallet left: ~0.0000212 ETH. Still blocked on top-up for: single-ZK live rerun (needs 0.001 deposit), real re-seeding via v2, multi live. Local tree green.
 
+
+
+## 13. Parked-Note Rescue: 0.001 Home (2026-10-13, REAL funds)
+
+- Forensics closed the deposit question onchain: Deposited events 0x0b328e7c (dust, dead) + 0x3eee36f9 (proof-cycle, relayed out via 0x435a3d0e4d6c5d2c1c87f7cd951ba55b19a5f1a4ab9a8ae2cb50ec2a7843d4ee amount 0.001 home) + 0xd470fa57 (single-ZK attempt, PARKED with secrets held in mainnet-single-note.json). Pool held 0.002 = dust + parked.
+- Rescue script scripts/mainnet-rescue-note.mjs (relay-to-self, no new deposit): state rebuilt (4 leaves), ASP was stale so updateRoot published first 0x0a9e98df6e6fe4900f95fc47e9a3f55c93390d5cad601b95a9ade3318bb15bca, Groth16 proved locally, post-publish sim passed, relay 0x49302e9df7d38dbdb1b350d4ce0944470282d15337d9aebdff6228580105d0a1 block 87198957, nullifier spent, wallet 0.0000182 -> 0.0010084 (net +0.0009902). Note archived (gitignored).
+- Ordering lesson: relay sim ALWAYS reverts pre-publish (proof references unpublished ASP root); publish-then-sim is the binding gate. First sim attempt burned nothing (free).
+- Wallet now ~0.0010085. Standing rules from here: 0.0002 gas-reserve floor, v2-only seeding (removable), quote-before-deposit via quoter (never park a note blind again).
+
