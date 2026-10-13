@@ -200,6 +200,18 @@ export default function ContractsPage() {
           <span style={{ opacity: 0.3 }}>/</span>
           <span>Sourcify Verified</span>
         </div>
+        <p
+          style={{
+            margin: "var(--space-2) 0 0 0",
+            fontFamily: "var(--font-body)",
+            fontSize: "var(--text-caption)",
+            color: "var(--color-muted)",
+            maxWidth: "680px",
+            lineHeight: 1.6,
+          }}
+        >
+          Why no Blockscout checkmark yet: the explorer&apos;s verifier only supports up to solc 0.8.36 and these contracts were built with 0.8.37, so its verification form cannot match our bytecode. Sourcify verification above is complete and independently checkable; Blockscout marks will follow once their verifier supports 0.8.37.
+        </p>
       </div>
 
       {/* Main 2-Column Workstation Grid */}
