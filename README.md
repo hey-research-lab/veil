@@ -148,7 +148,7 @@ veil/
 │   ├── preflight-mainnet.mjs      # Chain, deps, balance, hook-mining checks
 │   ├── multi-exec-zk.mjs          # Script-path multi-note executor (proven live)
 │   └── compile.mjs                # solc build + artifact regen
-├── tests/                         # Vitest suite (34 files, all green)
+├── tests/                         # Vitest suite (39 files, all green)
 ├── docs/                          # Binding docs (see Docs Index below)
 │   ├── DECISIONS.md               # 19 binding owner decisions + B1 ruling
 │   ├── ASP-POLICY.md              # Association-set policy (v2: testnet + mainnet)
@@ -172,7 +172,7 @@ veil/
 - **AMM Infrastructure:** Uniswap V4 Core (`@uniswap/v4-core` 1.0.2) + Periphery (`@uniswap/v4-periphery` 1.0.3)
 - **ZK Stack:** 0xbow Privacy Pools core v1.2.1 (audited) — Groth16 + Poseidon + LeanIMT, snarkjs WASM proving in-browser
 - **Smart Contracts:** Solidity `0.8.37` (Cancun, viaIR) compiled via native `solc`
-- **Testing:** Vitest 4.1.x (34 files, 204 tests, all green)
+- **Testing:** Vitest 4.1.x (39 files, 232 tests, all green)
 
 ---
 
@@ -378,7 +378,7 @@ Fresh 0xbow suite v2 (operator-owned entrypoint, ETH + VEIL pools, `maxRelayFeeB
 Veil enforces evidence-before-claims across unit tests, type safety, and live on-chain gates:
 
 ```bash
-# Run Vitest automated test suite (34 files, 204 tests)
+# Run Vitest automated test suite (39 files, 232 tests)
 pnpm test
 
 # Verify TypeScript types strictly

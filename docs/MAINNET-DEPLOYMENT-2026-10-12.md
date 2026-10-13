@@ -276,3 +276,12 @@ extTokenId=3752545, onchain PM live). Root cause unproven; documented, not chase
 - Verified non-issues: LEANIMT is the correct 0xbow tree name (not a typo); swapHelper 0x08b1 is the live swap contract (proven by 0x4228), only missing from manifest records; chains.mjs divergence unreachable from browser; codosContent stale section is dead data (not rendered); entrypoint 163B is the UUPS proxy (expected).
 - Local: tsc 0, vitest 39 files / 232 tests PASS. UI mainnet testing: READY.
 
+
+
+## 23. Final Compliance Audit: Brief vs Decisions vs Code vs Chain (2026-10-13, reads+static)
+
+- COMPLIANT (verified): chains/denoms/fees (4663, 0.001 fixed, 30bps hook); ownership everywhere (hook/registry/treasury owner=operator, both pool guardians=operator, fee 30, buyback 7000, veilToken set); ASP open union+sentinel (all publishes); self-relay-only; UUPS accepted; vendor untouched; invariant-0/atomicity/B1 live-proven; withdrawals unblockable by code+live; English-only + terminology guardrails clean (only 'not a mixer' disavowals); fail-closed UI audited; live invariant gates 5/5 repeatedly; Sourcify 10/10 (D15 fallback); rollback plan documented; multi cap 8 + dust-visible; burn() mechanism live; secrets hygiene (no secret prints, notes gitignored, vault client-side); legal postponed with live ToS/privacy + guardrails; external audit waived documented; Pons items correctly pending (no token yet); legacy suite untouched+paused with exits open; D10 cap numbers match legacy pools (0.001/10, 5000, 20000), 0xbow governed by fixed-denom+monitoring; all BRIEF-50 owner decisions closed (D1-D19).
+- SUPERSEDED BY DECISION: BRIEF-24 dynamic fee -> D4 static 30bps (decision overrides brief, documented here).
+- FIXED HERE: README test counts 34/204 -> 39/232.
+- REMAINING (honest): multi-note mainnet execution (implemented contract+UI, needs 0.002-0.003 lock); UI click-through with user wallet+browser; Pons token + setVeilToken/70%/domain/X (external dependency).
+
