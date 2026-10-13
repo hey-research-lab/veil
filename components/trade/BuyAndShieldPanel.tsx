@@ -3,6 +3,7 @@
 import React from "react";
 import { formatEther } from "viem";
 import { Lock } from "lucide-react";
+import { EthLogo, VeilLogoMark } from "../TokenLogos";
 import { MAINNET_BOW_V3_VEIL_TOKEN, TESTNET_BOW_V3_VEIL_TOKEN, TESTNET_CHAIN_ID } from "../../lib/privacy-pools";
 
 export type BowDepositAsset = "ETH" | "VEIL";
@@ -93,6 +94,19 @@ export const BuyAndShieldPanel: React.FC<BuyAndShieldPanelProps> = ({
             </span>
             <span
               style={{
+                fontSize: "clamp(1.1rem, 1.6vw, 1.3rem)",
+                color: "var(--color-muted)",
+                fontWeight: 600,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "5px",
+              }}
+            >
+              {isEth ? <EthLogo size={16} /> : <VeilLogoMark size={16} />}
+              <span>{depositAsset}</span>
+            </span>
+            <span
+              style={{
                 fontSize: "10px",
                 fontFamily: "var(--font-mono)",
                 color: "var(--color-muted)",
@@ -138,7 +152,7 @@ export const BuyAndShieldPanel: React.FC<BuyAndShieldPanelProps> = ({
                     onDepositAmount(sym === "ETH" ? formatEther(ethDenomination) : "0.001");
                   }}
                   style={{
-                    padding: "6px 14px",
+                    padding: "6px 12px",
                     minHeight: "28px",
                     borderRadius: "var(--radius-sm)",
                     fontFamily: "var(--font-body)",
@@ -152,9 +166,13 @@ export const BuyAndShieldPanel: React.FC<BuyAndShieldPanelProps> = ({
                     color: active ? "var(--color-text)" : "var(--color-muted)",
                     boxShadow: active ? "0 1px 3px rgba(26, 26, 26, 0.05)" : "none",
                     transition: "all var(--duration-fast)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
                   }}
                 >
-                  {sym}
+                  {sym === "ETH" ? <EthLogo size={13} /> : <VeilLogoMark size={13} />}
+                  <span>{sym}</span>
                 </button>
               );
             })}

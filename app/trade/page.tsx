@@ -40,6 +40,7 @@ import { VaultSidebarWidget } from "../../components/trade/VaultSidebarWidget";
 import { ZkShieldRadar } from "../../components/ZkShieldRadar";
 import { TokenSelectModal, SUPPORTED_TOKENS, type TokenItem } from "../../components/TokenSelectModal";
 import { SlippageSettingsModal } from "../../components/SlippageSettingsModal";
+import { RobinhoodLogoMark } from "../../components/TokenLogos";
 import { RouteInspector } from "../../components/RouteInspector";
 import { ZkProverModal, type ZkProverStep } from "../../components/ZkProverModal";
 import { WalletModal } from "../../components/WalletModal";
@@ -3855,9 +3856,13 @@ export default function SwapToShieldPage() {
               textTransform: "uppercase",
               color: "var(--color-muted)",
               marginBottom: "var(--space-2)",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
             }}
           >
-            Robinhood Chain {APP_CHAIN_ID} // Uniswap v4
+            <RobinhoodLogoMark size={13} color="#00C805" />
+            <span>Robinhood Chain {APP_CHAIN_ID} // Uniswap v4</span>
           </div>
           <h1
             style={{

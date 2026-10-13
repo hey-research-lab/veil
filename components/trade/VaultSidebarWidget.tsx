@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { type AnyShieldedNote, isBowNote } from "../../lib/note";
 import { formatNoteAmount, getNoteAssetSymbol } from "../../lib/note-format";
+import { TokenIcon } from "../TokenLogos";
 
 export interface VaultSidebarWidgetProps {
   notes: AnyShieldedNote[];
@@ -169,9 +170,13 @@ export const VaultSidebarWidget: React.FC<VaultSidebarWidgetProps> = ({
                     letterSpacing: "0.05em",
                     color: "var(--color-muted)",
                     fontFamily: "var(--font-mono)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "5px",
                   }}
                 >
-                  Shielded {sym}
+                  <TokenIcon symbol={sym} size={12} />
+                  <span>Shielded {sym}</span>
                 </div>
                 <div
                   style={{
@@ -296,6 +301,7 @@ export const VaultSidebarWidget: React.FC<VaultSidebarWidgetProps> = ({
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <TokenIcon symbol={getNoteAssetSymbol(note.asset)} size={13} />
                       <span
                         style={{
                           fontSize: "12px",

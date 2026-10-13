@@ -6,7 +6,8 @@ import { Check, ChevronDown, ChevronUp, Lock, AlertTriangle, Clipboard, X } from
 import { APP_CHAIN_ID } from "../../lib/chains";
 import { TESTNET_CHAIN_ID } from "../../lib/privacy-pools";
 import { isBowNote, type AnyShieldedNote } from "../../lib/note";
-import { formatNoteAmount } from "../../lib/note-format";
+import { formatNoteAmount, getNoteAssetSymbol } from "../../lib/note-format";
+import { TokenIcon } from "../TokenLogos";
 
 export interface WithdrawPanelProps {
   connectedAddress?: string | null;
@@ -186,9 +187,12 @@ export const WithdrawPanel: React.FC<WithdrawPanelProps> = ({
               </div>
 
               <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
-                <span style={{ fontFamily: "monospace", fontSize: "var(--text-body)", color: "var(--color-accent-ink)", fontWeight: 700 }}>
-                  {formatNoteAmount(activeNote.denomination, activeNote.asset)}
-                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <TokenIcon symbol={getNoteAssetSymbol(activeNote.asset)} size={16} />
+                  <span style={{ fontFamily: "monospace", fontSize: "var(--text-body)", color: "var(--color-accent-ink)", fontWeight: 700 }}>
+                    {formatNoteAmount(activeNote.denomination, activeNote.asset)}
+                  </span>
+                </div>
                 {isNoteDropdownOpen ? (
                   <ChevronUp className="w-4 h-4 text-neutral-400" aria-hidden="true" />
                 ) : (
@@ -249,6 +253,7 @@ export const WithdrawPanel: React.FC<WithdrawPanelProps> = ({
                         </div>
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <TokenIcon symbol={getNoteAssetSymbol(n.asset)} size={13} />
                         <span style={{ fontFamily: "monospace", fontSize: "12px", color: "var(--color-text)", fontWeight: 600 }}>
                           {formatNoteAmount(n.denomination, n.asset)}
                         </span>

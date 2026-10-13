@@ -2,6 +2,7 @@
 
 import React from "react";
 import { ArrowDown, ArrowLeftRight, Check, Clipboard, Loader2, Sparkles, User, X } from "lucide-react";
+import { TokenIcon } from "../TokenLogos";
 
 export interface ZkShieldedSwapNoteOption {
   nullifier: string;
@@ -144,9 +145,13 @@ export const ZkShieldedSwapPanel: React.FC<ZkShieldedSwapPanelProps> = ({
               fontWeight: 600,
               color: "var(--color-text)",
               fontVariantNumeric: "tabular-nums",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
             }}
           >
-            {sourceLabel}
+            {activeOption && <TokenIcon symbol={activeOption.assetSymbol} size={20} />}
+            <span>{sourceLabel}</span>
           </div>
           {activeOption && (
             <span
@@ -159,9 +164,13 @@ export const ZkShieldedSwapPanel: React.FC<ZkShieldedSwapPanelProps> = ({
                 backgroundColor: "rgba(255, 140, 0, 0.1)",
                 color: "var(--color-accent-ink)",
                 border: "1px solid rgba(255, 140, 0, 0.25)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "5px",
               }}
             >
-              {activeOption.assetSymbol} Shielded
+              <TokenIcon symbol={activeOption.assetSymbol} size={12} />
+              <span>{activeOption.assetSymbol} Shielded</span>
             </span>
           )}
         </div>
@@ -229,9 +238,17 @@ export const ZkShieldedSwapPanel: React.FC<ZkShieldedSwapPanelProps> = ({
             fontWeight: 600,
             color: "var(--color-text)",
             fontVariantNumeric: "tabular-nums",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
           }}
         >
-          {destinationLabel}
+          {destinationLabel.includes("ETH") ? (
+            <TokenIcon symbol="ETH" size={20} />
+          ) : destinationLabel.includes("VEIL") ? (
+            <TokenIcon symbol="VEIL" size={20} />
+          ) : null}
+          <span>{destinationLabel}</span>
         </div>
 
         <div

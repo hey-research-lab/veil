@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Copy, Download } from "lucide-react";
 import { isBowNote, type AnyShieldedNote } from "../../lib/note";
 import { formatNoteAmount, getNoteAssetSymbol } from "../../lib/note-format";
+import { TokenIcon } from "../TokenLogos";
 
 export interface VaultPanelProps {
   notes: AnyShieldedNote[];
@@ -101,9 +102,13 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({ notes, onBackup, onBacku
                       fontFamily: "monospace",
                       color: "var(--color-accent-ink)",
                       fontWeight: 600,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px",
                     }}
                   >
-                    {getNoteAssetSymbol(note.asset)}
+                    <TokenIcon symbol={getNoteAssetSymbol(note.asset)} size={12} />
+                    <span>{getNoteAssetSymbol(note.asset)}</span>
                   </span>
                   <span
                     style={{
@@ -120,9 +125,12 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({ notes, onBackup, onBacku
                     0xbow v1.2.1 · Groth16
                   </span>
                 </div>
-                <span style={{ fontFamily: "monospace", fontSize: "1.1rem", color: "var(--color-accent-ink)", fontWeight: 700 }}>
-                  {formatNoteAmount(note.denomination, note.asset)}
-                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <TokenIcon symbol={getNoteAssetSymbol(note.asset)} size={16} />
+                  <span style={{ fontFamily: "monospace", fontSize: "1.1rem", color: "var(--color-accent-ink)", fontWeight: 700 }}>
+                    {formatNoteAmount(note.denomination, note.asset)}
+                  </span>
+                </div>
               </div>
 
               <div
