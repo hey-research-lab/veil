@@ -182,9 +182,8 @@ export const ZkShieldRadar: React.FC = () => {
       ? "Reconnecting…"
       : "RPC unreachable"
     : isLiveLoaded
-    ? "Hook live"
+    ? "Hook active"
     : "Syncing…";
-  const statusDotColor = rpcError ? "#b45309" : isLiveLoaded ? "#16a34a" : "#ca8a04";
 
   return (
     <div
@@ -245,32 +244,24 @@ export const ZkShieldRadar: React.FC = () => {
           </div>
         </div>
 
-        <div
+        <span
           style={{
             display: "inline-flex",
             alignItems: "center",
-            gap: "5px",
             padding: "3px 8px",
-            borderRadius: "var(--radius-full)",
-            backgroundColor: isLiveLoaded ? "rgba(22, 163, 74, 0.08)" : "rgba(202, 138, 4, 0.08)",
-            border: `1px solid ${isLiveLoaded ? "rgba(22, 163, 74, 0.2)" : "rgba(202, 138, 4, 0.2)"}`,
+            borderRadius: "var(--radius-sm)",
+            backgroundColor: "rgba(26, 26, 26, 0.04)",
+            border: "1px solid var(--color-border)",
             fontSize: "10px",
             fontFamily: "var(--font-mono)",
-            color: isLiveLoaded ? "#15803d" : "#a16207",
+            color: "var(--color-muted)",
             fontWeight: 600,
+            textTransform: "uppercase",
+            letterSpacing: "0.04em",
           }}
         >
-          <span
-            style={{
-              width: "5px",
-              height: "5px",
-              borderRadius: "50%",
-              backgroundColor: statusDotColor,
-              display: "inline-block",
-            }}
-          />
-          <span>{statusLabel}</span>
-        </div>
+          {statusLabel}
+        </span>
       </div>
 
       {/* 2x2 Telemetry Metrics Grid */}
@@ -512,7 +503,7 @@ export const ZkShieldRadar: React.FC = () => {
           </span>
         </div>
 
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
           {enabledFlags.length > 0 ? (
             enabledFlags.map((flag) => (
               <span
@@ -520,18 +511,16 @@ export const ZkShieldRadar: React.FC = () => {
                 style={{
                   fontSize: "10px",
                   fontFamily: "var(--font-mono)",
-                  padding: "2px 7px",
-                  borderRadius: "var(--radius-full)",
-                  backgroundColor: "rgba(22, 163, 74, 0.08)",
-                  color: "#15803d",
-                  border: "1px solid rgba(22, 163, 74, 0.2)",
+                  padding: "3px 8px",
+                  borderRadius: "var(--radius-sm)",
+                  backgroundColor: "rgba(26, 26, 26, 0.04)",
+                  color: "var(--color-text)",
+                  border: "1px solid var(--color-border)",
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: "4px",
                   fontWeight: 500,
                 }}
               >
-                <span style={{ width: "4px", height: "4px", borderRadius: "50%", backgroundColor: "#16a34a" }} />
                 {flag}
               </span>
             ))
@@ -568,7 +557,7 @@ export const ZkShieldRadar: React.FC = () => {
               fontWeight: 600,
             }}
           >
-            Live Merkle Root
+            Merkle State Root
           </span>
           <span style={{ fontSize: "10px", fontFamily: "var(--font-mono)", color: "var(--color-accent-ink)", fontWeight: 600 }}>
             {isLiveLoaded ? "Verified Onchain" : "Syncing…"}
@@ -631,7 +620,7 @@ export const ZkShieldRadar: React.FC = () => {
           >
             {copiedRoot ? (
               <>
-                <Check className="w-3 h-3 text-emerald-600" aria-hidden="true" />
+                <Check className="w-3 h-3" style={{ color: "var(--color-accent-ink)" }} aria-hidden="true" />
                 <span>Copied</span>
               </>
             ) : (
