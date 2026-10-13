@@ -255,3 +255,14 @@ extTokenId=3752545, onchain PM live). Root cause unproven; documented, not chase
 - Treasury burn live (flywheel complete): treasury held 0.00096655483101693 VEIL + 320857510136 wei ETH fees; executeBurn is permissionless. Tx 0x0451edd31396ca11297dbe10a1cde7f79f8490a08e803a89487edf86add4cd33 (gas 58698), totalBurned 0 -> 966554831016930. Fee -> treasury -> burn proven end to end.
 - Remaining untested: multi-note flow (needs 0.002-0.003 lock, modal) + UI click-through with user wallet. Everything else on the lifecycle is now proven live on mainnet 4663.
 
+
+
+## 18. UI-Test Readiness Audit (2026-10-13, no sends)
+
+- Onchain: all manifest addresses carry bytecode (entrypoint is a 163-byte UUPS proxy, expected); owner EOA; swapHelper 0x08b1 (4753B) and liqHelper-v2 0xb419 (5996B) live though absent from manifest (record gap only, both proven by live txs).
+- BLOCKER fixed: lib/zk-router buildZkSwapLeg baked the TESTNET VEIL token into every swap leg -> mainnet UI Swap would fail binding/InvalidSwapLeg. Now suite-aware (testnet default preserved), all 5 internal call sites pass suite, 3 regression tests added.
+- BLOCKER fixed: viability pre-check read the hardcoded TESTNET pool slot0 on mainnet. New buildZkPoolId(suite) (fee 3000/spacing 60/no-hook identical both chains, only VEIL differs); page uses it.
+- Fixed: AttestPanel pool-id display + VEIL hint now chain-aware (props, testnet defaults kept).
+- Accepted risks (documented, no code change): lib/contracts.ts display fallbacks stay fail-open (all logic paths fail closed; only cosmetics); 7 stale Vercel env keys (wire-or-remove later); legacy-exit resolver may not match mainnet legacy notes (legacy path only); testnet notes unwithdrawable in mainnet-only build (by design).
+- Local: tsc 0, vitest 39 files / 232 tests PASS.
+

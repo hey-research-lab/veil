@@ -39,6 +39,8 @@ export interface AttestPanelProps {
   hookAddress?: string;
   explorerAddressBase?: string;
   explorerTxBase?: string;
+  poolIdText?: string;
+  isMainnet?: boolean;
 }
 
 /** Self-attestation + gated-pool region inside the Buy & Shield tab. */
@@ -65,6 +67,8 @@ export const AttestPanel: React.FC<AttestPanelProps> = ({
   hookAddress = GATED_HOOK_ADDRESS,
   explorerAddressBase = GATED_EXPLORER_ADDRESS_BASE,
   explorerTxBase = GATED_EXPLORER_TX_BASE,
+  poolIdText = GATED_POOL_ID,
+  isMainnet = false,
 }) => {
   const gatedDisabled = isGatedExecuteDisabled({
     isSwapping: isGatedSwapping,
@@ -152,7 +156,7 @@ export const AttestPanel: React.FC<AttestPanelProps> = ({
           <div style={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
             <span style={{ color: "var(--color-muted)" }}>Gated pool:</span>
             <span style={{ color: "var(--color-muted)", textAlign: "right" }}>
-              {`ETH/VEIL 0.3% · id ${GATED_POOL_ID.slice(0, 10)}… · window ${(Number(gating.duration) / 86400).toFixed(1)} days`}
+              {`ETH/VEIL 0.3% · id ${poolIdText.slice(0, 10)}… · window ${(Number(gating.duration) / 86400).toFixed(1)} days`}
             </span>
           </div>
         )}
@@ -244,7 +248,7 @@ export const AttestPanel: React.FC<AttestPanelProps> = ({
         />
         <span id="gated-swap-hint" style={{ color: "var(--color-muted)", fontFamily: "var(--font-body)", fontSize: "var(--text-caption)", lineHeight: 1.5 }}>
           Minimum accepted derives from a fresh gas-free simulation × your slippage
-          setting (Execution Settings). Needs test VEIL already in your wallet;
+          setting (Execution Settings). {isMainnet ? "Needs VEIL already in your wallet;" : "Needs test VEIL already in your wallet;"}
           there is no onchain faucet.
         </span>
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>

@@ -348,4 +348,59 @@ describe("zk router flow wiring (full-ZK UI)", () => {
     expect(libSrc).not.toMatch(/legacy router module/);
     expect(src).not.toMatch(/legacy stays dead/);
   });
+
+  describe("suite-aware swap legs (mainnet audit)", () => {
+    const MAINNET_SUITE = {
+      chainId: 4663,
+      router: "0x0fb48c9552154ea028cbd812430e1ea3465a9b4c",
+      multi: "0x0fb48c9552154ea028cbd812430e1ea3465a9b4c",
+      entrypoint: "0x96cb8b1836d341a6f5f1f54428bd6696c8b950b1",
+      ethPool: "0x10c17b7538e13c63b890fea52708846e88bb1932",
+      veilPool: "0xdb9f182670da2cc6c5ddd432ec98a45e4f2290d100000000000000000000000000000000000000",
+      veilToken: "0xe0e11ec0d62eda12de796d025d6334fadfe5ab2a",
+    } as const;
+
+    it("binds currency1 to the suite VEIL token (default stays testnet)", async () => {
+      const { buildZkSwapLeg, TESTNET_ZK_SUITE } = await import("../lib/zk-router");
+      const def = buildZkSwapLeg({ zeroForOne: true });
+      expect(def.key.currency1.toLowerCase()).toBe(TESTNET_ZK_SUITE.veilToken.toLowerCase());
+      const main = buildZkSwapLeg({ zeroForOne: true, suite: { ...TESTNET_ZK_SUITE, ...MAINNET_SUITE } });
+      expect(main.key.currency1.toLowerCase()).toBe("0xe0e11ec0d62eda12de796d025d6334fadfe5ab2a");
+      expect(main.key.currency0).toBe(def.key.currency0);
+      expect(main.key.fee).toBe(def.key.fee);
+      expect(main.key.tickSpacing).toBe(def.key.tickSpacing);
+      expect(main.key.hooks).toBe(def.key.hooks);
+    });
+
+    it("builds full-flow args for mainnet assets without InvalidSwapLeg", async () => {
+      const mod = await import("../lib/zk-router");
+      const suite = { ...(mod.TESTNET_ZK_SUITE as object), ...MAINNET_SUITE } as never;
+      const args = mod.buildFullZkFlowArgs({
+        withdrawal: { processooor: (suite as { entrypoint: `0x${string}` }).entrypoint, data: "0x1234" as `0x${string}` },
+        proof: PROOF,
+        scope: 123n,
+        withdrawAsset: ETH_ZERO,
+        depositAsset: "0xe0e11ec0d62eda12de796d025d6334fadfe5ab2a" as `0x${string}`,
+        depositValue: parseEther("0.001"),
+        precommitment: 999n,
+        zeroForOne: true,
+        quotedSwapOut: parseEther("0.9"),
+        slippagePercent: 0.5,
+        suite,
+        recipient: (suite as { router: `0x${string}` }).router,
+      });
+      expect(args.swapLeg.key.currency1.toLowerCase()).toBe("0xe0e11ec0d62eda12de796d025d6334fadfe5ab2a");
+    });
+
+    it("builds distinct pool ids per suite VEIL token", async () => {
+      const { buildZkPoolId, TESTNET_ZK_SUITE } = await import("../lib/zk-router");
+      const testId = buildZkPoolId();
+      const sameDefault = buildZkPoolId(TESTNET_ZK_SUITE);
+      expect(testId).toBe(sameDefault);
+      expect(testId).toMatch(/^0x[0-9a-f]{64}$/);
+      const mainId = buildZkPoolId({ ...TESTNET_ZK_SUITE, ...MAINNET_SUITE });
+      expect(mainId).toMatch(/^0x[0-9a-f]{64}$/);
+      expect(mainId).not.toBe(testId);
+    });
+  });
 });

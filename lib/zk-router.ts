@@ -1,4 +1,4 @@
-import { decodeEventLog, type Address, type Hash, type Hex, type PublicClient } from "viem";
+import { decodeEventLog, encodeAbiParameters, keccak256, type Address, type Hash, type Hex, type PublicClient } from "viem";
 import { VEIL_ZK_ROUTER_ABI } from "./veil-artifact";
 import { calculateSlippageBound } from "./router-client";
 import {
@@ -265,6 +265,19 @@ export const ZK_SQRT_PRICE_LIMIT = TESTNET_ROUTER_SQRT_PRICE_LIMIT;
 export const ZK_SQRT_PRICE_LIMIT_ETH_IN = TESTNET_ROUTER_SQRT_PRICE_LIMIT_ETH_IN;
 export const ZK_HOOK_DATA = TESTNET_ROUTER_HOOK_DATA;
 
+/** PoolId of the shared plain v4 pool for a suite (fee 3000, spacing 60,
+ * no hook on both chains; only the VEIL token differs). A hardcoded testnet
+ * pool id on mainnet reads the wrong pool's slot0 and misgates viability. */
+export function buildZkPoolId(suite?: ZkChainSuite): Hex {
+  const veil = (suite?.veilToken ?? ZK_POOL_KEY.currency1) as Address;
+  return keccak256(
+    encodeAbiParameters(
+      [{ type: "tuple", components: [{ type: "address" }, { type: "address" }, { type: "uint24" }, { type: "int24" }, { type: "address" }] }],
+      [[ETH_ZERO_ADDRESS, veil, 3000, 60, ETH_ZERO_ADDRESS]]
+    )
+  );
+}
+
 /** Upper bound on free quote simulations per flow (fail closed past it). */
 export const ZK_FLOW_MAX_PROBES = 24;
 
@@ -318,12 +331,17 @@ export interface BuildFullZkFlowInput extends ZkFlowBase {
   recipient?: Address;
 }
 
-/** Pure builder for the exact-input v4 swap leg on the shared pool. */
-export function buildZkSwapLeg(args: { zeroForOne: boolean }): ZkSwapLegStruct {
+/** Pure builder for the exact-input v4 swap leg on the shared pool.
+ * currency1 follows the suite's VEIL token (testnet default preserves every
+ * existing caller); fee/spacing/hooks/currency0 are identical on both chains.
+ * A hardcoded testnet token on mainnet would clear the local binding check
+ * against mainnet assets and then revert onchain with InvalidSwapLeg. */
+export function buildZkSwapLeg(args: { zeroForOne: boolean; suite?: ZkChainSuite }): ZkSwapLegStruct {
+  const veil = (args.suite?.veilToken ?? ZK_POOL_KEY.currency1) as Address;
   return {
     key: {
       currency0: ZK_POOL_KEY.currency0 as Address,
-      currency1: ZK_POOL_KEY.currency1 as Address,
+      currency1: veil,
       fee: ZK_POOL_KEY.fee,
       tickSpacing: ZK_POOL_KEY.tickSpacing,
       hooks: ZK_POOL_KEY.hooks as Address,
@@ -385,7 +403,7 @@ export function buildFullZkFlowArgs(input: BuildFullZkFlowInput): FullZkFlowArgs
   }
   if (input.depositValue <= 0n) throw new Error("Deposit value must be greater than zero.");
   if (input.precommitment === 0n) throw new Error("InvalidPrecommitment: precommitment must be non-zero.");
-  const swapLeg = buildZkSwapLeg({ zeroForOne });
+  const swapLeg = buildZkSwapLeg({ zeroForOne, suite });
   checkSwapLegBinding(swapLeg, input.withdrawAsset, input.depositAsset);
   const minSwapOut = deriveZkMinSwapOut(input.quotedSwapOut, input.slippagePercent);
   return {
@@ -498,7 +516,7 @@ export function buildDirectFullZkFlowArgs(input: BuildDirectFullZkFlowInput): Di
     throw new Error("Direct payout needs a non-zero recipient address. No transaction was sent.");
   }
   if (input.quotedSwapOut <= 0n) throw new Error("Live swap quote must be greater than zero before building direct params.");
-  const swapLeg = buildZkSwapLeg({ zeroForOne });
+  const swapLeg = buildZkSwapLeg({ zeroForOne, suite });
   const outputAsset = (zeroForOne ? swapLeg.key.currency1 : swapLeg.key.currency0) as Address;
   checkSwapLegBinding(swapLeg, input.withdrawAsset, outputAsset);
   const minSwapOut = deriveZkMinSwapOut(input.quotedSwapOut, input.slippagePercent);
@@ -761,7 +779,7 @@ function resolveBase(
   }
   if (base.depositValue <= 0n) throw new Error("Deposit value must be greater than zero.");
   if (base.precommitment === 0n) throw new Error("InvalidPrecommitment: precommitment must be non-zero.");
-  const swapLeg = buildZkSwapLeg({ zeroForOne });
+  const swapLeg = buildZkSwapLeg({ zeroForOne, suite });
   checkSwapLegBinding(swapLeg, base.withdrawAsset, base.depositAsset);
   return {
     ...base,
@@ -1028,7 +1046,7 @@ export function buildMultiFullZkFlowArgs(input: BuildMultiFullZkFlowInput): Mult
   checkMultiEntrypoint(input.withdrawals, suite);
   if (input.depositValue <= 0n) throw new Error("Deposit value must be greater than zero.");
   if (input.precommitment === 0n) throw new Error("InvalidPrecommitment: precommitment must be non-zero.");
-  const swapLeg = buildZkSwapLeg({ zeroForOne });
+  const swapLeg = buildZkSwapLeg({ zeroForOne, suite });
   checkSwapLegBinding(swapLeg, input.withdrawAsset, input.depositAsset);
   const minSwapOut = deriveZkMinSwapOut(input.quotedSwapOut, input.slippagePercent);
   return {
@@ -1096,7 +1114,7 @@ function resolveMultiBase(base: ZkMultiFlowBase, minSwapOut: bigint): MultiFullZ
   checkMultiEntrypoint(base.withdrawals, suite);
   if (base.depositValue <= 0n) throw new Error("Deposit value must be greater than zero.");
   if (base.precommitment === 0n) throw new Error("InvalidPrecommitment: precommitment must be non-zero.");
-  const swapLeg = buildZkSwapLeg({ zeroForOne });
+  const swapLeg = buildZkSwapLeg({ zeroForOne, suite });
   checkSwapLegBinding(swapLeg, base.withdrawAsset, base.depositAsset);
   return {
     ...base,

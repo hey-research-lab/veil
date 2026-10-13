@@ -4,10 +4,16 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   Settings,
   ChevronDown,
+  ChevronUp,
   ArrowDown,
   AlertTriangle,
   Loader2,
   X,
+  ShieldCheck,
+  ArrowLeftRight,
+  ArrowUpRight,
+  BadgeCheck,
+  Wallet,
 } from "lucide-react";
 import {
   createBowDepositSecrets,
@@ -30,6 +36,7 @@ import { WithdrawPanel } from "../../components/trade/WithdrawPanel";
 import { BuyAndShieldPanel } from "../../components/trade/BuyAndShieldPanel";
 import { AttestPanel } from "../../components/trade/AttestPanel";
 import { JourneyGuide } from "../../components/trade/JourneyGuide";
+import { VaultSidebarWidget } from "../../components/trade/VaultSidebarWidget";
 import { ZkShieldRadar } from "../../components/ZkShieldRadar";
 import { TokenSelectModal, SUPPORTED_TOKENS, type TokenItem } from "../../components/TokenSelectModal";
 import { SlippageSettingsModal } from "../../components/SlippageSettingsModal";
@@ -66,8 +73,7 @@ import { calculateSlippageBound } from "../../lib/router-client";
 import {
   buildGatedHookInnerHash,
   buildGatedPoolId,
-  buildGatedPoolKey,
-  buildGatedSwapTxArgs,
+  buildGatedPoolKey,  buildGatedSwapTxArgs,
   buildSelfAttestInnerHash,
   buildSelfAttestProofRoot,
   decodeGatedSwapOutput,
@@ -78,6 +84,7 @@ import {
   GATED_EXPLORER_TX_BASE,
   GATED_HOOK_ADDRESS,
   GATED_POOL_ID,
+  GATED_POOL_KEY,
   GATED_REGISTRY_ADDRESS,
   GATED_SWAPPER_ADDRESS,
   GATED_SWAPPER_ABI,
@@ -139,6 +146,7 @@ import {
   buildDirectFullZkFlowArgs,
   buildFullZkFlowArgs,
   buildMultiFullZkFlowArgs,
+  buildZkPoolId,
   findDirectPayoutExecuted,
   estimateV4SwapOut,
   findFullZkFlowExecuted,
@@ -477,6 +485,7 @@ export default function SwapToShieldPage() {
 
   // Prover Modal States
   const [isProverOpen, setIsProverOpen] = useState(false);
+  const [isGuaranteesExpanded, setIsGuaranteesExpanded] = useState(false);
   const [proverTitle, setProverTitle] = useState("Executing Shielded Deposit");
   const [proverSteps, setProverSteps] = useState<ZkProverStep[]>([]);
   const [proverTxHash, setProverTxHash] = useState<string | null>(null);
@@ -1802,7 +1811,8 @@ export default function SwapToShieldPage() {
         address: SHIELDED_SWAP_V4_STATE_VIEW,
         abi: ZK_V4_STATE_VIEW_ABI,
         functionName: "getSlot0",
-        args: [SHIELDED_SWAP_V4_POOL_ID],
+        // Suite pool id: the hardcoded testnet id reads the wrong pool on mainnet.
+        args: [buildZkPoolId(zkSuite) as `0x${string}`],
       });
       const estimated = estimateV4SwapOut({
         sqrtPriceX96: BigInt(slot0[0]),
@@ -3897,19 +3907,13 @@ export default function SwapToShieldPage() {
         </div>
       </div>
 
-      {/* Main 2-Column Workstation Grid */}
+      {/* Main 2-Column Workstation Grid: Pro DEX Layout (~58% Terminal : ~42% Sidebar) */}
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(min(460px, 100%), 1fr))",
-          gap: "var(--space-6)",
-          alignItems: "start",
-          width: "100%",
-        }}
+        className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start w-full"
       >
         {/* Column 1: Core Trade & Shield Terminal Card */}
         <div
-          className="veil-card-white"
+          className="lg:col-span-7 veil-card-white"
           style={{
             padding: "var(--space-6)",
             display: "flex",
@@ -3919,6 +3923,7 @@ export default function SwapToShieldPage() {
             borderRadius: "var(--radius-lg)",
             border: "1px solid var(--color-border-strong)",
             boxShadow: "0 12px 36px -8px rgba(26, 26, 26, 0.08)",
+            width: "100%",
           }}
         >
           {/* Guided journey 1-2-3-4 (plain language) + trader entry. */}
@@ -3932,6 +3937,42 @@ export default function SwapToShieldPage() {
               switchTab("trade");
             }}
           />
+          {/* Mobile-Only Private Balance Quick Bar */}
+          <div
+            className="flex lg:hidden items-center justify-between p-2.5 rounded text-xs font-mono"
+            style={{
+              backgroundColor: "rgba(26, 26, 26, 0.025)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "var(--radius-sm)",
+              padding: "8px 12px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <Wallet size={12} style={{ color: "var(--color-accent-ink)" }} />
+              <span style={{ color: "var(--color-muted)" }}>Private Vault:</span>
+              <span style={{ fontWeight: 700, color: "var(--color-text)" }}>
+                {notes.length} Note{notes.length !== 1 ? "s" : ""}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => switchTab("vault")}
+              style={{
+                background: "none",
+                border: "none",
+                color: "var(--color-accent-ink)",
+                fontWeight: 600,
+                cursor: "pointer",
+                fontSize: "11px",
+              }}
+            >
+              Manage Notes →
+            </button>
+          </div>
+
           {/* Terminal Tabs & Slippage Trigger */}
           <div
             style={{
@@ -3964,7 +4005,8 @@ export default function SwapToShieldPage() {
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  padding: "7px 14px",
+                  gap: "6px",
+                  padding: "7px 12px",
                   borderRadius: "var(--radius-sm)",
                   fontSize: "var(--text-body-sm)",
                   fontFamily: "var(--font-body)",
@@ -3977,6 +4019,7 @@ export default function SwapToShieldPage() {
                   transition: "all var(--duration-fast)",
                 }}
               >
+                <ShieldCheck size={13} style={{ opacity: activeTab === "buy_and_shield" ? 1 : 0.6 }} />
                 <span>Shield</span>
               </button>
               <button
@@ -3986,7 +4029,8 @@ export default function SwapToShieldPage() {
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  padding: "7px 14px",
+                  gap: "6px",
+                  padding: "7px 12px",
                   borderRadius: "var(--radius-sm)",
                   fontSize: "var(--text-body-sm)",
                   fontFamily: "var(--font-body)",
@@ -3999,7 +4043,8 @@ export default function SwapToShieldPage() {
                   transition: "all var(--duration-fast)",
                 }}
               >
-                <span>Shielded Swap</span>
+                <ArrowLeftRight size={13} style={{ opacity: activeTab === "shielded_swap" ? 1 : 0.6 }} />
+                <span>ZK Swap</span>
               </button>
               <button
                 type="button"
@@ -4008,7 +4053,8 @@ export default function SwapToShieldPage() {
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  padding: "7px 14px",
+                  gap: "6px",
+                  padding: "7px 12px",
                   borderRadius: "var(--radius-sm)",
                   fontSize: "var(--text-body-sm)",
                   fontFamily: "var(--font-body)",
@@ -4021,6 +4067,7 @@ export default function SwapToShieldPage() {
                   transition: "all var(--duration-fast)",
                 }}
               >
+                <ArrowUpRight size={13} style={{ opacity: activeTab === "withdraw" ? 1 : 0.6 }} />
                 <span>Withdraw</span>
               </button>
               {(isTestnetBuild || isMainnetGatedLive) && (
@@ -4031,7 +4078,8 @@ export default function SwapToShieldPage() {
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  padding: "7px 14px",
+                  gap: "6px",
+                  padding: "7px 12px",
                   borderRadius: "var(--radius-sm)",
                   fontSize: "var(--text-body-sm)",
                   fontFamily: "var(--font-body)",
@@ -4044,7 +4092,8 @@ export default function SwapToShieldPage() {
                   transition: "all var(--duration-fast)",
                 }}
               >
-                <span>Trade</span>
+                <BadgeCheck size={13} style={{ opacity: activeTab === "trade" ? 1 : 0.6 }} />
+                <span>Gated Pool</span>
               </button>
               )}
               <button
@@ -4055,7 +4104,7 @@ export default function SwapToShieldPage() {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "6px",
-                  padding: "7px 14px",
+                  padding: "7px 12px",
                   borderRadius: "var(--radius-sm)",
                   fontSize: "var(--text-body-sm)",
                   fontFamily: "var(--font-body)",
@@ -4068,6 +4117,7 @@ export default function SwapToShieldPage() {
                   transition: "all var(--duration-fast)",
                 }}
               >
+                <Wallet size={13} style={{ opacity: activeTab === "vault" ? 1 : 0.6 }} />
                 <span>Vault</span>
                 <span
                   style={{
@@ -4232,6 +4282,8 @@ export default function SwapToShieldPage() {
                   hookAddress={(resolveGatedSuite(APP_CHAIN_ID) ?? TESTNET_GATED_SUITE).hook}
                   explorerAddressBase={(resolveGatedSuite(APP_CHAIN_ID) ?? TESTNET_GATED_SUITE).explorerAddressBase}
                   explorerTxBase={(resolveGatedSuite(APP_CHAIN_ID) ?? TESTNET_GATED_SUITE).explorerTxBase}
+                  poolIdText={buildGatedPoolId(buildGatedPoolKey(resolveGatedSuite(APP_CHAIN_ID) ?? TESTNET_GATED_SUITE) as typeof GATED_POOL_KEY)}
+                  isMainnet={!isTestnetBuild}
                 />
                 </>
               )}
@@ -4389,71 +4441,125 @@ export default function SwapToShieldPage() {
           {/* Vault tab lives in components/trade/VaultPanel.tsx */}
         </div>
 
-        {/* Column 2: Telemetry HUD & Vault Overview */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
+        {/* Column 2: Telemetry HUD & Vault Overview (Pro DEX Sidebar) */}
+        <div className="lg:col-span-5 flex flex-col gap-6 w-full">
+          {/* Live Private Vault & Notes Quick Actions */}
+          <VaultSidebarWidget
+            notes={notes}
+            selectedNullifier={selectedNoteNullifier}
+            onSelectForSwap={(nullifier) => {
+              setSelectedNoteNullifier(nullifier);
+              switchTab("shielded_swap");
+              if (typeof window !== "undefined") {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }
+            }}
+            onSelectForWithdraw={(nullifier) => {
+              setSelectedNoteNullifier(nullifier);
+              switchTab("withdraw");
+              if (typeof window !== "undefined") {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }
+            }}
+            onViewFullVault={() => {
+              switchTab("vault");
+            }}
+            onBackupNote={(nullifier) => {
+              const row = notes.find((n) => n.nullifier === nullifier) || null;
+              setBackupNote(row);
+              setIsBackupOpen(true);
+            }}
+            onGoToShield={() => {
+              switchTab("buy_and_shield");
+            }}
+          />
+
           {/* Real-time Telemetry Radar */}
           <ZkShieldRadar />
 
-          {/* Vault Security & Invariants Panel */}
+          {/* Vault Security & Invariants Panel (Collapsible) */}
           <div
             className="veil-card-white"
             style={{
-              padding: "var(--space-6)",
+              padding: "var(--space-5)",
               display: "flex",
               flexDirection: "column",
-              gap: "var(--space-4)",
+              gap: "var(--space-3)",
               backgroundColor: "#ffffff",
               borderRadius: "var(--radius-lg)",
               border: "1px solid var(--color-border-strong)",
               boxShadow: "0 12px 36px -8px rgba(26, 26, 26, 0.08)",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontFamily: "var(--font-headline)", fontSize: "var(--text-h4)", color: "var(--color-text)", fontWeight: 600 }}>
-                Cryptographic Guarantees
-              </span>
-              <span
-                style={{
-                  fontFamily: "monospace",
-                  fontSize: "11px",
-                  color: "var(--color-muted)",
-                }}
-              >
-                Robinhood Cancun EVM
-              </span>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", fontSize: "var(--text-body-sm)" }}>
-              <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--space-3)", padding: "12px 14px", backgroundColor: "rgba(26, 26, 26, 0.02)", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)" }}>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--color-accent-ink)", fontWeight: 600, marginTop: "2px" }}>
-                  01
-                </span>
-                <span style={{ color: "var(--color-muted)", lineHeight: 1.5 }}>
-                  <strong style={{ color: "var(--color-text)", display: "block" }}>Non-Blocking Withdrawals</strong>
-                  The withdraw path has no pause or guardian switch, and nullifiers cannot be reused. Withdrawals verify ZK-SNARK proofs onchain against the privacy pool Merkle trees.
+            <button
+              type="button"
+              onClick={() => setIsGuaranteesExpanded(!isGuaranteesExpanded)}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                width: "100%",
+                background: "none",
+                border: "none",
+                padding: 0,
+                cursor: "pointer",
+                textAlign: "left",
+              }}
+              aria-expanded={isGuaranteesExpanded}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <ShieldCheck size={16} style={{ color: "var(--color-accent-ink)" }} />
+                <span style={{ fontFamily: "var(--font-headline)", fontSize: "14px", color: "var(--color-text)", fontWeight: 600 }}>
+                  Cryptographic Guarantees
                 </span>
               </div>
-
-              <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--space-3)", padding: "12px 14px", backgroundColor: "rgba(26, 26, 26, 0.02)", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)" }}>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--color-accent-ink)", fontWeight: 600, marginTop: "2px" }}>
-                  02
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <span
+                  style={{
+                    fontFamily: "monospace",
+                    fontSize: "11px",
+                    color: "var(--color-muted)",
+                  }}
+                >
+                  Cancun EVM
                 </span>
-                <span style={{ color: "var(--color-muted)", lineHeight: 1.5 }}>
-                  <strong style={{ color: "var(--color-text)", display: "block" }}>Onchain Groth16 Settlement</strong>
-                  Every new note is minted by the audited 0xbow entrypoint and every 0xbow exit settles through entrypoint.relay, which verifies the Groth16 proof onchain before releasing funds.
-                </span>
+                {isGuaranteesExpanded ? <ChevronUp size={14} style={{ color: "var(--color-muted)" }} /> : <ChevronDown size={14} style={{ color: "var(--color-muted)" }} />}
               </div>
+            </button>
 
-              <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--space-3)", padding: "12px 14px", backgroundColor: "rgba(26, 26, 26, 0.02)", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)" }}>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--color-accent-ink)", fontWeight: 600, marginTop: "2px" }}>
-                  03
-                </span>
-                <span style={{ color: "var(--color-muted)", lineHeight: 1.5 }}>
-                  <strong style={{ color: "var(--color-text)", display: "block" }}>Association Set Provider (ASP) Attestation</strong>
-                  Poseidon zero-knowledge proofs prove inclusion in the published association set without revealing depositor address or transaction details.
-                </span>
+            {isGuaranteesExpanded && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", fontSize: "12px", paddingTop: "8px", borderTop: "1px solid var(--color-hairline)" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--space-3)", padding: "12px 14px", backgroundColor: "rgba(26, 26, 26, 0.02)", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)" }}>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--color-accent-ink)", fontWeight: 600, marginTop: "2px" }}>
+                    01
+                  </span>
+                  <span style={{ color: "var(--color-muted)", lineHeight: 1.5 }}>
+                    <strong style={{ color: "var(--color-text)", display: "block" }}>Non-Blocking Withdrawals</strong>
+                    The withdraw path has no pause or guardian switch, and nullifiers cannot be reused. Withdrawals verify ZK-SNARK proofs onchain against the privacy pool Merkle trees.
+                  </span>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--space-3)", padding: "12px 14px", backgroundColor: "rgba(26, 26, 26, 0.02)", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)" }}>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--color-accent-ink)", fontWeight: 600, marginTop: "2px" }}>
+                    02
+                  </span>
+                  <span style={{ color: "var(--color-muted)", lineHeight: 1.5 }}>
+                    <strong style={{ color: "var(--color-text)", display: "block" }}>Onchain Groth16 Settlement</strong>
+                    Every new note is minted by the audited 0xbow entrypoint and every 0xbow exit settles through entrypoint.relay, which verifies the Groth16 proof onchain before releasing funds.
+                  </span>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--space-3)", padding: "12px 14px", backgroundColor: "rgba(26, 26, 26, 0.02)", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)" }}>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--color-accent-ink)", fontWeight: 600, marginTop: "2px" }}>
+                    03
+                  </span>
+                  <span style={{ color: "var(--color-muted)", lineHeight: 1.5 }}>
+                    <strong style={{ color: "var(--color-text)", display: "block" }}>Association Set Provider (ASP) Attestation</strong>
+                    Poseidon zero-knowledge proofs prove inclusion in the published association set without revealing depositor address or transaction details.
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
