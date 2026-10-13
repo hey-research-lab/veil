@@ -4413,6 +4413,12 @@ export default function SwapToShieldPage() {
                 }}
                 payoutAddress={cleanRecipient}
                 onPayoutAddressChange={setCleanRecipient}
+                onGoShield={() => switchTab("buy_and_shield")}
+                noteBackedUp={
+                  selectedNoteNullifier === null
+                    ? null
+                    : backedUpNullifiers.has(selectedNoteNullifier)
+                }
               />
             ) : (
               <div
@@ -4516,6 +4522,7 @@ export default function SwapToShieldPage() {
                   localStorage.setItem(LOCAL_STORAGE_KEY, serializeNotesList(remaining));
                 }
               }}
+              onGoShield={() => switchTab("buy_and_shield")}
             />
           )}
           {/* Vault tab lives in components/trade/VaultPanel.tsx */}

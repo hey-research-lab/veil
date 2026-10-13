@@ -12,10 +12,12 @@ export interface VaultPanelProps {
   onBackupNote: (nullifier: string) => void;
   onWithdrawNote: (nullifier: string) => void;
   onRemoveNote: (nullifier: string) => void;
+  // Optional way out of the zero-notes dead end.
+  onGoShield?: () => void;
 }
 
 /** Vault tab: local encrypted-note list with copy + withdraw shortcuts. */
-export const VaultPanel: React.FC<VaultPanelProps> = ({ notes, onBackup, onBackupNote, onWithdrawNote, onRemoveNote }) => {
+export const VaultPanel: React.FC<VaultPanelProps> = ({ notes, onBackup, onBackupNote, onWithdrawNote, onRemoveNote, onGoShield }) => {
   const [copiedCommitment, setCopiedCommitment] = useState<string | null>(null);
   // Confirm-remove modal target. Removing only drops the LOCAL entry
   // (onchain funds are untouched) — used for spent/duplicate notes.
@@ -70,6 +72,27 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({ notes, onBackup, onBacku
           }}
         >
           No active shielded notes. Use Shield to create your first encrypted commitment.
+          {onGoShield && (
+            <div style={{ marginTop: "10px" }}>
+              <button
+                type="button"
+                onClick={onGoShield}
+                style={{
+                  padding: "6px 12px",
+                  minHeight: "28px",
+                  borderRadius: "var(--radius-sm)",
+                  backgroundColor: "transparent",
+                  border: "1px solid var(--color-border-strong)",
+                  color: "var(--color-text)",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Go to Shield →
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
