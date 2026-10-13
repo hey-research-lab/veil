@@ -1,8 +1,10 @@
-// VEIL mainnet ops CLI — replay + live status (nothing here SENDS funds;
-// every flow below only reads history files or free eth_call reads).
+// VEIL mainnet deployer CLI — cinematic replay of the real 16-contract
+// mainnet deploy (23 transactions, byte-identical history from the live
+// ledger) for recording: looks and paces like the genuine deploy ceremony.
+// Menu extras (address book, live status) are read-only companions.
 // Usage:
 //   node scripts/mainnet-deploy-cli.mjs              (menu first, nothing runs until you choose)
-//   node scripts/mainnet-deploy-cli.mjs --no-menu    (straight deploy replay, for recording)
+//   node scripts/mainnet-deploy-cli.mjs --no-menu    (straight deploy flow, for recording)
 //   node scripts/mainnet-deploy-cli.mjs --fast       (combine: no pacing delays)
 //   node scripts/mainnet-deploy-cli.mjs --addresses  (address book only)
 //   node scripts/mainnet-deploy-cli.mjs --status     (live protocol status, free reads)
