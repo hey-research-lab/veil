@@ -4486,6 +4486,7 @@ export default function SwapToShieldPage() {
                   setIsBackupOpen(true);
                 }
               }}
+              onGoShield={() => switchTab("buy_and_shield")}
             />
           )}
           {/* Withdraw tab lives in components/trade/WithdrawPanel.tsx */}

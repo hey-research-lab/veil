@@ -275,11 +275,15 @@ export const BuyAndShieldPanel: React.FC<BuyAndShieldPanelProps> = ({
             fontWeight: 600,
             color: "var(--color-text)",
             fontVariantNumeric: "tabular-nums",
-            lineHeight: 1,
           }}
         >
-          {denomLabel}
+          {denomLabel === "…" ? "Loading live VEIL minimum…" : denomLabel}
         </div>
+        {!isEth && veilMinimum === null && (
+          <div style={{ fontSize: "12px", color: "var(--color-muted)" }}>
+            Reading the live VEIL minimum from chain — the Shield button unlocks when it loads.
+          </div>
+        )}
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "var(--text-caption)", color: "var(--color-muted)", fontFamily: "monospace" }}>
           <span>
