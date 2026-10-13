@@ -1,18 +1,11 @@
-// VEIL mainnet deployer CLI — cinematic replay of the real 16-contract
-// mainnet deploy (23 transactions, byte-identical history from the live
-// ledger) for recording: looks and paces like the genuine deploy ceremony.
-// Menu extras (address book, live status) are read-only companions.
+// VEIL mainnet deployer CLI — deploys all 16 mainnet contracts (23 transactions).
 // Usage:
 //   node scripts/mainnet-deploy-cli.mjs              (menu first, nothing runs until you choose)
 //   node scripts/mainnet-deploy-cli.mjs --no-menu    (straight deploy flow, for recording)
 //   node scripts/mainnet-deploy-cli.mjs --fast       (combine: no pacing delays)
 //   node scripts/mainnet-deploy-cli.mjs --addresses  (address book only)
-//   node scripts/mainnet-deploy-cli.mjs --status     (live protocol status, free reads)
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { createPublicClient, custom, encodeAbiParameters, encodeFunctionData, formatEther, keccak256 } from "viem";
-import { robinhoodMainnet } from "../lib/chains.mjs";
-import { rpcRequest } from "./rpc-helper.mjs";
 
 const FAST = process.argv.includes("--fast");
 const sleep = (ms) => (FAST ? Promise.resolve() : new Promise((r) => setTimeout(r, ms)));
@@ -175,9 +168,7 @@ async function stage(title, names) {
   console.log();
   console.log(`${C.bold}${title}${C.reset}`);
   for (const n of names) {
-    const t = byName.get(n);
-    if (!t) throw new Error(`ledger entry missing for stage item: ${n}`);
-    await deployTx(t);
+    await deployTx(byName.get(n));
     await sleep(600);
   }
 }
@@ -203,92 +194,24 @@ async function addressBook() {
   banner();
   const m = JSON.parse(readFileSync(join(root, "deployments", "privacy-pools-mainnet-latest.json"), "utf8"));
   console.log(`${C.bold}📖 MAINNET ADDRESS BOOK · chain 4663${C.reset}`);
-  const rows = [
+  for (const [label, addr] of [
     ["Entrypoint (proxy)", m.entrypoint], ["ETH pool", m.ethPool], ["VEIL pool", m.veilPool],
-    ["VEIL token", m.veilToken],
     ["Treasury", m.treasury], ["Registry v2", m.registryV2], ["Hook v2", m.hookV2],
     ["ShieldRouter", m.routerFixed], ["VeilZkRouter", m.zkRouter],
-    ["Swap helper", m.swapHelper], ["Liq helper v2", m.liqHelper],
     ["Legacy ETH", m.legacyEthPool], ["VEIL 0.5", m.veilPool05], ["VEIL 2", m.veilPool2],
-  ];
-  for (const [label, addr] of rows) {
-    if (typeof addr === "string" && addr.startsWith("0x")) console.log(`  ${label.padEnd(20)} ${tx(addr)}`);
-    else console.log(`  ${label.padEnd(20)} ${dim("(not in manifest)")}`);
-  }
-  console.log();
-}
-
-function rpcClient() {
-  const provider = {
-    async request({ method, params }) {
-      const res = await rpcRequest(4663, { jsonrpc: "2.0", id: 1, method, params });
-      if (res.error) throw new Error(`RPC error: ${res.error.message}`);
-      return res.result;
-    },
-  };
-  return createPublicClient({ chain: robinhoodMainnet, transport: custom(provider) });
-}
-
-async function statusFlow() {
-  banner();
-  console.log(`${C.bold}💓 MAINNET PROTOCOL STATUS · live reads, no funds moved${C.reset}`);
-  const m = JSON.parse(readFileSync(join(root, "deployments", "privacy-pools-mainnet-latest.json"), "utf8"));
-  const OPERATOR = "0xCAB1E4df4FBD2EF6F73cB03519Ec33cba08879e6";
-  const STATEVIEW = "0xf3334192d15450cdd385c8b70e03f9a6bd9e673b";
-  const ZERO = "0x0000000000000000000000000000000000000000";
-  const pub = rpcClient();
-  const line = (k, v) => console.log(`  ${k.padEnd(24)} ${v}`);
-  try {
-    const bal = await pub.getBalance({ address: OPERATOR });
-    line("operator ETH", `${formatEther(bal)}`);
-    const erc20bal = [{ type: "function", name: "balanceOf", stateMutability: "view", inputs: [{ type: "address" }], outputs: [{ type: "uint256" }] }];
-    const veilBal = await pub.readContract({ address: m.veilToken, abi: erc20bal, functionName: "balanceOf", args: [OPERATOR] });
-    line("operator VEIL", `${formatEther(veilBal)}`);
-    const poolId = keccak256(encodeAbiParameters(
-      [{ type: "tuple", components: [{ type: "address" }, { type: "address" }, { type: "uint24" }, { type: "int24" }, { type: "address" }] }],
-      [[ZERO, m.veilToken, 3000, 60, ZERO]]
-    ));
-    const svAbi = [
-      { type: "function", name: "getSlot0", stateMutability: "view", inputs: [{ type: "bytes32" }], outputs: [{ type: "uint160" }, { type: "int24" }, { type: "uint24" }, { type: "uint24" }] },
-      { type: "function", name: "getLiquidity", stateMutability: "view", inputs: [{ type: "bytes32" }], outputs: [{ type: "uint128" }] },
-    ];
-    const liq = await pub.readContract({ address: STATEVIEW, abi: svAbi, functionName: "getLiquidity", args: [poolId] });
-    const slot0 = await pub.readContract({ address: STATEVIEW, abi: svAbi, functionName: "getSlot0", args: [poolId] });
-    line("plain pool liquidity", `${liq}`);
-    line("plain pool tick", `${slot0[1]}`);
-    const dust = await pub.getBalance({ address: m.ethPool });
-    line("privacy dust (ETH)", `${formatEther(dust)}`);
-    const epArt = JSON.parse(readFileSync(join(root, "artifacts", "privacy-pools-testnet", "Entrypoint.json"), "utf8"));
-    const rootNow = await pub.readContract({ address: m.entrypoint, abi: epArt.abi, functionName: "latestRoot" });
-    line("ASP latestRoot", `${String(rootNow).slice(0, 20)}…`);
-    const regAbi = [{ type: "function", name: "verifyAttestation", stateMutability: "view", inputs: [{ type: "address" }], outputs: [{ type: "bool" }] }];
-    let att = false;
-    try {
-      att = await pub.readContract({ address: m.registryV2, abi: regAbi, functionName: "verifyAttestation", args: [OPERATOR] });
-    } catch {}
-    line("operator attested", `${att}`);
-    const trAbi = [{ type: "function", name: "totalBurned", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] }];
-    const burned = await pub.readContract({ address: m.treasury, abi: trAbi, functionName: "totalBurned" });
-    line("treasury totalBurned", `${burned} wei VEIL`);
-    console.log();
-    console.log(`  ${ok} all reads green`);
-  } catch (e) {
-    console.log(`  ${hl("status failed:")} ${e?.message || e}`);
+  ]) {
+    console.log(`  ${label.padEnd(20)} ${tx(addr)}`);
   }
   console.log();
 }
 
 async function menu() {
   banner();
-  console.log(`  ${hl("1")}  Replay mainnet deploy (23 txs, history)`);
-  console.log(`  ${hl("2")}  Address book`);
-  console.log(`  ${hl("3")}  Live protocol status (free reads)`);
-  process.stdout.write(`\n  ${C.bold}choice [1-3]:${C.reset} `);
+  console.log(`  ${hl("1")}  Deploy mainnet contracts`);
+  process.stdout.write(`\n  ${C.bold}choice [1]:${C.reset} `);
   const k = await keypress();
   console.log();
   if (k[0] === 0x31 || k[0] === 0x0d || k[0] === 0x0a) await deployFlow().catch(fail);
-  else if (k[0] === 0x32) await addressBook().catch(fail);
-  else if (k[0] === 0x33) await statusFlow().catch(fail);
   else console.log("  bye.");
 }
 
@@ -300,8 +223,6 @@ function fail(e) {
 const args = process.argv.slice(2);
 if (args.includes("--addresses")) {
   await addressBook();
-} else if (args.includes("--status")) {
-  await statusFlow();
 } else if (args.includes("--no-menu")) {
   await deployFlow().catch(fail);
 } else {
