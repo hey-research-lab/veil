@@ -28,7 +28,7 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({ notes, onBackup, onBacku
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
         <span style={{ fontSize: "var(--text-caption)", fontWeight: 600, color: "var(--color-faint)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
           Active Encrypted Notes ({notes.length})
         </span>
@@ -39,20 +39,20 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({ notes, onBackup, onBacku
             display: "inline-flex",
             alignItems: "center",
             gap: "6px",
-            padding: "5px 12px",
-            minHeight: "24px",
+            padding: "6px 12px",
+            minHeight: "28px",
             borderRadius: "var(--radius-sm)",
-            backgroundColor: "rgba(26, 26, 26, 0.04)",
-            border: "1px solid var(--color-border)",
-            color: "var(--color-text)",
+            backgroundColor: "rgba(255, 140, 0, 0.08)",
+            border: "1px solid rgba(255, 140, 0, 0.3)",
+            color: "var(--color-accent-ink)",
             fontSize: "var(--text-caption)",
             cursor: "pointer",
             fontWeight: 600,
             transition: "all var(--duration-fast)",
           }}
         >
-          <Download className="w-3.5 h-3.5 text-neutral-400" aria-hidden="true" />
-          <span>Backup JSON</span>
+          <Download className="w-3.5 h-3.5 text-[#FF8C00]" aria-hidden="true" />
+          <span>Export All JSON</span>
         </button>
       </div>
 
@@ -182,11 +182,11 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({ notes, onBackup, onBacku
                 </div>
               </div>
 
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "4px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px", paddingTop: "4px" }}>
                 <span style={{ fontSize: "11px", color: "var(--color-muted)", fontFamily: "monospace" }}>
                   Storage: Encrypted on this device
                 </span>
-                <div style={{ display: "flex", gap: "8px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
                   <button
                     type="button"
                     onClick={() => onBackupNote(note.nullifier)}
@@ -196,7 +196,7 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({ notes, onBackup, onBacku
                       alignItems: "center",
                       gap: "5px",
                       padding: "5px 12px",
-                      minHeight: "24px",
+                      minHeight: "28px",
                       borderRadius: "var(--radius-sm)",
                       backgroundColor: "transparent",
                       border: "1px solid var(--color-border)",
@@ -212,21 +212,22 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({ notes, onBackup, onBacku
                   <button
                     type="button"
                     onClick={() => onWithdrawNote(note.nullifier)}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "5px",
-                    padding: "5px 12px",
-                    borderRadius: "var(--radius-sm)",
-                    backgroundColor: "rgba(26, 26, 26, 0.04)",
-                    border: "1px solid var(--color-border-strong)",
-                    color: "var(--color-text)",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    transition: "all var(--duration-fast)",
-                  }}
-                >
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "5px",
+                      padding: "5px 12px",
+                      minHeight: "28px",
+                      borderRadius: "var(--radius-sm)",
+                      backgroundColor: "rgba(26, 26, 26, 0.04)",
+                      border: "1px solid var(--color-border-strong)",
+                      color: "var(--color-text)",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      transition: "all var(--duration-fast)",
+                    }}
+                  >
                     <span>Withdraw Note ➔</span>
                   </button>
                   <button
@@ -239,7 +240,7 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({ notes, onBackup, onBacku
                       alignItems: "center",
                       gap: "5px",
                       padding: "5px 12px",
-                      minHeight: "24px",
+                      minHeight: "28px",
                       borderRadius: "var(--radius-sm)",
                       backgroundColor: "transparent",
                       border: "1px solid var(--color-border)",

@@ -2,13 +2,14 @@
 
 import React, { useEffect, useState } from "react";
 import { isAddress } from "viem";
-import { Check, ChevronDown, ChevronUp, Lock } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Lock, AlertTriangle, Clipboard, X } from "lucide-react";
 import { APP_CHAIN_ID } from "../../lib/chains";
 import { TESTNET_CHAIN_ID } from "../../lib/privacy-pools";
 import { isBowNote, type AnyShieldedNote } from "../../lib/note";
 import { formatNoteAmount } from "../../lib/note-format";
 
 export interface WithdrawPanelProps {
+  connectedAddress?: string | null;
   notes: AnyShieldedNote[];
   activeNote: AnyShieldedNote | undefined;
   isNoteDropdownOpen: boolean;
@@ -24,6 +25,7 @@ export interface WithdrawPanelProps {
 
 /** Withdraw tab: note picker, clean recipient, unlinkable-withdraw CTA. */
 export const WithdrawPanel: React.FC<WithdrawPanelProps> = ({
+  connectedAddress,
   notes,
   activeNote,
   isNoteDropdownOpen,
@@ -48,6 +50,24 @@ export const WithdrawPanel: React.FC<WithdrawPanelProps> = ({
   const ctaDisabled =
     isExecuting || !cleanRecipient || !isAddress(cleanRecipient) || notes.length === 0 ||
     (needsBackupAck && !ackNoBackup);
+
+  const isSelfDoxxing = Boolean(
+    connectedAddress &&
+    cleanRecipient &&
+    isAddress(cleanRecipient) &&
+    cleanRecipient.toLowerCase() === connectedAddress.toLowerCase()
+  );
+
+  const handlePasteRecipient = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        onRecipientChange(text.trim());
+      }
+    } catch {
+      // clipboard access denied or unsupported in context
+    }
+  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
@@ -255,17 +275,57 @@ export const WithdrawPanel: React.FC<WithdrawPanelProps> = ({
           gap: "var(--space-2)",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "6px" }}>
           <label
             htmlFor="clean-recipient"
             style={{ fontSize: "var(--text-caption)", fontWeight: 600, color: "var(--color-faint)", textTransform: "uppercase", letterSpacing: "0.06em" }}
           >
             Destination Recipient Address (Decoupled)
           </label>
-          <span style={{ fontSize: "10px", color: "var(--color-muted)", fontFamily: "monospace", fontWeight: 500 }}>
-            Client Self-Relay
-          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            {cleanRecipient && (
+              <button
+                type="button"
+                onClick={() => onRecipientChange("")}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "3px",
+                  fontSize: "11px",
+                  color: "var(--color-muted)",
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "2px 4px",
+                }}
+              >
+                <X size={11} aria-hidden="true" />
+                <span>Clear</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handlePasteRecipient}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+                padding: "3px 8px",
+                borderRadius: "var(--radius-sm)",
+                backgroundColor: "rgba(26, 26, 26, 0.04)",
+                border: "1px solid var(--color-border)",
+                fontSize: "11px",
+                color: "var(--color-accent-ink)",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              <Clipboard size={11} aria-hidden="true" />
+              <span>Paste</span>
+            </button>
+          </div>
         </div>
+
         <input
           id="clean-recipient"
           type="text"
@@ -283,21 +343,51 @@ export const WithdrawPanel: React.FC<WithdrawPanelProps> = ({
             backgroundColor: "#ffffff",
             border: recipientInvalid
               ? "1px solid var(--color-danger-border)"
+              : isSelfDoxxing
+              ? "1px solid rgba(255, 140, 0, 0.6)"
               : "1px solid var(--color-border-strong)",
             color: "var(--color-text)",
-            fontSize: "16px",
+            fontSize: "15px",
             fontFamily: "monospace",
             outline: "none",
             boxSizing: "border-box",
             transition: "border-color var(--duration-fast)",
           }}
         />
+
         {recipientInvalid && (
           <span id="clean-recipient-error" role="status" style={{ fontSize: "11px", color: "var(--color-danger-ink)" }}>
             Not a valid address — expected 0x followed by 40 hexadecimal characters.
           </span>
         )}
-        <span id="clean-recipient-help" style={{ fontSize: "11px", color: "var(--color-muted)" }}>
+
+        {isSelfDoxxing && (
+          <div
+            role="alert"
+            style={{
+              padding: "9px 12px",
+              borderRadius: "var(--radius-sm)",
+              backgroundColor: "rgba(255, 140, 0, 0.08)",
+              border: "1px solid rgba(255, 140, 0, 0.35)",
+              display: "flex",
+              alignItems: "flex-start",
+              gap: "8px",
+              marginTop: "2px",
+            }}
+          >
+            <AlertTriangle className="w-4 h-4 text-[#FF8C00] shrink-0 mt-0.5" aria-hidden="true" />
+            <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+              <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--color-text)" }}>
+                Self-Doxxing Privacy Risk
+              </span>
+              <span style={{ fontSize: "11px", color: "var(--color-muted)", lineHeight: 1.45 }}>
+                This matches your connected depositor wallet. Withdrawing to the same address breaks on-chain anonymity. For full unlinkability, withdraw to a fresh or unlinked recipient address.
+              </span>
+            </div>
+          </div>
+        )}
+
+        <span id="clean-recipient-help" style={{ fontSize: "11px", color: "var(--color-muted)", lineHeight: 1.45 }}>
           {APP_CHAIN_ID === TESTNET_CHAIN_ID
             ? "The withdraw call carries no depositor address. Unlinkable withdrawal with client-side Groth16 ZK-SNARK verification."
             : "The withdraw call carries no depositor address. Provisional verifier for old notes only — Groth16 on 0xbow paths."}

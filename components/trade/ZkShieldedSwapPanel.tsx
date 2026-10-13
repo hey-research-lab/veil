@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { ArrowDown, ArrowLeftRight, Check, Clipboard, Loader2, Sparkles, User, X } from "lucide-react";
 
 export interface ZkShieldedSwapNoteOption {
   nullifier: string;
@@ -58,8 +59,28 @@ export const ZkShieldedSwapPanel: React.FC<ZkShieldedSwapPanelProps> = ({
   payoutAddress,
   onPayoutAddressChange,
 }) => {
+  const handlePastePayout = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        onPayoutAddressChange(text.trim());
+      }
+    } catch {
+      // clipboard access unsupported or denied
+    }
+  };
+
+  const handleUseConnectedWallet = () => {
+    if (connectedAddress) {
+      onPayoutAddressChange(connectedAddress);
+    }
+  };
+
+  const activeOption = notes.find((n) => n.nullifier === selectedNullifier);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+      {/* 1. Spend Note Surface */}
       <div
         style={{
           padding: "var(--space-4)",
@@ -75,16 +96,18 @@ export const ZkShieldedSwapPanel: React.FC<ZkShieldedSwapPanelProps> = ({
           <span style={{ fontSize: "var(--text-caption)", fontWeight: 600, color: "var(--color-faint)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
             You Spend (Shielded Note)
           </span>
-          <span style={{ fontSize: "var(--text-caption)", color: "var(--color-muted)", fontFamily: "monospace" }}>
+          <span style={{ fontSize: "11px", color: "var(--color-muted)", fontFamily: "monospace" }}>
             Groth16 relay-in-tx
           </span>
         </div>
+
         <label
           htmlFor="zk-shielded-swap-note"
           style={{ fontSize: "var(--text-caption)", color: "var(--color-muted)", fontFamily: "var(--font-body)" }}
         >
           Source note picker (0xbow ETH or VEIL notes from your vault)
         </label>
+
         <select
           id="zk-shielded-swap-note"
           aria-label="Select source shielded note"
@@ -101,6 +124,8 @@ export const ZkShieldedSwapPanel: React.FC<ZkShieldedSwapPanelProps> = ({
             fontSize: "var(--text-caption)",
             padding: "0 var(--space-3)",
             cursor: notes.length === 0 ? "not-allowed" : "pointer",
+            width: "100%",
+            boxSizing: "border-box",
           }}
         >
           {notes.length === 0 && <option value="">No 0xbow notes in vault</option>}
@@ -110,6 +135,93 @@ export const ZkShieldedSwapPanel: React.FC<ZkShieldedSwapPanelProps> = ({
             </option>
           ))}
         </select>
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
+          <div
+            style={{
+              fontSize: "clamp(1.4rem, 2vw, 1.8rem)",
+              fontFamily: "var(--font-headline)",
+              fontWeight: 600,
+              color: "var(--color-text)",
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            {sourceLabel}
+          </div>
+          {activeOption && (
+            <span
+              style={{
+                fontSize: "11px",
+                fontFamily: "monospace",
+                fontWeight: 600,
+                padding: "2px 8px",
+                borderRadius: "var(--radius-sm)",
+                backgroundColor: "rgba(255, 140, 0, 0.1)",
+                color: "var(--color-accent-ink)",
+                border: "1px solid rgba(255, 140, 0, 0.25)",
+              }}
+            >
+              {activeOption.assetSymbol} Shielded
+            </span>
+          )}
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "var(--text-caption)", color: "var(--color-muted)", fontFamily: "monospace" }}>
+          <span>{routeLabel}</span>
+          <span>Atomic, one tx</span>
+        </div>
+      </div>
+
+      {/* Visual Direction Divider */}
+      <div style={{ display: "flex", justifyContent: "center", margin: "-8px 0", position: "relative", zIndex: 1 }}>
+        <div
+          style={{
+            width: "32px",
+            height: "32px",
+            borderRadius: "50%",
+            backgroundColor: "#ffffff",
+            border: "1px solid var(--color-border-strong)",
+            boxShadow: "0 2px 8px rgba(26, 26, 26, 0.08)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "var(--color-accent-ink)",
+          }}
+        >
+          <ArrowDown size={14} aria-hidden="true" />
+        </div>
+      </div>
+
+      {/* 2. Receive Destination Surface */}
+      <div
+        style={{
+          padding: "var(--space-4)",
+          borderRadius: "var(--radius-md)",
+          backgroundColor: "rgba(26, 26, 26, 0.025)",
+          border: "1px solid var(--color-border)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "var(--space-3)",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ fontSize: "var(--text-caption)", fontWeight: 600, color: "var(--color-faint)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            You Receive (Fixed Destination)
+          </span>
+          <span
+            style={{
+              fontSize: "10px",
+              padding: "2px 6px",
+              borderRadius: "var(--radius-sm)",
+              backgroundColor: "rgba(26, 26, 26, 0.05)",
+              color: "var(--color-muted)",
+              fontWeight: 600,
+            }}
+          >
+            Uniswap v4 Relayed
+          </span>
+        </div>
+
         <div
           style={{
             fontSize: "clamp(1.4rem, 2vw, 1.8rem)",
@@ -119,12 +231,9 @@ export const ZkShieldedSwapPanel: React.FC<ZkShieldedSwapPanelProps> = ({
             fontVariantNumeric: "tabular-nums",
           }}
         >
-          {sourceLabel}
+          {destinationLabel}
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "var(--text-caption)", color: "var(--color-muted)", fontFamily: "monospace" }}>
-          <span>{routeLabel}</span>
-          <span>Atomic, one tx</span>
-        </div>
+
         <div
           style={{
             display: "flex",
@@ -133,15 +242,16 @@ export const ZkShieldedSwapPanel: React.FC<ZkShieldedSwapPanelProps> = ({
             fontSize: "var(--text-caption)",
             color: "var(--color-muted)",
             fontFamily: "monospace",
-            borderTop: "1px solid var(--color-border)",
-            paddingTop: "var(--space-3)",
           }}
         >
-          <span>You receive (fixed destination):</span>
-          <span style={{ color: "var(--color-text)", fontWeight: 600 }}>{destinationLabel}</span>
+          <span>Settlement Mode:</span>
+          <span style={{ color: "var(--color-text)", fontWeight: 600 }}>
+            {flowKind === "direct" ? "Direct Wallet Payout" : "Fresh Shielded Note"}
+          </span>
         </div>
       </div>
 
+      {/* 3. Live Simulation & Quote Details */}
       <div
         role="status"
         style={{
@@ -157,9 +267,10 @@ export const ZkShieldedSwapPanel: React.FC<ZkShieldedSwapPanelProps> = ({
           minWidth: 0,
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span style={{ color: "var(--color-muted)" }}>Live swap quote:</span>
-          <span style={{ color: "var(--color-text)", fontWeight: 600 }}>
+          <span style={{ color: "var(--color-text)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "5px" }}>
+            {isQuoting && <Loader2 size={12} className="animate-spin text-[#FF8C00]" aria-hidden="true" />}
             {isQuoting ? "Simulating live output…" : quotedOut ?? "Not quoted yet"}
           </span>
         </div>
@@ -181,69 +292,141 @@ export const ZkShieldedSwapPanel: React.FC<ZkShieldedSwapPanelProps> = ({
             {flowKind === "multi" ? multiRouterAddress : routerAddress}
           </span>
         </div>
-        <span style={{ color: "var(--color-muted)", fontFamily: "var(--font-body)", lineHeight: 1.5, overflowWrap: "anywhere", minWidth: 0 }}>
+        <span style={{ color: "var(--color-muted)", fontFamily: "var(--font-body)", lineHeight: 1.5, overflowWrap: "anywhere", minWidth: 0, fontSize: "11px", marginTop: "2px" }}>
           {quoteNote ??
             "Quote runs free exact-calldata simulations (no transaction), then bounds the live output by your Execution Settings slippage. One note funds the destination when possible, otherwise a same-asset batch is quoted. Execution re-simulates immediately before sending and fails closed on any revert."}
         </span>
         {txHash && (
-          <span style={{ color: "var(--color-muted)", overflowWrap: "anywhere" }}>
+          <span style={{ color: "var(--color-muted)", overflowWrap: "anywhere", fontSize: "11px" }}>
             Full-ZK tx: {txHash}
           </span>
         )}
       </div>
+
+      {/* 4. Direct Payout Address Helper */}
       <div
         style={{
           padding: "var(--space-3) var(--space-4)",
-            borderRadius: "var(--radius-sm)",
-            backgroundColor: "rgba(26, 26, 26, 0.025)",
-            border: "1px solid var(--color-border)",
-            display: "flex",
-            flexDirection: "column",
-            gap: "6px",
-          }}
-        >
+          borderRadius: "var(--radius-sm)",
+          backgroundColor: "rgba(26, 26, 26, 0.025)",
+          border: "1px solid var(--color-border)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "6px",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "6px" }}>
           <label
             htmlFor="direct-payout-address"
             style={{ fontSize: "var(--text-caption)", fontWeight: 600, color: "var(--color-faint)", textTransform: "uppercase", letterSpacing: "0.06em" }}
           >
-            Payout address (receives the swap output directly)
+            Payout address (receives swap output directly)
           </label>
-          <input
-            id="direct-payout-address"
-            type="text"
-            autoComplete="off"
-            spellCheck={false}
-            placeholder="0x... (your clean wallet address)"
-            value={payoutAddress}
-            onChange={(e) => onPayoutAddressChange(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "11px 14px",
-              borderRadius: "var(--radius-md)",
-              backgroundColor: "#ffffff",
-              border: "1px solid var(--color-border-strong)",
-              color: "var(--color-text)",
-              fontSize: "16px",
-              fontFamily: "monospace",
-              outline: "none",
-              boxSizing: "border-box",
-            }}
-          />
-          <span style={{ fontSize: "11px", color: "var(--color-muted)" }}>
-            Optional — only used for Direct payout. Empty means your connected wallet.
-          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            {payoutAddress && (
+              <button
+                type="button"
+                onClick={() => onPayoutAddressChange("")}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "3px",
+                  fontSize: "11px",
+                  color: "var(--color-muted)",
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "2px 4px",
+                }}
+              >
+                <X size={11} aria-hidden="true" />
+                <span>Clear</span>
+              </button>
+            )}
+            {connectedAddress && payoutAddress.toLowerCase() !== connectedAddress.toLowerCase() && (
+              <button
+                type="button"
+                onClick={handleUseConnectedWallet}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "3px",
+                  padding: "2px 6px",
+                  borderRadius: "var(--radius-sm)",
+                  backgroundColor: "rgba(26, 26, 26, 0.04)",
+                  border: "1px solid var(--color-border)",
+                  fontSize: "11px",
+                  color: "var(--color-accent-ink)",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                <User size={11} aria-hidden="true" />
+                <span>Use Connected</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handlePastePayout}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "3px",
+                padding: "2px 6px",
+                borderRadius: "var(--radius-sm)",
+                backgroundColor: "rgba(26, 26, 26, 0.04)",
+                border: "1px solid var(--color-border)",
+                fontSize: "11px",
+                color: "var(--color-accent-ink)",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              <Clipboard size={11} aria-hidden="true" />
+              <span>Paste</span>
+            </button>
+          </div>
         </div>
 
-      <div style={{ display: "flex", gap: "var(--space-2)" }}>
+        <input
+          id="direct-payout-address"
+          type="text"
+          autoComplete="off"
+          spellCheck={false}
+          placeholder="0x... (clean recipient address)"
+          value={payoutAddress}
+          onChange={(e) => onPayoutAddressChange(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "10px 12px",
+            borderRadius: "var(--radius-md)",
+            backgroundColor: "#ffffff",
+            border: "1px solid var(--color-border-strong)",
+            color: "var(--color-text)",
+            fontSize: "15px",
+            fontFamily: "monospace",
+            outline: "none",
+            boxSizing: "border-box",
+          }}
+        />
+        <span style={{ fontSize: "11px", color: "var(--color-muted)", lineHeight: 1.4 }}>
+          Optional — only used for Direct payout. Empty means your connected wallet.
+        </span>
+      </div>
+
+      {/* 5. Execution Buttons */}
+      <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
         <button
           type="button"
           onClick={onQuote}
           disabled={quoteDisabled}
           style={{
             flex: 1,
+            minWidth: "140px",
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
+            gap: "6px",
             fontFamily: "var(--font-body)",
             fontSize: "var(--text-body-sm)",
             fontWeight: 600,
@@ -257,6 +440,7 @@ export const ZkShieldedSwapPanel: React.FC<ZkShieldedSwapPanelProps> = ({
             transition: "all var(--duration-fast)",
           }}
         >
+          {isQuoting && <Loader2 size={14} className="animate-spin text-[#FF8C00]" aria-hidden="true" />}
           <span>{isQuoting ? "Quoting…" : "Refresh Live Quote"}</span>
         </button>
         <button
@@ -266,9 +450,11 @@ export const ZkShieldedSwapPanel: React.FC<ZkShieldedSwapPanelProps> = ({
           className="group active:scale-[0.99] transition-all"
           style={{
             flex: 1,
+            minWidth: "160px",
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
+            gap: "6px",
             fontFamily: "var(--font-body)",
             fontSize: "var(--text-body-sm)",
             fontWeight: 600,
@@ -283,6 +469,7 @@ export const ZkShieldedSwapPanel: React.FC<ZkShieldedSwapPanelProps> = ({
             transition: "all var(--duration-fast)",
           }}
         >
+          {isExecuting && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
           <span>
             {isExecuting
               ? "Executing Full-ZK…"
@@ -297,3 +484,4 @@ export const ZkShieldedSwapPanel: React.FC<ZkShieldedSwapPanelProps> = ({
 };
 
 export default ZkShieldedSwapPanel;
+

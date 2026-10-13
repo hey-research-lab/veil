@@ -3913,9 +3913,8 @@ export default function SwapToShieldPage() {
       >
         {/* Column 1: Core Trade & Shield Terminal Card */}
         <div
-          className="lg:col-span-7 veil-card-white"
+          className="lg:col-span-7 veil-card-white p-4 sm:p-6"
           style={{
-            padding: "var(--space-6)",
             display: "flex",
             flexDirection: "column",
             gap: "var(--space-5)",
@@ -3924,6 +3923,7 @@ export default function SwapToShieldPage() {
             border: "1px solid var(--color-border-strong)",
             boxShadow: "0 12px 36px -8px rgba(26, 26, 26, 0.08)",
             width: "100%",
+            boxSizing: "border-box",
           }}
         >
           {/* Guided journey 1-2-3-4 (plain language) + trader entry. */}
@@ -3948,10 +3948,11 @@ export default function SwapToShieldPage() {
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
+              gap: "8px",
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <Wallet size={12} style={{ color: "var(--color-accent-ink)" }} />
+              <Wallet size={12} style={{ color: "var(--color-accent-ink)", flexShrink: 0 }} />
               <span style={{ color: "var(--color-muted)" }}>Private Vault:</span>
               <span style={{ fontWeight: 700, color: "var(--color-text)" }}>
                 {notes.length} Note{notes.length !== 1 ? "s" : ""}
@@ -3967,6 +3968,7 @@ export default function SwapToShieldPage() {
                 fontWeight: 600,
                 cursor: "pointer",
                 fontSize: "11px",
+                whiteSpace: "nowrap",
               }}
             >
               Manage Notes →
@@ -3987,15 +3989,9 @@ export default function SwapToShieldPage() {
           >
             {/* Segmented Control */}
             <div
+              className="flex items-center gap-1 p-1 rounded-md border border-[var(--color-border)] bg-[rgba(26,26,26,0.04)] overflow-x-auto max-w-full"
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "4px",
-                backgroundColor: "rgba(26, 26, 26, 0.04)",
-                padding: "4px",
-                borderRadius: "var(--radius-md)",
-                border: "1px solid var(--color-border)",
-                flexWrap: "wrap",
+                scrollbarWidth: "none",
               }}
             >
               <button
@@ -4017,6 +4013,8 @@ export default function SwapToShieldPage() {
                   boxShadow: activeTab === "buy_and_shield" ? "0 1px 3px rgba(26, 26, 26, 0.05)" : "none",
                   cursor: "pointer",
                   transition: "all var(--duration-fast)",
+                  flexShrink: 0,
+                  whiteSpace: "nowrap",
                 }}
               >
                 <ShieldCheck size={13} style={{ opacity: activeTab === "buy_and_shield" ? 1 : 0.6 }} />
@@ -4041,6 +4039,8 @@ export default function SwapToShieldPage() {
                   boxShadow: activeTab === "shielded_swap" ? "0 1px 3px rgba(26, 26, 26, 0.05)" : "none",
                   cursor: "pointer",
                   transition: "all var(--duration-fast)",
+                  flexShrink: 0,
+                  whiteSpace: "nowrap",
                 }}
               >
                 <ArrowLeftRight size={13} style={{ opacity: activeTab === "shielded_swap" ? 1 : 0.6 }} />
@@ -4065,6 +4065,8 @@ export default function SwapToShieldPage() {
                   boxShadow: activeTab === "withdraw" ? "0 1px 3px rgba(26, 26, 26, 0.05)" : "none",
                   cursor: "pointer",
                   transition: "all var(--duration-fast)",
+                  flexShrink: 0,
+                  whiteSpace: "nowrap",
                 }}
               >
                 <ArrowUpRight size={13} style={{ opacity: activeTab === "withdraw" ? 1 : 0.6 }} />
@@ -4090,6 +4092,8 @@ export default function SwapToShieldPage() {
                   boxShadow: activeTab === "trade" ? "0 1px 3px rgba(26, 26, 26, 0.05)" : "none",
                   cursor: "pointer",
                   transition: "all var(--duration-fast)",
+                  flexShrink: 0,
+                  whiteSpace: "nowrap",
                 }}
               >
                 <BadgeCheck size={13} style={{ opacity: activeTab === "trade" ? 1 : 0.6 }} />
@@ -4115,6 +4119,8 @@ export default function SwapToShieldPage() {
                   boxShadow: activeTab === "vault" ? "0 1px 3px rgba(26, 26, 26, 0.05)" : "none",
                   cursor: "pointer",
                   transition: "all var(--duration-fast)",
+                  flexShrink: 0,
+                  whiteSpace: "nowrap",
                 }}
               >
                 <Wallet size={13} style={{ opacity: activeTab === "vault" ? 1 : 0.6 }} />
@@ -4385,6 +4391,7 @@ export default function SwapToShieldPage() {
           {/* TAB 3: WITHDRAW */}
           {activeTab === "withdraw" && (
             <WithdrawPanel
+              connectedAddress={connectedAddress}
               notes={notes}
               activeNote={activeNoteItem}
               isNoteDropdownOpen={isNoteDropdownOpen}

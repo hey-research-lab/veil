@@ -58,9 +58,8 @@ export const VaultSidebarWidget: React.FC<VaultSidebarWidgetProps> = ({
 
   return (
     <div
-      className="veil-card-white"
+      className="veil-card-white p-4 sm:p-5"
       style={{
-        padding: "var(--space-5)",
         display: "flex",
         flexDirection: "column",
         gap: "var(--space-4)",
@@ -68,6 +67,7 @@ export const VaultSidebarWidget: React.FC<VaultSidebarWidgetProps> = ({
         borderRadius: "var(--radius-lg)",
         border: "1px solid var(--color-border-strong)",
         boxShadow: "0 12px 36px -8px rgba(26, 26, 26, 0.08)",
+        boxSizing: "border-box",
       }}
     >
       {/* Header */}
