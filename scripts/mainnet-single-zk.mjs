@@ -97,7 +97,7 @@ console.log(`Balance: ${formatEther(bal)} ETH`);
 if (bal < DENOM + parseEther("0.00005")) throw new Error("Insufficient balance for 0.001 lock + gas; aborting clean.");
 const scopeETH = await pub.readContract({ address: ETH_POOL, abi: poolArt.abi, functionName: "SCOPE" });
 const headNow = await pub.getBlockNumber();
-const poolInfo = { chainId: 4663, address: ETH_POOL, scope: scopeETH, deploymentBlock: headNow - 200000n };
+const poolInfo = { chainId: 4663, address: ETH_POOL, scope: scopeETH, deploymentBlock: headNow - 1000000n }; // MUST cover dust-era events; headNow-200000 built a phantom state root (UnknownStateRoot, 2026-10-13)
 const phrase = generateMnemonic(english, 256);
 const LOCAL_RPC_URL = await new Promise((resolve, reject) => {
   const server = http.createServer((req, res) => {
@@ -209,7 +209,25 @@ async function simFlow(minOut) {
   });
 }
 const pre = await simFlow(0n).catch((e) => { throw new Error("Preflight sim failed: " + String(e?.message || e).slice(0, 200)); });
-const quoted = BigInt(pre.result);
+// NOTE: executeFullZkFlow returns the deposit commitment, NOT swap output.
+// minOut comes from offchain full-range math on live state (see quote-zk).
+const STATEVIEW_Q = "0xf3334192d15450cdd385c8b70e03f9a6bd9e673b";
+const svQ = [
+  { type: "function", name: "getSlot0", stateMutability: "view", inputs: [{ type: "bytes32" }], outputs: [{ type: "uint160" }, { type: "int24" }, { type: "uint24" }, { type: "uint24" }] },
+  { type: "function", name: "getLiquidity", stateMutability: "view", inputs: [{ type: "bytes32" }], outputs: [{ type: "uint128" }] },
+];
+const { keccak256: k256q, encodeAbiParameters: eapq } = await import("viem");
+const plainIdQ = k256q(eapq(
+  [{ type: "tuple", components: [{ type: "address" }, { type: "address" }, { type: "uint24" }, { type: "int24" }, { type: "address" }] }],
+  [[ZERO, VEIL, 3000, 60, ZERO]]
+));
+const [liveSqrtPQ] = await pub.readContract({ address: STATEVIEW_Q, abi: svQ, functionName: "getSlot0", args: [plainIdQ] });
+const liveLiqQ = await pub.readContract({ address: STATEVIEW_Q, abi: svQ, functionName: "getLiquidity", args: [plainIdQ] });
+const Q96Q = 2n ** 96n;
+const _xQ = liveLiqQ * Q96Q / liveSqrtPQ;
+const _yQ = liveLiqQ * liveSqrtPQ / Q96Q;
+const _dxFeeQ = DENOM * 997000n / 1000000n;
+const quoted = _yQ - (_xQ * _yQ) / (_xQ + _dxFeeQ);
 console.log(`Quoted swap out: ${formatEther(quoted)} VEIL`);
 if (quoted < DENOM) throw new Error("Quote below 0.001 VEIL note; aborting without spending execution gas.");
 const minOut = (quoted * 995n) / 1000n;

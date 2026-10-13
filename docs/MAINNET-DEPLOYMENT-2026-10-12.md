@@ -229,3 +229,12 @@ extTokenId=3752545, onchain PM live). Root cause unproven; documented, not chase
 - Sim-ordering lesson: helper sims must run AFTER approve (transferFrom in sim context), else every L reverts and looks like a pool problem. First deepen attempt burned nothing (guard correctly refused).
 - Single-ZK live still needs ~0.001024 (deposit + 3x gas); short ~1.5e-5 on gas. Any top-up >= 0.0001 unlocks it — no further deepen needed.
 
+
+
+## 15. FULL-ZK SINGLE LIVE (2026-10-13, REAL funds)
+
+- Root causes of both prior preflight failures, both script-side (contracts were fine): (1) deploymentBlock headNow-200000 missed dust-era events -> phantom state root (UnknownStateRoot); fixed to headNow-1000000. (2) minOut derived from pre.result, but executeFullZkFlow returns the deposit COMMITMENT, not swap output -> guaranteed SlippageExceeded; fixed by offchain full-range quote (live slot0+liquidity).
+- Resume script scripts/mainnet-single-zk-resume.mjs (no new deposit): complete 6-leaf state + 5-label ASP, published 0x51f4a928b49d4665b2e122cb93f402480c9bd6d9cdff00ef30a490e4bd8e4d05, binding sim PASS, offchain quote 0.903 VEIL, minOut 0.8985.
+- EXECUTED: 0xa0c58d8baa518e9d908743391b2bfcdbb579bc5209c5ccfa986f3b2bb44f5412 block 87212914 (gas 940045). VERIFIED: FullZkFlowExecuted + 0.001 VEIL note minted + ETH nullifier spent. Output VEIL note saved (spendable). ETH dust accounting closes exactly (deepen used 0.000309/0.506, flow dust +0.902).
+- Wallet now: 0.0001628 ETH + 8997.36 VEIL + 0.001 shielded VEIL note. Single-ZK arc COMPLETE: deposit -> ASP -> prove -> relay -> swap -> shield, all live on mainnet 4663.
+
