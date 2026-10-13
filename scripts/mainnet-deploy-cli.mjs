@@ -173,8 +173,8 @@ async function stage(title, names) {
   }
 }
 
-async function deployFlow() {
-  banner();
+async function deployFlow(opts = {}) {
+  if (!opts.skipBanner) banner();
   console.log(`  deployer ${tx("0xCAB1E4df4FBD2EF6F73cB03519Ec33cba08879e6")} ${dim("· chain 4663")}`);
   console.log(`  queue    ${hl("16 contracts")} · ${hl("23 transactions")}`);
   console.log(dim("  press Ctrl+C anytime to abort · resume with the same command"));
@@ -213,7 +213,7 @@ async function menu() {
   process.stdout.write(`\n  ${C.bold}choice [1]:${C.reset} `);
   const k = await keypress();
   console.log();
-  if (k[0] === 0x31 || k[0] === 0x0d || k[0] === 0x0a) await deployFlow().catch(fail);
+  if (k[0] === 0x31 || k[0] === 0x0d || k[0] === 0x0a) await deployFlow({ skipBanner: true }).catch(fail);
   else console.log("  bye.");
 }
 
