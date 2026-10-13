@@ -422,6 +422,8 @@ node scripts/verify-pool-invariant.mjs --mainnet  # mainnet 4663
 
 ## 🧪 Protocol Invariant & Security Acceptance Matrix
 
+8/10 pass live, 2 accepted residuals (#8 live over-cap drill impractical, #10 manual rebuild procedure).
+
 | # | Scenario | Expected Outcome | Status |
 |---|---|---|---|
 | 1 | Normal Buy & Shield | Commitment inserted into Merkle tree, router balance = 0 | ✅ Pass (live: testnet + mainnet invariant 5/5) |
@@ -431,9 +433,9 @@ node scripts/verify-pool-invariant.mjs --mainnet  # mainnet 4663
 | 5 | Shielded swap Token A ➔ Token B | Shielded balance B increases; single/multi/direct | ✅ Pass (live `0xe14f…`, `0x118e…`, direct ×3) |
 | 6 | Relayer offline / unavailable | Self-relay operates normally (the supported path) | ✅ Pass |
 | 7 | Unregistered address on gated pool | Swap rejected by hook | ✅ Pass (`GatingActiveUserNotAttested`) |
-| 8 | Deposit exceeds pool cap | Transaction rejected by contract (`PoolCapExceeded`) | ✅ Pass (code + unit test; live drill impractical, accepted residual) |
+| 8 | Deposit exceeds pool cap | Transaction rejected by contract (`PoolCapExceeded`) | ⚠️ Residual (code + unit test pass; live drill impractical, accepted) |
 | 9 | Guardian pauses pool | Deposits paused, withdrawals remain 100% unblocked | ✅ Pass |
-| 10 | Tree rebuild in new browser | Balances independently verified against Merkle root | Manual (see `docs/TESTNET-CLICKTHROUGH.md` §5) |
+| 10 | Tree rebuild in new browser | Balances independently verified against Merkle root | ⚠️ Residual — manual procedure (see `docs/TESTNET-CLICKTHROUGH.md` §5) |
 
 ---
 
@@ -441,7 +443,7 @@ node scripts/verify-pool-invariant.mjs --mainnet  # mainnet 4663
 
 * **Association Sets Mandatory:** Every withdrawal proves membership in a published association set (ASP).
 * **Terminology Guardrails:** Explicitly avoid terms such as *mixer*, *tumbler*, *untraceable*, *anonymous*, or *launder*.
-* **Open Transparency:** Full contract verification on Blockscout and live on-chain `/burn` ledger.
+* **Open Transparency:** Full contract verification (Sourcify 10/10; Blockscout checkmarks follow explorer recovery) and live on-chain `/burn` ledger.
 
 ---
 
