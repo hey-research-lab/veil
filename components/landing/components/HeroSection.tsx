@@ -67,7 +67,7 @@ export const HeroSection: React.FC = () => {
               margin: 0,
             }}
           >
-            <DecodeText text="private" />
+            <DecodeText text="private" autoPlay={true} />
           </span>
 
           <span
@@ -81,7 +81,7 @@ export const HeroSection: React.FC = () => {
               textAlign: "right",
             }}
           >
-            <DecodeText text="execution" />
+            <DecodeText text="execution" autoPlay={true} />
           </span>
         </div>
       </div>

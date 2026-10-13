@@ -3,7 +3,7 @@ import "./globals.css";
 import { AppLayoutWrapper } from "../components/AppLayoutWrapper";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://veil-omega-nine.vercel.app"),
+  metadataBase: new URL("https://www.veilpools.tech"),
   title: {
     default: "Veil Protocol — Private Swaps on Uniswap v4",
     template: "%s | Veil Protocol",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     title: "Veil Protocol — Private Swaps on Uniswap v4",
     description:
       "Zero-knowledge privacy layer for Uniswap v4 on Robinhood Chain. Non-custodial shielded pools, association sets, and autonomous protocol fee buyback & burn.",
-    url: "https://veil-omega-nine.vercel.app",
+    url: "https://www.veilpools.tech",
     siteName: "Veil Protocol",
     images: [
       {
