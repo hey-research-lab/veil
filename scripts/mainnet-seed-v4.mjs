@@ -53,7 +53,16 @@ const ETH = "0x0000000000000000000000000000000000000000";
 const VEIL = man.veilToken;
 const ZERO = ETH;
 const CAP0 = parseEther("0.001");
-const CAP1 = parseEther("2");
+// Pons-cutover ready: pool price comes from env (decimal VEIL per ETH),
+// default preserves the proven 2000 (temp era). Canonical launch price
+// will differ wildly — never seed a fantasy price (instant arb donation).
+const PRICE_STR = (process.env.SEED_PRICE_VEIL_PER_ETH || "2000").trim();
+const _pm = PRICE_STR.match(/^(\d+)(?:\.(\d+))?$/);
+if (!_pm) throw new Error("Bad SEED_PRICE_VEIL_PER_ETH (decimal VEIL per ETH).");
+const PRICE_NUM = BigInt(_pm[1] + (_pm[2] || ""));
+const PRICE_DEN = 10n ** BigInt((_pm[2] || "").length);
+const CAP1 = (CAP0 * PRICE_NUM) / PRICE_DEN * 12n / 10n; // 20% headroom over ratio
+console.log(`Seed price: ${PRICE_STR} VEIL/ETH, caps ${formatEther(CAP0)} ETH / ${formatEther(CAP1)} VEIL`);
 
 const ethBal = await pub.getBalance({ address: account.address });
 const erc20bal = [{ type: "function", name: "balanceOf", stateMutability: "view", inputs: [{ type: "address" }], outputs: [{ type: "uint256" }] }];
@@ -79,14 +88,14 @@ function isqrt(n) {
   while (y < x) { x = y; y = (x + n / x) >> 1n; }
   return x;
 }
-const TARGET_SQRT = isqrt(2000n * 2n ** 192n);
+const TARGET_SQRT = isqrt((PRICE_NUM * 2n ** 192n) / PRICE_DEN);
 
 const pmInitAbi = [{ type: "function", name: "initialize", stateMutability: "nonpayable", inputs: [{ type: "tuple", components: [{ type: "address" }, { type: "address" }, { type: "uint24" }, { type: "int24" }, { type: "address" }] }, { type: "uint160" }], outputs: [{ type: "int24" }] }];
 function keyTuple() {
   return [[poolKey.currency0, poolKey.currency1, poolKey.fee, poolKey.tickSpacing, poolKey.hooks]];
 }
 if (slot0[0] === 0n) {
-  console.log("Pool uninitialized — initializing at 2000 VEIL/ETH...");
+  console.log(`Pool uninitialized — initializing at ${PRICE_STR} VEIL/ETH...`);
   await pub.simulateContract({ account, address: PM, abi: pmInitAbi, functionName: "initialize", args: [keyTuple()[0], TARGET_SQRT] });
   const h = await wallet.writeContract({ address: PM, abi: pmInitAbi, functionName: "initialize", args: [keyTuple()[0], TARGET_SQRT] });
   const rc = await pub.waitForTransactionReceipt({ hash: h });

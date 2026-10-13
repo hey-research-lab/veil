@@ -48,11 +48,16 @@ Budget at 0.02 gwei (measured from migration ledger):
 - [ ] Init canonical plain v4 pool (3000/60/no-hook) at market price.
 - [ ] Init canonical hooked v4 pool + 30d gate (`setPoolGating`).
 - [ ] Seed both via helper-v2 `0xb419…` (key-agnostic, recoverable).
+      Set `SEED_PRICE_VEIL_PER_ETH` env first (decimal VEIL per ETH —
+      scripts now derive init price + VEIL caps from it; NEVER seed a
+      hardcoded 2000 against a foreign price).
       Keep seed txs + Ls in the deployment doc.
 
 ## 5. Cut over app + env
 
 - [ ] `.env.local` + `.env.mainnet.local`: `NEXT_PUBLIC_VEIL_TOKEN=<canonical>`.
+- [ ] Manifest: record `veilTokenCanonical` (+ canonical pool entries);
+      `setup-vercel-env.mjs` prefers it automatically (never reverts).
 - [ ] Vercel: same key (Production) + redeploy.
 - [ ] Code: `KNOWN_ASSETS` canonical entry (lib/note-format.ts),
       TokenLogos canonical address (components/TokenLogos.tsx).

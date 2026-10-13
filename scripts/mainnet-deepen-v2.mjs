@@ -45,7 +45,12 @@ const wallet = createWalletClient({ account, chain: robinhoodMainnet, transport 
 
 const HELPER = "0xb4194deb8a51b69118e5d5414d7d08326a2e9b0b"; // v2, owner = us
 const CAP0 = parseEther("0.0006");
-const CAP1 = parseEther("1.2"); // headroom over ~1636 price
+// Pons-cutover ready: VEIL cap scales with pool price (decimal VEIL/ETH).
+const PRICE_STR2 = (process.env.SEED_PRICE_VEIL_PER_ETH || "2000").trim();
+const _pm2 = PRICE_STR2.match(/^(\d+)(?:\.(\d+))?$/);
+if (!_pm2) throw new Error("Bad SEED_PRICE_VEIL_PER_ETH (decimal VEIL per ETH).");
+const CAP1 = ((CAP0 * BigInt(_pm2[1] + (_pm2[2] || ""))) / 10n ** BigInt((_pm2[2] || "").length) * 12n) / 10n;
+console.log(`Deepen caps: ${formatEther(CAP0)} ETH / ${formatEther(CAP1)} VEIL @ ${PRICE_STR2}/ETH`);
 const RESERVE = parseEther("0.0003"); // hard floor, never dip below
 const MAX_GAS_PRICE = 50000000n;
 async function calmNetwork(label) {

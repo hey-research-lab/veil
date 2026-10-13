@@ -1,4 +1,16 @@
 import { execSync } from "child_process";
+import { readFileSync as readFsFileSync } from "fs";
+
+// Canonical cutover safety: prefer manifest's canonical token when the Pons
+// migration recorded one; otherwise keep the temp literal. Rerunning this
+// script must NEVER revert VEIL_TOKEN to temp after a cutover.
+let veilTokenValue = "0xe0e11ec0d62eda12de796d025d6334fadfe5ab2a";
+try {
+  const man = JSON.parse(readFsFileSync("deployments/privacy-pools-mainnet-latest.json", "utf8"));
+  if (typeof man.veilTokenCanonical === "string" && /^0x[0-9a-fA-F]{40}$/.test(man.veilTokenCanonical)) {
+    veilTokenValue = man.veilTokenCanonical;
+  }
+} catch {}
 
 const envVars = [
   { key: "NEXT_PUBLIC_CHAIN_ID", value: "4663" },
@@ -15,7 +27,7 @@ const envVars = [
   { key: "NEXT_PUBLIC_VEIL_ATTESTATION_REGISTRY", value: "0xd1f17c70067f1cc2b478606b3f0faa18ee8add1d" },
   { key: "NEXT_PUBLIC_VEIL_HOOK", value: "0xf95f041462ee34c2ea7b953a879838133ef820c4" },
   { key: "NEXT_PUBLIC_VEIL_SHIELD_ROUTER", value: "0x3db4ae3429f1507aa0cd31c740a0fd276e22a55c" },
-  { key: "NEXT_PUBLIC_VEIL_TOKEN", value: "0xe0e11ec0d62eda12de796d025d6334fadfe5ab2a" },
+  { key: "NEXT_PUBLIC_VEIL_TOKEN", value: veilTokenValue },
   { key: "NEXT_PUBLIC_0XBOW_ENTRYPOINT", value: "0x96cb8b1836d341a6f5f1f54428bd6696c8b950b1" },
   { key: "NEXT_PUBLIC_0XBOW_POOL_ETH", value: "0x10c17b7538e13c63b890fea52708846e88bb1932" },
   { key: "NEXT_PUBLIC_0XBOW_POOL_VEIL", value: "0xdb9f182670da2cc6c5ddd432ec98a45e4f2290d1" },

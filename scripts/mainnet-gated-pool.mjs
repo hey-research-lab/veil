@@ -78,13 +78,16 @@ function isqrt(n) {
   while (y < x) { x = y; y = (x + n / x) >> 1n; }
   return x;
 }
-const TARGET_SQRT = isqrt(2000n * 2n ** 192n);
+const PRICE_STRG = (process.env.SEED_PRICE_VEIL_PER_ETH || "2000").trim();
+const _pmg = PRICE_STRG.match(/^(\d+)(?:\.(\d+))?$/);
+if (!_pmg) throw new Error("Bad SEED_PRICE_VEIL_PER_ETH (decimal VEIL per ETH).");
+const TARGET_SQRT = isqrt((BigInt(_pmg[1] + (_pmg[2] || "")) * 2n ** 192n) / 10n ** BigInt((_pmg[2] || "").length));
 const pmInitAbi = [{ type: "function", name: "initialize", stateMutability: "nonpayable", inputs: [{ type: "tuple", components: [{ type: "address" }, { type: "address" }, { type: "uint24" }, { type: "int24" }, { type: "address" }] }, { type: "uint160" }], outputs: [{ type: "int24" }] }];
 function keyTuple() {
   return [[poolKey.currency0, poolKey.currency1, poolKey.fee, poolKey.tickSpacing, poolKey.hooks]];
 }
 if (slot0[0] === 0n) {
-  console.log("Hooked pool uninitialized — initializing at 2000 VEIL/ETH...");
+  console.log(`Hooked pool uninitialized — initializing at ${PRICE_STRG} VEIL/ETH...`);
   await pub.simulateContract({ account, address: PM, abi: pmInitAbi, functionName: "initialize", args: [keyTuple()[0], TARGET_SQRT] });
   const h = await wallet.writeContract({ address: PM, abi: pmInitAbi, functionName: "initialize", args: [keyTuple()[0], TARGET_SQRT] });
   const rc = await pub.waitForTransactionReceipt({ hash: h });
