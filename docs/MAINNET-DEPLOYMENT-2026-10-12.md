@@ -220,3 +220,12 @@ extTokenId=3752545, onchain PM live). Root cause unproven; documented, not chase
 - Ordering lesson: relay sim ALWAYS reverts pre-publish (proof references unpublished ASP root); publish-then-sim is the binding gate. First sim attempt burned nothing (free).
 - Wallet now ~0.0010085. Standing rules from here: 0.0002 gas-reserve floor, v2-only seeding (removable), quote-before-deposit via quoter (never park a note blind again).
 
+
+
+## 14. Deepen via v2: Pool 3.75e16 -> 5.0e16 (2026-10-13, REAL funds)
+
+- Free offchain quote (scripts/mainnet-quote-zk.mjs, exact full-range math) killed the thin-pool theory: even pre-deepen, 0.001 ETH -> 0.786 VEIL (786x the 0.001 note). The single-ZK preflight failure was NOT depth. Post-deepen quote: 0.903 VEIL.
+- Deepen 0.0006 ETH caps via v2 helper (removable): L=12500000000000000, tx 0x3eb394f9c9e5709dbedc86cc060fba12d99b5b779dc3cab739818eae57646333, pool 37500000000000000 -> 50000000000000000. Wallet 0.0010085 -> 0.0006953 (floor 0.0003 held). Removal path, if ever needed: removeLiquidity(key, -887220, 887220, 12500000000000000) on 0xb4194deb8a51b69118e5d5414d7d08326a2e9b0b.
+- Sim-ordering lesson: helper sims must run AFTER approve (transferFrom in sim context), else every L reverts and looks like a pool problem. First deepen attempt burned nothing (guard correctly refused).
+- Single-ZK live still needs ~0.001024 (deposit + 3x gas); short ~1.5e-5 on gas. Any top-up >= 0.0001 unlocks it — no further deepen needed.
+
