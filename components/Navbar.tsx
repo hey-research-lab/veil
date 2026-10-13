@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { ArrowLeft, LogOut, Copy, Check, ChevronDown } from "lucide-react";
 import { WalletModal } from "./WalletModal";
 import { VeilLogo } from "./VeilLogo";
-import { RobinhoodLogoMark } from "./TokenLogos";
+import { RobinhoodLogo } from "./TokenLogos";
 import { APP_CHAIN_ID, appChain } from "@/lib/chains";
 import { fetchAllTokenBalances } from "@/lib/balances";
 import { SUPPORTED_TOKENS } from "./TokenSelectModal";
@@ -193,19 +193,12 @@ export function Navbar() {
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: "7px",
-                padding: "6px 12px",
-                borderRadius: "var(--radius-md)",
-                backgroundColor: "#ffffff",
-                border: "1px solid var(--color-border-strong)",
-                fontFamily: "monospace",
-                fontSize: "var(--text-caption)",
-                color: "var(--color-text)",
-                boxShadow: "0 1px 3px rgba(26, 26, 26, 0.04)",
+                height: "2.25rem",
+                flexShrink: 0,
               }}
+              title={`Robinhood Chain ${APP_CHAIN_ID}`}
             >
-              <RobinhoodLogoMark size={14} color="#00C805" />
-              <span style={{ fontWeight: 600 }}>Robinhood {APP_CHAIN_ID}</span>
+              <RobinhoodLogo height={24} style={{ opacity: 0.92 }} />
             </div>
 
             {wallet ? (

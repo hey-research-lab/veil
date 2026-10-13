@@ -3861,7 +3861,7 @@ export default function SwapToShieldPage() {
               gap: "6px",
             }}
           >
-            <RobinhoodLogoMark size={13} color="#00C805" />
+            <RobinhoodLogoMark size={13} />
             <span>Robinhood Chain {APP_CHAIN_ID} // Uniswap v4</span>
           </div>
           <h1

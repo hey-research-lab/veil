@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { VeilMark } from "./VeilLogo";
 
 export interface LogoProps {
   size?: number;
@@ -32,22 +33,40 @@ export const EthLogo: React.FC<LogoProps> = ({ size = 16, className = "" }) => (
 );
 
 /**
- * Veil Protocol Token Glyph SVG (Orange V mark)
+ * Official Veil Protocol Token Glyph SVG (Halftone "V" Mark from application)
  */
-export const VeilLogoMark: React.FC<LogoProps> = ({ size = 16, className = "" }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 145 97"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
+export const VeilLogoMark: React.FC<LogoProps> = ({
+  size = 16,
+  className = "",
+  color = "currentColor",
+}) => (
+  <VeilMark
+    size={size}
     className={className}
-    aria-hidden="true"
-    style={{ display: "inline-block", verticalAlign: "middle", flexShrink: 0 }}
-  >
-    <polygon points="0,0 26,0 66,74 106,0 132,0 79,97 53,97" fill="#FF8C00" />
-    <circle cx="134" cy="85" r="11" fill="#FF8C00" />
-  </svg>
+    color={color}
+    accentColor="#FF8A00"
+  />
+);
+
+/**
+ * Official Robinhood Logo (Wordmark + Feather from hero section)
+ */
+export const RobinhoodLogo: React.FC<{
+  height?: number | string;
+  className?: string;
+  style?: React.CSSProperties;
+}> = ({ height = 24, className = "", style = {} }) => (
+  <img
+    src="/assets/logo/robinhood.svg"
+    alt="Robinhood"
+    style={{
+      height: typeof height === "number" ? `${height}px` : height,
+      width: "auto",
+      display: "block",
+      ...style,
+    }}
+    className={className}
+  />
 );
 
 /**
@@ -56,7 +75,7 @@ export const VeilLogoMark: React.FC<LogoProps> = ({ size = 16, className = "" })
 export const RobinhoodLogoMark: React.FC<LogoProps> = ({
   size = 16,
   className = "",
-  color = "#00C805",
+  color = "currentColor",
 }) => (
   <svg
     width={size}
