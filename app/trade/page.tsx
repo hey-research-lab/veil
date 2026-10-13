@@ -313,7 +313,7 @@ export function getNoteAssetSymbol(asset?: string): string {
 }
 
 export default function SwapToShieldPage() {
-  const [activeTab, setActiveTab] = useState<"buy_and_shield" | "shielded_swap" | "withdraw" | "vault">("buy_and_shield");
+  const [activeTab, setActiveTab] = useState<"buy_and_shield" | "shielded_swap" | "withdraw" | "trade" | "vault">("buy_and_shield");
   const [notes, setNotes] = useState<AnyShieldedNote[]>([]);
   const [selectedNote, setSelectedNote] = useState<AnyShieldedNote | null>(null);
   // Backup tracking (withdraw gate): nullifiers the user demonstrably backed
@@ -491,7 +491,7 @@ export default function SwapToShieldPage() {
   // Deep-audit #25: persistent storage-health flag (see banner below).
   const [vaultUnavailable, setVaultUnavailable] = useState(false);
 
-  function switchTab(tab: "buy_and_shield" | "shielded_swap" | "withdraw" | "vault") {
+  function switchTab(tab: "buy_and_shield" | "shielded_swap" | "withdraw" | "trade" | "vault") {
     setActiveTab(tab);
     setIsNoteDropdownOpen(false);
     setFlowError(null);
@@ -3929,12 +3929,7 @@ export default function SwapToShieldPage() {
             attested={attestation?.attested ?? null}
             showTraderEntry={isTestnetBuild || isMainnetGatedLive}
             onTradeEntry={() => {
-              switchTab("buy_and_shield");
-              window.setTimeout(() => {
-                document
-                  .querySelector('[aria-label="Self-attestation and gated pool"]')
-                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
-              }, 80);
+              switchTab("trade");
             }}
           />
           {/* Terminal Tabs & Slippage Trigger */}
@@ -4028,6 +4023,30 @@ export default function SwapToShieldPage() {
               >
                 <span>Withdraw</span>
               </button>
+              {(isTestnetBuild || isMainnetGatedLive) && (
+              <button
+                type="button"
+                onClick={() => switchTab("trade")}
+                aria-current={activeTab === "trade" ? "true" : undefined}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: "7px 14px",
+                  borderRadius: "var(--radius-sm)",
+                  fontSize: "var(--text-body-sm)",
+                  fontFamily: "var(--font-body)",
+                  fontWeight: activeTab === "trade" ? 600 : 500,
+                  backgroundColor: activeTab === "trade" ? "#ffffff" : "transparent",
+                  color: activeTab === "trade" ? "var(--color-text)" : "var(--color-muted)",
+                  border: activeTab === "trade" ? "1px solid var(--color-border-strong)" : "1px solid transparent",
+                  boxShadow: activeTab === "trade" ? "0 1px 3px rgba(26, 26, 26, 0.05)" : "none",
+                  cursor: "pointer",
+                  transition: "all var(--duration-fast)",
+                }}
+              >
+                <span>Trade</span>
+              </button>
+              )}
               <button
                 type="button"
                 onClick={() => switchTab("vault")}
@@ -4180,8 +4199,13 @@ export default function SwapToShieldPage() {
           )}
           {/* Buy & Shield tab body lives in components/trade/BuyAndShieldPanel.tsx */}
 
-              {/* Self-attestation + gated pool (Task 3: testnet suite, mainnet suite once migrated) */}
-              {(isTestnetBuild || isMainnetGatedLive) && activeTab === "buy_and_shield" && (
+              {/* Self-attestation + gated pool: its own Trade tab (was buried
+                  inside Shield). Traders never touch the privacy flow. */}
+              {(isTestnetBuild || isMainnetGatedLive) && activeTab === "trade" && (
+                <>
+                <div style={{ fontSize: "var(--text-caption)", fontWeight: 700, color: "var(--color-faint)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  Trader pool — register once, then swap
+                </div>
                 <AttestPanel
                   connectedAddress={connectedAddress}
                   attestation={attestation}
@@ -4209,6 +4233,7 @@ export default function SwapToShieldPage() {
                   explorerAddressBase={(resolveGatedSuite(APP_CHAIN_ID) ?? TESTNET_GATED_SUITE).explorerAddressBase}
                   explorerTxBase={(resolveGatedSuite(APP_CHAIN_ID) ?? TESTNET_GATED_SUITE).explorerTxBase}
                 />
+                </>
               )}
           {/* attest body lives in components/trade/AttestPanel.tsx */}
 
