@@ -1,57 +1,30 @@
 import base64
 import os
-import re
 import subprocess
 from PIL import Image
 
 def build_banner():
-    # 1. Read base64 font
+    # 1. Base64 encode GT Alpina font
     font_path = "public/assets/fonts/GT-Alpina-Typewriter-Regular-Trial.otf"
+    if not os.path.exists(font_path):
+        font_path = "public/fonts/GT-Alpina-Typewriter-Regular-Trial.otf"
     font_b64 = ""
     if os.path.exists(font_path):
         with open(font_path, "rb") as f:
             font_b64 = base64.b64encode(f.read()).decode("utf-8")
 
-    # 2. Extract VeilLogo and VeilMark SVG from components/VeilLogo.tsx
-    with open("components/VeilLogo.tsx", "r", encoding="utf-8") as f:
-        logo_ts = f.read()
+    # 2. Base64 encode official veil-logo.png
+    veil_logo_png_path = "public/veil-logo.png"
+    with open(veil_logo_png_path, "rb") as f:
+        veil_logo_png_b64 = base64.b64encode(f.read()).decode("utf-8")
 
-    # Extract VeilMark SVG
-    vm_match = re.search(r'export const VeilMark.*?return \((.*?)\);', logo_ts, re.DOTALL)
-    if not vm_match:
-        raise Exception("Could not find VeilMark in VeilLogo.tsx")
-    veil_mark_svg = vm_match.group(1).strip()
-    veil_mark_svg = veil_mark_svg.replace('className={className}', '')
-    veil_mark_svg = veil_mark_svg.replace('style={{', '').replace('}}', '')
-    veil_mark_svg = veil_mark_svg.replace('aria-hidden="true"', '')
-    veil_mark_svg = veil_mark_svg.replace('color,', '').replace('...style,', '')
-    veil_mark_svg = veil_mark_svg.replace('display: "inline-block",', '')
-    veil_mark_svg = veil_mark_svg.replace('verticalAlign: "middle",', '')
-    veil_mark_svg = veil_mark_svg.replace('flexShrink: 0,', '')
-    veil_mark_svg = veil_mark_svg.replace('width={size}', 'width="280"')
-    veil_mark_svg = veil_mark_svg.replace('height={size}', 'height="280"')
-    veil_mark_svg = veil_mark_svg.replace('{color}', '#1a1a1a')
-    veil_mark_svg = veil_mark_svg.replace('{accentColor}', '#FF8A00')
+    # 3. Read official VEIL wordmark SVG
+    with open("public/veil-wordmark-halftone-type.svg", "r", encoding="utf-8") as f:
+        wordmark_svg = f.read().strip()
+    # Normalize wordmark SVG dimensions for header
+    wordmark_svg = wordmark_svg.replace('viewBox="100 100 6200 1720"', 'viewBox="100 100 6200 1720" style="height:36px;width:auto;display:block;"')
 
-    # Extract VeilLogo full wordmark SVG
-    vl_match = re.search(r'const svgContent = \((.*?)\);', logo_ts, re.DOTALL)
-    if not vl_match:
-        raise Exception("Could not find svgContent in VeilLogo.tsx")
-    veil_logo_svg = vl_match.group(1).strip()
-    veil_logo_svg = veil_logo_svg.replace('width={resolvedWidth}', 'width="176"')
-    veil_logo_svg = veil_logo_svg.replace('height={resolvedHeight}', 'height="49"')
-    veil_logo_svg = veil_logo_svg.replace('{color}', '#1a1a1a')
-    veil_logo_svg = veil_logo_svg.replace('{dotColor}', '#FF8A00')
-    veil_logo_svg = veil_logo_svg.replace('className={className}', '')
-    veil_logo_svg = veil_logo_svg.replace('style={{', '').replace('}}', '')
-    veil_logo_svg = veil_logo_svg.replace('aria-label={ariaLabel}', '')
-    veil_logo_svg = veil_logo_svg.replace('role="img"', '')
-    veil_logo_svg = veil_logo_svg.replace('color,', '').replace('...style,', '')
-    veil_logo_svg = veil_logo_svg.replace('display: "inline-block",', '')
-    veil_logo_svg = veil_logo_svg.replace('verticalAlign: "middle",', '')
-    veil_logo_svg = veil_logo_svg.replace('flexShrink: 0,', '')
-
-    # Read Robinhood logo SVG
+    # 4. Read Robinhood logo SVG
     with open("public/assets/logo/robinhood.svg", "r", encoding="utf-8") as f:
         rh_svg = f.read().strip()
     rh_svg = rh_svg.replace('width="831"', 'width="96"').replace('height="163"', 'height="19"')
@@ -78,7 +51,7 @@ def build_banner():
     width: 1200px;
     height: 630px;
     background-color: #EBE1F0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     color: #1a1a1a;
     position: relative;
     overflow: hidden;
@@ -89,32 +62,32 @@ def build_banner():
     -webkit-font-smoothing: antialiased;
   }}
 
-  /* Micro-grid background pattern echoing paper / drafting grid */
+  /* Micro architectural drafting grid pattern */
   .grid-bg {{
     position: absolute;
     inset: 0;
     background-image: 
       linear-gradient(to right, rgba(26, 26, 26, 0.04) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(26, 26, 26, 0.04) 1px, transparent 1px);
-    background-size: 32px 32px;
+    background-size: 30px 30px;
     pointer-events: none;
     z-index: 1;
   }}
 
-  /* Subtle warm ambient wash */
-  .halftone-glow {{
+  /* Warm ambient glow matching brand orange */
+  .ambient-glow {{
     position: absolute;
-    right: -20px;
-    bottom: -20px;
-    width: 560px;
-    height: 560px;
+    right: 40px;
+    bottom: -40px;
+    width: 520px;
+    height: 520px;
     border-radius: 50%;
     background: radial-gradient(circle, rgba(255, 138, 0, 0.09) 0%, rgba(235, 225, 240, 0) 70%);
     pointer-events: none;
     z-index: 1;
   }}
 
-  /* Outer architectural frame */
+  /* Outer card frame */
   .card-frame {{
     position: relative;
     z-index: 2;
@@ -122,20 +95,20 @@ def build_banner():
     height: 100%;
     border: 1px solid rgba(26, 26, 26, 0.16);
     border-radius: 12px;
-    background: rgba(235, 225, 240, 0.82);
+    background: rgba(235, 225, 240, 0.85);
     backdrop-filter: blur(8px);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 38px 46px;
+    padding: 36px 46px;
   }}
 
-  /* Frame corner crosses */
+  /* Corner crosshairs */
   .corner-mark {{
     position: absolute;
     font-family: monospace;
     font-size: 14px;
-    color: rgba(26, 26, 26, 0.3);
+    color: rgba(26, 26, 26, 0.35);
     line-height: 1;
     pointer-events: none;
   }}
@@ -151,6 +124,12 @@ def build_banner():
     align-items: center;
     border-bottom: 1px solid rgba(26, 26, 26, 0.1);
     padding-bottom: 18px;
+  }}
+
+  .header-brand {{
+    display: flex;
+    align-items: center;
+    gap: 14px;
   }}
 
   .badges {{
@@ -176,7 +155,7 @@ def build_banner():
 
   .badge-chain {{
     background: rgba(255, 140, 0, 0.08);
-    border-color: rgba(255, 140, 0, 0.3);
+    border-color: rgba(255, 140, 0, 0.32);
     color: #c96500;
     font-weight: 700;
   }}
@@ -195,7 +174,7 @@ def build_banner():
     display: flex;
     flex-direction: column;
     gap: 16px;
-    max-width: 670px;
+    max-width: 680px;
   }}
 
   .eyebrow {{
@@ -207,19 +186,19 @@ def build_banner():
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: rgba(26, 26, 26, 0.62);
+    color: rgba(26, 26, 26, 0.65);
   }}
 
   .eyebrow-line {{
     width: 22px;
-    height: 1.5px;
+    height: 2px;
     background: #FF8A00;
   }}
 
   .title {{
     font-family: 'GT Alpina Typewriter', Georgia, serif;
-    font-size: 66px;
-    line-height: 1.03;
+    font-size: 68px;
+    line-height: 1.02;
     font-weight: 400;
     letter-spacing: -0.03em;
     color: #1a1a1a;
@@ -229,7 +208,7 @@ def build_banner():
     font-family: 'GT Alpina Typewriter', Georgia, serif;
     font-size: 20px;
     line-height: 1.45;
-    color: #3a3a3a;
+    color: #333333;
   }}
 
   .spec-pills {{
@@ -240,24 +219,24 @@ def build_banner():
   }}
 
   .pill {{
-    padding: 5px 11px;
+    padding: 6px 12px;
     border-radius: 6px;
     background: rgba(26, 26, 26, 0.04);
-    border: 1px solid rgba(26, 26, 26, 0.1);
+    border: 1px solid rgba(26, 26, 26, 0.12);
     font-family: ui-monospace, "SF Mono", "DM Mono", monospace;
     font-size: 11.5px;
     font-weight: 600;
     color: #1a1a1a;
   }}
 
-  /* Right Card */
+  /* Right Card: Specimen Card embedding official veil-logo.png */
   .right-col {{
     flex-shrink: 0;
-    width: 324px;
+    width: 330px;
     padding: 24px 22px;
     background: #ffffff;
-    border: 1px solid rgba(26, 26, 26, 0.15);
-    border-radius: 12px;
+    border: 1px solid rgba(26, 26, 26, 0.14);
+    border-radius: 14px;
     box-shadow: 0 16px 40px rgba(26, 26, 26, 0.06);
     display: flex;
     flex-direction: column;
@@ -266,11 +245,41 @@ def build_banner():
     text-align: center;
   }}
 
+  .card-top {{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: ui-monospace, "SF Mono", "DM Mono", monospace;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: rgba(26, 26, 26, 0.5);
+    text-transform: uppercase;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(26, 26, 26, 0.06);
+  }}
+
+  .card-top-dot {{
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #FF8A00;
+  }}
+
   .right-mark {{
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
+    padding: 10px 0;
+  }}
+
+  .logo-img {{
+    width: 200px;
+    height: 200px;
+    object-fit: contain;
+    display: block;
   }}
 
   .spec-strip {{
@@ -309,7 +318,7 @@ def build_banner():
 </head>
 <body>
   <div class="grid-bg"></div>
-  <div class="halftone-glow"></div>
+  <div class="ambient-glow"></div>
 
   <div class="card-frame">
     <div class="corner-mark corner-tl">+</div>
@@ -319,14 +328,14 @@ def build_banner():
 
     <!-- Header -->
     <div class="header">
-      <div style="display:flex;align-items:center;gap:14px;">
-        {veil_logo_svg}
+      <div class="header-brand">
+        {wordmark_svg}
       </div>
 
       <div class="badges">
         <div class="badge">
           {rh_svg}
-          <span style="opacity:0.4;">|</span>
+          <span style="opacity:0.35;">|</span>
           <span>Mainnet</span>
         </div>
         <div class="badge badge-chain">
@@ -340,7 +349,7 @@ def build_banner():
       <div class="left-col">
         <div class="eyebrow">
           <span class="eyebrow-line"></span>
-          <span>Zero-Knowledge Privacy Pools · Uniswap v4</span>
+          <span>Zero-Knowledge Privacy Layer · Uniswap v4</span>
         </div>
 
         <h1 class="title">private execution</h1>
@@ -358,10 +367,14 @@ def build_banner():
         </div>
       </div>
 
-      <!-- Right Column: Official Halftone Symbol -->
+      <!-- Right Column: Official Logo from public/veil-logo.png -->
       <div class="right-col">
+        <div class="card-top">
+          <span>Cryptographic Mark</span>
+          <span class="card-top-dot"></span>
+        </div>
         <div class="right-mark">
-          {veil_mark_svg}
+          <img class="logo-img" src="data:image/png;base64,{veil_logo_png_b64}" alt="Veil Official Halftone Logo" />
         </div>
         <div class="spec-strip">
           <div>Fixed Denomination: <strong>0.001 ETH &amp; VEIL</strong></div>
@@ -374,12 +387,12 @@ def build_banner():
     <div class="footer">
       <div>
         <span class="footer-brand">veilpools.com</span>
-        <span style="margin: 0 6px; opacity: 0.4;">·</span>
+        <span style="margin: 0 6px; opacity: 0.35;">·</span>
         <span>@veilpools</span>
       </div>
       <div>
         <span>Audited Cryptographic Primitives</span>
-        <span style="margin: 0 6px; opacity: 0.4;">·</span>
+        <span style="margin: 0 6px; opacity: 0.35;">·</span>
         <span>Fully Non-Custodial</span>
       </div>
     </div>
