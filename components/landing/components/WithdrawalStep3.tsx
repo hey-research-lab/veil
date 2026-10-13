@@ -47,9 +47,9 @@ const WITHDRAWAL_CYCLES: WithdrawalCycleData[] = [
   },
   {
     noteId: "VEIL Token Note",
-    grossAmount: "1.0000 VEIL",
+    grossAmount: "0.0010 VEIL",
     relayerFee: "Self-Relay (0.00)",
-    netDelivered: "1.0000 VEIL",
+    netDelivered: "0.0010 VEIL",
     token: "VEIL",
     recipient: "0x8ef4...b312",
     relayer: "Self (Browser)",
@@ -156,7 +156,6 @@ export const WithdrawalStep3: React.FC = () => {
             style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: "var(--space-2)",
               background: "var(--color-surface)",
               padding: "4px 10px",
               borderRadius: "var(--radius-sm)",
@@ -165,23 +164,13 @@ export const WithdrawalStep3: React.FC = () => {
           >
             <span
               style={{
-                width: "6px",
-                height: "6px",
-                borderRadius: "50%",
-                backgroundColor: "var(--color-accent)",
-                display: "inline-block",
-                animation: "pulse 1.5s infinite",
-              }}
-            />
-            <span
-              style={{
                 fontFamily: "var(--font-body)",
                 fontSize: "var(--text-caption)",
                 color: "var(--color-text)",
                 fontWeight: 500,
               }}
             >
-              Live stream
+              Settlement stream
             </span>
           </div>
 

@@ -121,7 +121,7 @@ export const codosContent = {
   },
   howItWorks: {
     kicker: "ARCHITECTURE",
-    title: "From testnet to mainnet — verifiable on-chain.",
+    title: "Mainnet Architecture — verifiable on-chain.",
     steps: [
       {
         time: "Phase 1",
@@ -190,7 +190,7 @@ export const codosContent = {
       },
       {
         q: "What chains are supported?",
-        a: "Veil is live on Robinhood Chain Mainnet 4663 (Testnet 46630 historic only) leveraging Uniswap v4's custom hook architecture for high-throughput, low-fee execution."
+        a: "Veil is live on Robinhood Chain Mainnet (Chain ID: 4663) leveraging Uniswap v4's custom hook architecture for high-throughput, low-fee execution."
       },
       {
         q: "Can anyone freeze my funds or block withdrawals?",

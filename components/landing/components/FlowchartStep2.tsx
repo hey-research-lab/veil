@@ -288,19 +288,8 @@ export const FlowchartStep2: React.FC = () => {
                 fontWeight: 600,
                 display: "inline-flex",
                 alignItems: "center",
-                gap: "0.4cqw",
               }}
             >
-              <span
-                style={{
-                  width: "0.45cqw",
-                  height: "0.45cqw",
-                  borderRadius: "50%",
-                  backgroundColor: "var(--color-accent)",
-                  display: "inline-block",
-                  animation: "pulse 1.5s infinite",
-                }}
-              />
               Illustrative flow (simulated)
             </span>
 

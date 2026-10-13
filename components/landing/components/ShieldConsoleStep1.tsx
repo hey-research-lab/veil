@@ -147,23 +147,12 @@ export const ShieldConsoleStep1: React.FC = () => {
             style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: "var(--space-2)",
               background: "var(--color-surface)",
               padding: "4px 10px",
               borderRadius: "var(--radius-sm)",
               border: "1px solid var(--color-hairline)",
             }}
           >
-            <span
-              style={{
-                width: "6px",
-                height: "6px",
-                borderRadius: "50%",
-                backgroundColor: "var(--color-accent)",
-                display: "inline-block",
-                animation: "pulse 1.5s infinite",
-              }}
-            />
             <span
               style={{
                 fontFamily: "var(--font-body)",

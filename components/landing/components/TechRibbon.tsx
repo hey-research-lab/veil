@@ -3,7 +3,7 @@
 import React from "react";
 
 const SPEC_ITEMS = [
-  "ROBINHOOD CHAIN 4663 (46630 HISTORIC)",
+  "ROBINHOOD CHAIN MAINNET (4663)",
   "UNISWAP v4 HOOK GATEWAY (0x20C4)",
   "GROTH16 ZK-SNARK (0xBOW v1.2.1)",
   "LEANIMT MERKLE TREES (DEPTH 20)",
@@ -48,23 +48,12 @@ export const TechRibbon: React.FC = () => {
           style={{
             display: "inline-flex",
             alignItems: "center",
-            gap: "7px",
             padding: "3px 10px",
             borderRadius: "var(--radius-full)",
             backgroundColor: "rgba(26, 26, 26, 0.04)",
             border: "1px solid var(--color-border)",
           }}
         >
-          <span
-            style={{
-              width: "6px",
-              height: "6px",
-              borderRadius: "50%",
-              backgroundColor: "var(--color-brand)",
-              display: "inline-block",
-              boxShadow: "0 0 6px rgba(255, 140, 0, 0.5)",
-            }}
-          />
           <span
             style={{
               fontFamily: "var(--font-mono, monospace)",
