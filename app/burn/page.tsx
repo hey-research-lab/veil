@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { formatEther, parseAbiItem, type Address } from "viem";
 import { publicClient } from "@/lib/balances";
 import { CONTRACT_ADDRESSES, CONTRACT_ABIS, TREASURY_DEPLOYMENT_BLOCK } from "@/lib/contracts";
 import { appChain, APP_CHAIN_ID } from "@/lib/chains";
+import { Copy, Check, ExternalLink, Flame, Coins, Percent, ArrowUpRight, Shield, Layers } from "lucide-react";
 
 const TREASURY_ADDRESS = (CONTRACT_ADDRESSES.treasury ||
   "0xb68c3d25e5e9902363e8e10d5c0a471e65be8152") as Address;
@@ -23,7 +24,7 @@ interface BurnRow {
   txHash: string;
   blockNumber: bigint;
   amount: string;
-  source: string;
+  source: "Treasury burn" | "Protocol fee received";
 }
 
 function formatVeil(raw: bigint): string {
@@ -45,6 +46,14 @@ export default function BurnPage() {
   const [history, setHistory] = useState<BurnRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [rpcError, setRpcError] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"all" | "burns" | "fees">("all");
+
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -88,13 +97,13 @@ export default function BurnPage() {
             txHash: l.transactionHash ?? "",
             blockNumber: l.blockNumber ?? 0n,
             amount: formatVeil(l.args.amount ?? 0n),
-            source: "Treasury burn",
+            source: "Treasury burn" as const,
           })),
           ...feeLogs.map((l) => ({
             txHash: l.transactionHash ?? "",
             blockNumber: l.blockNumber ?? 0n,
             amount: formatEth(l.args.amount ?? 0n),
-            source: "Protocol fee received",
+            source: "Protocol fee received" as const,
           })),
         ].sort((a, b) => (a.blockNumber > b.blockNumber ? -1 : 1));
 
@@ -123,6 +132,16 @@ export default function BurnPage() {
     };
   }, []);
 
+  const filteredHistory = useMemo(() => {
+    if (activeTab === "burns") {
+      return history.filter((r) => r.source === "Treasury burn");
+    }
+    if (activeTab === "fees") {
+      return history.filter((r) => r.source === "Protocol fee received");
+    }
+    return history;
+  }, [activeTab, history]);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)", width: "100%" }}>
       {/* Editorial Header */}
@@ -140,6 +159,9 @@ export default function BurnPage() {
         <div>
           <div
             style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
               fontFamily: "var(--font-mono)",
               fontSize: "11px",
               letterSpacing: "0.08em",
@@ -148,17 +170,29 @@ export default function BurnPage() {
               marginBottom: "var(--space-2)",
             }}
           >
-            Robinhood {appChain.name} {APP_CHAIN_ID} // Veil Treasury
+            <span
+              style={{
+                padding: "2px 8px",
+                borderRadius: "var(--radius-sm)",
+                backgroundColor: "rgba(26, 26, 26, 0.05)",
+                border: "1px solid var(--color-border)",
+                color: "var(--color-text)",
+                fontWeight: 600,
+              }}
+            >
+              ROBINHOOD MAINNET {APP_CHAIN_ID}
+            </span>
+            <span>// Veil Treasury Engine</span>
           </div>
           <h1
             style={{
               margin: 0,
               fontFamily: "var(--font-headline)",
-              fontSize: "clamp(2rem, 3vw, 2.5rem)",
+              fontSize: "clamp(2rem, 3.2vw, 2.6rem)",
               lineHeight: 1.15,
               color: "var(--color-text)",
               letterSpacing: "-0.02em",
-              fontWeight: 500,
+              fontWeight: 600,
             }}
           >
             Protocol Burn Ledger
@@ -173,8 +207,8 @@ export default function BurnPage() {
               lineHeight: "1.6",
             }}
           >
-            Live protocol fee accruals and token burns from the Veil Treasury contract.
-            Protocol swap hook fees accumulate in VeilTreasury to fund on-chain VEIL burns and reserves.
+            Live protocol fee accruals and autonomous token burns executed on-chain by the Veil Treasury contract.
+            30 BPS hook swap fees accumulate directly into VeilTreasury for deflationary burns and reserves.
           </p>
         </div>
 
@@ -189,21 +223,50 @@ export default function BurnPage() {
             color: "var(--color-muted)",
           }}
         >
-          <span>30 BPS Hook Fee</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <Percent size={13} style={{ color: "var(--color-accent)" }} />
+            30 BPS Hook Fee
+          </span>
           <span style={{ opacity: 0.3 }}>/</span>
-          <span>70% Target Share</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <Coins size={13} />
+            70% Burn Target
+          </span>
           <span style={{ opacity: 0.3 }}>/</span>
-          <span>On-Chain Token Burn</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <Flame size={13} style={{ color: "var(--color-accent)" }} />
+            Permanent Removal
+          </span>
         </div>
       </div>
 
       {loading && (
-        <div style={{ padding: "var(--space-8)", textAlign: "center", color: "var(--color-muted)", fontFamily: "monospace", fontSize: "var(--text-body-sm)" }}>
-          Loading live state from Treasury contract…
+        <div
+          className="veil-card-white"
+          style={{
+            padding: "var(--space-10)",
+            textAlign: "center",
+            color: "var(--color-muted)",
+            fontFamily: "var(--font-mono)",
+            fontSize: "var(--text-body-sm)",
+          }}
+        >
+          Loading live state from Veil Treasury contract…
         </div>
       )}
+
       {rpcError && (
-        <div style={{ padding: "var(--space-4)", borderRadius: "var(--radius-md)", backgroundColor: "rgba(180, 83, 9, 0.08)", border: "1px solid rgba(180, 83, 9, 0.2)", color: "#b45309", fontFamily: "monospace", fontSize: "var(--text-body-sm)" }}>
+        <div
+          style={{
+            padding: "var(--space-4) var(--space-5)",
+            borderRadius: "var(--radius-md)",
+            backgroundColor: "rgba(180, 83, 9, 0.08)",
+            border: "1px solid rgba(180, 83, 9, 0.25)",
+            color: "#b45309",
+            fontFamily: "var(--font-mono)",
+            fontSize: "var(--text-body-sm)",
+          }}
+        >
           RPC connection error, retrying…
         </div>
       )}
@@ -222,19 +285,22 @@ export default function BurnPage() {
               className="veil-card-white"
               style={{
                 padding: "var(--space-6)",
-                borderRadius: "var(--radius-lg)",
-                border: "1px solid var(--color-border-strong)",
-                boxShadow: "0 4px 20px rgba(26, 26, 26, 0.04)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
               }}
             >
-              <div style={{ fontSize: "11px", fontFamily: "monospace", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                Total VEIL Burned
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  Total VEIL Burned
+                </span>
+                <Flame size={15} style={{ color: "var(--color-accent)" }} />
               </div>
-              <div style={{ fontFamily: "var(--font-headline)", fontSize: "clamp(1.75rem, 2.5vw, 2.25rem)", fontWeight: 700, color: "var(--color-text)", marginTop: "8px" }}>
+              <div style={{ fontFamily: "var(--font-headline)", fontSize: "clamp(1.75rem, 2.5vw, 2.3rem)", fontWeight: 700, color: "var(--color-text)", letterSpacing: "-0.02em" }}>
                 {totalBurned === null ? "—" : formatVeil(totalBurned)}
               </div>
-              <div style={{ fontSize: "12px", color: "var(--color-muted)", marginTop: "6px", fontFamily: "var(--font-body)" }}>
-                Permanently removed from circulating supply
+              <div style={{ fontSize: "12px", color: "var(--color-muted)", fontFamily: "var(--font-body)" }}>
+                Permanently burned via ERC20 burn()
               </div>
             </div>
 
@@ -242,19 +308,22 @@ export default function BurnPage() {
               className="veil-card-white"
               style={{
                 padding: "var(--space-6)",
-                borderRadius: "var(--radius-lg)",
-                border: "1px solid var(--color-border-strong)",
-                boxShadow: "0 4px 20px rgba(26, 26, 26, 0.04)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
               }}
             >
-              <div style={{ fontSize: "11px", fontFamily: "monospace", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                Total Fees Received
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  Cumulative Fees Accrued
+                </span>
+                <Coins size={15} style={{ color: "var(--color-muted)" }} />
               </div>
-              <div style={{ fontFamily: "var(--font-headline)", fontSize: "clamp(1.75rem, 2.5vw, 2.25rem)", fontWeight: 700, color: "var(--color-text)", marginTop: "8px" }}>
+              <div style={{ fontFamily: "var(--font-headline)", fontSize: "clamp(1.75rem, 2.5vw, 2.3rem)", fontWeight: 700, color: "var(--color-text)", letterSpacing: "-0.02em" }}>
                 {totalFees === null ? "—" : formatEth(totalFees)}
               </div>
-              <div style={{ fontSize: "12px", color: "var(--color-muted)", marginTop: "6px", fontFamily: "var(--font-body)" }}>
-                Cumulative fees routed through Veil Hook
+              <div style={{ fontSize: "12px", color: "var(--color-muted)", fontFamily: "var(--font-body)" }}>
+                Route fees collected via afterSwap hook
               </div>
             </div>
 
@@ -262,88 +331,141 @@ export default function BurnPage() {
               className="veil-card-white"
               style={{
                 padding: "var(--space-6)",
-                borderRadius: "var(--radius-lg)",
-                border: "1px solid var(--color-border-strong)",
-                boxShadow: "0 4px 20px rgba(26, 26, 26, 0.04)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
               }}
             >
-              <div style={{ fontSize: "11px", fontFamily: "monospace", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                Treasury Allocation Share
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  Buyback Allocation Share
+                </span>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--color-accent)", fontWeight: 600 }}>
+                  ACTIVE
+                </span>
               </div>
-              <div style={{ fontFamily: "var(--font-headline)", fontSize: "clamp(1.75rem, 2.5vw, 2.25rem)", fontWeight: 700, color: "var(--color-text)", marginTop: "8px" }}>
+              <div style={{ fontFamily: "var(--font-headline)", fontSize: "clamp(1.75rem, 2.5vw, 2.3rem)", fontWeight: 700, color: "var(--color-text)", letterSpacing: "-0.02em" }}>
                 {buybackBps === null ? "—" : `${Number(buybackBps) / 100}%`}
               </div>
-              <div style={{ fontSize: "12px", color: "var(--color-muted)", marginTop: "6px", fontFamily: "var(--font-body)" }}>
-                Protocol parameter target (7000 BPS / 70%)
+              <div style={{ fontSize: "12px", color: "var(--color-muted)", fontFamily: "var(--font-body)" }}>
+                Protocol parameter target (7,000 BPS)
               </div>
             </div>
           </div>
 
-          {/* Treasury Details Card */}
+          {/* Treasury Details & Architecture Overview */}
           <div
             className="veil-card-white"
             style={{
-              padding: "var(--space-5) var(--space-6)",
-              borderRadius: "var(--radius-lg)",
-              border: "1px solid var(--color-border)",
+              padding: "var(--space-6)",
               display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: "var(--space-3)",
+              flexDirection: "column",
+              gap: "var(--space-4)",
             }}
           >
-            <div>
-              <div style={{ fontSize: "11px", fontFamily: "monospace", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                Treasury Contract &amp; Token
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "var(--space-3)" }}>
+              <div>
+                <h2 style={{ margin: 0, fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", color: "var(--color-text)" }}>
+                  Veil Treasury Architecture
+                </h2>
+                <p style={{ margin: "4px 0 0 0", fontSize: "var(--text-body-sm)", color: "var(--color-muted)", fontFamily: "var(--font-body)" }}>
+                  Autonomously collects fees from Uniswap v4 pools and executes continuous supply reduction.
+                </p>
               </div>
-              <div style={{ fontFamily: "monospace", fontSize: "13px", color: "var(--color-text)", marginTop: "4px" }}>
-                Treasury: {TREASURY_ADDRESS}
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: "var(--space-3)", alignItems: "center" }}>
-              <a
-                href={`${EXPLORER}/address/${TREASURY_ADDRESS}`}
-                target="_blank"
-                rel="noreferrer"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  padding: "6px 14px",
-                  borderRadius: "var(--radius-sm)",
-                  backgroundColor: "rgba(26, 26, 26, 0.04)",
-                  border: "1px solid var(--color-border)",
-                  color: "var(--color-text)",
-                  fontSize: "12px",
-                  fontFamily: "var(--font-body)",
-                  fontWeight: 600,
-                  textDecoration: "none",
-                }}
-              >
-                View Treasury on Explorer →
-              </a>
-              {veilToken && veilToken.toLowerCase() !== ZERO_ADDRESS && (
+
+              <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
                 <a
-                  href={`${EXPLORER}/address/${veilToken}`}
+                  href={`${EXPLORER}/address/${TREASURY_ADDRESS}`}
                   target="_blank"
                   rel="noreferrer"
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
-                    padding: "6px 14px",
+                    gap: "6px",
+                    padding: "6px 12px",
                     borderRadius: "var(--radius-sm)",
-                    backgroundColor: "rgba(255, 140, 0, 0.1)",
-                    border: "1px solid rgba(255, 140, 0, 0.3)",
-                    color: "var(--color-accent)",
+                    backgroundColor: "rgba(26, 26, 26, 0.04)",
+                    border: "1px solid var(--color-border)",
+                    color: "var(--color-text)",
                     fontSize: "12px",
                     fontFamily: "var(--font-body)",
                     fontWeight: 600,
                     textDecoration: "none",
                   }}
                 >
-                  View VEIL Token →
+                  <span>Treasury Contract</span>
+                  <ExternalLink size={12} />
                 </a>
-              )}
+
+                {veilToken && veilToken.toLowerCase() !== ZERO_ADDRESS && (
+                  <a
+                    href={`${EXPLORER}/address/${veilToken}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      padding: "6px 12px",
+                      borderRadius: "var(--radius-sm)",
+                      backgroundColor: "rgba(255, 140, 0, 0.08)",
+                      border: "1px solid rgba(255, 140, 0, 0.25)",
+                      color: "var(--color-accent)",
+                      fontSize: "12px",
+                      fontFamily: "var(--font-body)",
+                      fontWeight: 600,
+                      textDecoration: "none",
+                    }}
+                  >
+                    <span>VEIL Token</span>
+                    <ExternalLink size={12} />
+                  </a>
+                )}
+              </div>
+            </div>
+
+            {/* Treasury Address Card */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "8px 12px",
+                borderRadius: "var(--radius-sm)",
+                backgroundColor: "rgba(26, 26, 26, 0.02)",
+                border: "1px solid var(--color-border)",
+                gap: "var(--space-3)",
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-muted)", textTransform: "uppercase" }}>
+                  Contract:
+                </span>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--color-text)", fontWeight: 500, overflowWrap: "anywhere" }}>
+                  {TREASURY_ADDRESS}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => copyToClipboard(TREASURY_ADDRESS, "treasury")}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  padding: "4px 8px",
+                  borderRadius: "var(--radius-sm)",
+                  backgroundColor: "#ffffff",
+                  border: "1px solid var(--color-border)",
+                  color: copiedId === "treasury" ? "var(--color-accent)" : "var(--color-text)",
+                  fontSize: "11px",
+                  fontFamily: "var(--font-mono)",
+                  cursor: "pointer",
+                }}
+              >
+                {copiedId === "treasury" ? <Check size={12} /> : <Copy size={12} />}
+                {copiedId === "treasury" ? "Copied" : "Copy"}
+              </button>
             </div>
           </div>
 
@@ -352,69 +474,162 @@ export default function BurnPage() {
             className="veil-card-white"
             style={{
               padding: "var(--space-6)",
-              borderRadius: "var(--radius-lg)",
-              border: "1px solid var(--color-border)",
               display: "flex",
               flexDirection: "column",
               gap: "var(--space-4)",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--space-3)" }}>
               <div>
                 <h2 style={{ margin: 0, fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", color: "var(--color-text)" }}>
-                  Onchain Burn History
+                  Onchain Burn &amp; Accrual History
                 </h2>
                 <p style={{ margin: "4px 0 0 0", fontSize: "var(--text-body-sm)", color: "var(--color-muted)", fontFamily: "var(--font-body)" }}>
-                  Verified onchain events emitted by the Veil Treasury contract.
+                  Verified on-chain events emitted by the Veil Treasury contract from deployment block {TREASURY_DEPLOYMENT_BLOCK}.
                 </p>
               </div>
-              <span style={{ fontFamily: "monospace", fontSize: "11px", color: "var(--color-muted)", padding: "2px 8px", borderRadius: "var(--radius-sm)", backgroundColor: "rgba(26, 26, 26, 0.04)" }}>
-                {history.length} Event{history.length === 1 ? "" : "s"}
-              </span>
+
+              {/* Filter Tabs */}
+              <div
+                style={{
+                  display: "inline-flex",
+                  padding: "3px",
+                  borderRadius: "var(--radius-md)",
+                  backgroundColor: "rgba(26, 26, 26, 0.05)",
+                  border: "1px solid var(--color-border)",
+                  gap: "2px",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("all")}
+                  style={{
+                    padding: "4px 12px",
+                    borderRadius: "var(--radius-sm)",
+                    border: "none",
+                    background: activeTab === "all" ? "#ffffff" : "transparent",
+                    color: activeTab === "all" ? "var(--color-text)" : "var(--color-muted)",
+                    fontWeight: 600,
+                    fontSize: "12px",
+                    cursor: "pointer",
+                    boxShadow: activeTab === "all" ? "0 1px 3px rgba(0,0,0,0.06)" : "none",
+                  }}
+                >
+                  All ({history.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("burns")}
+                  style={{
+                    padding: "4px 12px",
+                    borderRadius: "var(--radius-sm)",
+                    border: "none",
+                    background: activeTab === "burns" ? "#ffffff" : "transparent",
+                    color: activeTab === "burns" ? "var(--color-text)" : "var(--color-muted)",
+                    fontWeight: 600,
+                    fontSize: "12px",
+                    cursor: "pointer",
+                    boxShadow: activeTab === "burns" ? "0 1px 3px rgba(0,0,0,0.06)" : "none",
+                  }}
+                >
+                  Burns ({history.filter((r) => r.source === "Treasury burn").length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("fees")}
+                  style={{
+                    padding: "4px 12px",
+                    borderRadius: "var(--radius-sm)",
+                    border: "none",
+                    background: activeTab === "fees" ? "#ffffff" : "transparent",
+                    color: activeTab === "fees" ? "var(--color-text)" : "var(--color-muted)",
+                    fontWeight: 600,
+                    fontSize: "12px",
+                    cursor: "pointer",
+                    boxShadow: activeTab === "fees" ? "0 1px 3px rgba(0,0,0,0.06)" : "none",
+                  }}
+                >
+                  Fees ({history.filter((r) => r.source === "Protocol fee received").length})
+                </button>
+              </div>
             </div>
 
-            {history.length === 0 ? (
-              <div style={{ padding: "var(--space-8)", textAlign: "center", color: "var(--color-muted)", fontFamily: "monospace", fontSize: "var(--text-body-sm)", backgroundColor: "rgba(26, 26, 26, 0.02)", borderRadius: "var(--radius-md)", border: "1px dashed var(--color-border)" }}>
-                {totalBurned !== null && totalBurned > 0n
-                  ? "No burn events indexed in this range — total above reads live."
-                  : "No burns yet recorded on this chain. Burns trigger automatically when protocol fees accumulate."}
+            {filteredHistory.length === 0 ? (
+              <div
+                style={{
+                  padding: "var(--space-10)",
+                  textAlign: "center",
+                  color: "var(--color-muted)",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "13px",
+                  backgroundColor: "rgba(26, 26, 26, 0.02)",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px dashed var(--color-border)",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                <span>
+                  {totalBurned !== null && totalBurned > 0n
+                    ? "No burn events indexed in this range — total above reads live."
+                    : "No burns yet recorded in this range. Burns trigger automatically when protocol fees accumulate."}
+                </span>
+                <span style={{ fontSize: "11px", opacity: 0.8 }}>
+                  Indexed from VeilTreasury block {TREASURY_DEPLOYMENT_BLOCK}.
+                </span>
               </div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-                {history.map((row) => (
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)", maxHeight: "480px", overflowY: "auto" }}>
+                {filteredHistory.map((row) => (
                   <div
                     key={`${row.txHash}-${row.blockNumber.toString()}-${row.source}`}
                     style={{
-                      padding: "var(--space-4)",
+                      padding: "var(--space-3) var(--space-4)",
                       borderRadius: "var(--radius-md)",
-                      backgroundColor: "rgba(26, 26, 26, 0.02)",
+                      backgroundColor: "rgba(26, 26, 26, 0.015)",
                       border: "1px solid var(--color-border)",
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
                       flexWrap: "wrap",
                       gap: "var(--space-3)",
-                      fontFamily: "monospace",
-                      fontSize: "13px",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "12px",
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
-                      <span style={{ fontWeight: 600, color: "var(--color-text)" }}>
+                      <span
+                        style={{
+                          padding: "2px 6px",
+                          borderRadius: "var(--radius-sm)",
+                          fontSize: "10px",
+                          fontWeight: 700,
+                          backgroundColor: row.source === "Treasury burn" ? "rgba(255, 140, 0, 0.12)" : "rgba(26, 26, 26, 0.06)",
+                          color: row.source === "Treasury burn" ? "var(--color-accent-ink)" : "var(--color-text)",
+                        }}
+                      >
+                        {row.source === "Treasury burn" ? "BURN" : "FEE RECEIVED"}
+                      </span>
+                      <span style={{ fontWeight: 600, color: "var(--color-text)", fontSize: "13px" }}>
                         {row.amount}
                       </span>
-                      <span style={{ fontSize: "11px", color: "var(--color-muted)", padding: "2px 6px", borderRadius: "var(--radius-sm)", backgroundColor: "rgba(26, 26, 26, 0.05)" }}>
-                        {row.source}
-                      </span>
-                      <span style={{ fontSize: "11px", color: "var(--color-muted)" }}>
-                        Block #{row.blockNumber.toString()}
-                      </span>
+                      <a
+                        href={`${EXPLORER}/block/${row.blockNumber.toString()}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ fontSize: "11px", color: "var(--color-muted)", textDecoration: "none" }}
+                      >
+                        Block #{row.blockNumber.toString()} ↗
+                      </a>
                     </div>
                     {row.txHash && (
                       <a
                         href={`${EXPLORER}/tx/${row.txHash}`}
                         target="_blank"
                         rel="noreferrer"
-                        style={{ color: "var(--color-accent)", fontWeight: 600, textDecoration: "none" }}
+                        style={{ color: "var(--color-accent)", fontWeight: 600, textDecoration: "none", fontSize: "11px" }}
                       >
                         {row.txHash.slice(0, 10)}...{row.txHash.slice(-8)} ↗
                       </a>

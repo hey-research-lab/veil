@@ -6,9 +6,12 @@ import { publicClient } from "@/lib/balances";
 import { CONTRACT_ADDRESSES, CONTRACT_ABIS, POOL_DEPLOYMENT_BLOCK } from "@/lib/contracts";
 import { appChain, APP_CHAIN_ID } from "@/lib/chains";
 import { BOW_DEPOSITED_EVENT, BOW_WITHDRAWN_EVENT } from "@/lib/0xbow-client";
+import { Copy, Check, ExternalLink, ShieldCheck, Database, RefreshCw, Lock, ArrowUpRight } from "lucide-react";
 
 const POOL_ADDRESS = (CONTRACT_ADDRESSES.poolEth ||
   "0x10c17b7538e13c63b890fea52708846e88bb1932") as Address;
+
+const EXPLORER = appChain.blockExplorers.default.url;
 
 const BOW_POOL_ABI = parseAbi([
   "function currentTreeSize() view returns (uint256)",
@@ -53,6 +56,15 @@ export default function StatusPage() {
   const [withdrawals, setWithdrawals] = useState<WithdrawRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [rpcError, setRpcError] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"all" | "deposits" | "withdrawals">("all");
+  const [lastRefreshed, setLastRefreshed] = useState<string>("");
+
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -181,21 +193,6 @@ export default function StatusPage() {
           guardStr = guard;
           pausedBool = paused;
 
-          if (idxNum > 0) {
-            rootStr = await publicClient.readContract({
-              address: POOL_ADDRESS,
-              abi: CONTRACT_ABIS.ShieldedPool,
-              functionName: "rootHistory",
-              args: [BigInt(idxNum - 1)],
-            });
-            isKnown = await publicClient.readContract({
-              address: POOL_ADDRESS,
-              abi: CONTRACT_ABIS.ShieldedPool,
-              functionName: "isKnownRoot",
-              args: [rootStr],
-            });
-          }
-
           const [legacyDeps, legacyWds] = await Promise.all([
             publicClient.getLogs({
               address: POOL_ADDRESS,
@@ -237,6 +234,7 @@ export default function StatusPage() {
           setWithdrawals(wdRows);
           setLoading(false);
           setRpcError(false);
+          setLastRefreshed(new Date().toLocaleTimeString());
         }
       } catch (e) {
         console.warn("Status page read failed:", e);
@@ -253,28 +251,6 @@ export default function StatusPage() {
       clearInterval(timer);
     };
   }, []);
-
-  const card = (label: string, value: string) => (
-    <div
-      key={label}
-      className="veil-card-white"
-      style={{
-        padding: "var(--space-5)",
-        borderRadius: "var(--radius-lg)",
-        border: "1px solid var(--color-border)",
-        display: "flex",
-        flexDirection: "column",
-        gap: "6px",
-      }}
-    >
-      <div style={{ fontSize: "11px", fontFamily: "monospace", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-        {label}
-      </div>
-      <div style={{ fontFamily: "monospace", fontSize: "14px", fontWeight: 600, color: "var(--color-text)", overflowWrap: "anywhere" }}>
-        {value}
-      </div>
-    </div>
-  );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)", width: "100%" }}>
@@ -293,6 +269,9 @@ export default function StatusPage() {
         <div>
           <div
             style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
               fontFamily: "var(--font-mono)",
               fontSize: "11px",
               letterSpacing: "0.08em",
@@ -301,17 +280,29 @@ export default function StatusPage() {
               marginBottom: "var(--space-2)",
             }}
           >
-            Robinhood {appChain.name} {APP_CHAIN_ID} // Health Monitor
+            <span
+              style={{
+                padding: "2px 8px",
+                borderRadius: "var(--radius-sm)",
+                backgroundColor: "rgba(26, 26, 26, 0.05)",
+                border: "1px solid var(--color-border)",
+                color: "var(--color-text)",
+                fontWeight: 600,
+              }}
+            >
+              ROBINHOOD MAINNET {APP_CHAIN_ID}
+            </span>
+            <span>// Cryptographic Telemetry</span>
           </div>
           <h1
             style={{
               margin: 0,
               fontFamily: "var(--font-headline)",
-              fontSize: "clamp(2rem, 3vw, 2.5rem)",
+              fontSize: "clamp(2rem, 3.2vw, 2.6rem)",
               lineHeight: 1.15,
               color: "var(--color-text)",
               letterSpacing: "-0.02em",
-              fontWeight: 500,
+              fontWeight: 600,
             }}
           >
             Chain &amp; Pool Health
@@ -327,7 +318,7 @@ export default function StatusPage() {
             }}
           >
             Live cryptographic state, Merkle tree history, and operational parameters of the Shielded Pool on Robinhood {appChain.name} ({APP_CHAIN_ID}).
-            Telemetry updates automatically every 15 seconds.
+            Telemetry synchronizes automatically every 15 seconds.
           </p>
         </div>
 
@@ -342,177 +333,641 @@ export default function StatusPage() {
             color: "var(--color-muted)",
           }}
         >
-          <span>LeanIMT Merkle</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <Database size={13} style={{ color: "var(--color-accent)" }} />
+            LeanIMT Depth 20
+          </span>
           <span style={{ opacity: 0.3 }}>/</span>
-          <span>15s Auto-Sync</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <RefreshCw size={12} />
+            {lastRefreshed ? `Synced ${lastRefreshed}` : "Auto-Sync"}
+          </span>
           <span style={{ opacity: 0.3 }}>/</span>
-          <span>Client Verifiable</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <ShieldCheck size={13} style={{ color: "var(--color-accent)" }} />
+            Non-Blocking Exits
+          </span>
         </div>
       </div>
 
       {loading && (
-        <div style={{ padding: "var(--space-8)", textAlign: "center", color: "var(--color-muted)", fontFamily: "monospace", fontSize: "var(--text-body-sm)" }}>
-          Loading live pool metrics from RPC…
+        <div
+          className="veil-card-white"
+          style={{
+            padding: "var(--space-10)",
+            textAlign: "center",
+            color: "var(--color-muted)",
+            fontFamily: "var(--font-mono)",
+            fontSize: "var(--text-body-sm)",
+          }}
+        >
+          Loading live pool metrics from Robinhood Chain RPC…
         </div>
       )}
+
       {rpcError && (
-        <div style={{ padding: "var(--space-4)", borderRadius: "var(--radius-md)", backgroundColor: "rgba(180, 83, 9, 0.08)", border: "1px solid rgba(180, 83, 9, 0.2)", color: "#b45309", fontFamily: "monospace", fontSize: "var(--text-body-sm)" }}>
-          RPC connection error, retrying…
+        <div
+          style={{
+            padding: "var(--space-4) var(--space-5)",
+            borderRadius: "var(--radius-md)",
+            backgroundColor: "rgba(180, 83, 9, 0.08)",
+            border: "1px solid rgba(180, 83, 9, 0.25)",
+            color: "#b45309",
+            fontFamily: "var(--font-mono)",
+            fontSize: "var(--text-body-sm)",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span>RPC connection experiencing latency, retrying in 15s…</span>
+          <span style={{ fontSize: "11px", opacity: 0.8 }}>HTTP 429/Timeout Handling Active</span>
         </div>
       )}
 
       {!loading && !rpcError && (
         <>
-          {/* Key Invariant Grid */}
+          {/* Key Invariant Hero Metric Cards */}
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-              gap: "var(--space-3)",
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: "var(--space-4)",
             }}
           >
-            {card("Next Leaf Index", nextIndex === null ? "—" : String(nextIndex))}
-            {card("Total Deposits", totalDeposits === null ? "—" : `${totalDeposits} ETH`)}
-            {card("Fixed Denomination", denomination === null ? "—" : `${denomination} ETH`)}
-            {card("Pool Lifetime Cap", poolCap === null ? "—" : `${poolCap} ETH`)}
-            {card("Guardian Address", guardian ?? "—")}
-            {card("Deposits Paused", depositsPaused === null ? "—" : String(depositsPaused))}
-            {card("Latest Merkle Root", latestRoot ?? "Empty pool — no deposits yet")}
-            {card("Root Known Onchain", rootKnown === null ? "—" : String(rootKnown))}
+            <div
+              className="veil-card-white"
+              style={{
+                padding: "var(--space-5)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  Total Shielded Volume
+                </span>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--color-accent)", fontWeight: 600 }}>
+                  ETH
+                </span>
+              </div>
+              <div style={{ fontFamily: "var(--font-headline)", fontSize: "clamp(1.75rem, 2.4vw, 2.2rem)", fontWeight: 700, color: "var(--color-text)", letterSpacing: "-0.02em" }}>
+                {totalDeposits === null ? "—" : `${totalDeposits} ETH`}
+              </div>
+              <div style={{ fontSize: "12px", color: "var(--color-muted)", fontFamily: "var(--font-body)" }}>
+                Verified on-chain in 0xbow pool
+              </div>
+            </div>
+
+            <div
+              className="veil-card-white"
+              style={{
+                padding: "var(--space-5)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  Active Tree Commitments
+                </span>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--color-muted)" }}>
+                  LEAVES
+                </span>
+              </div>
+              <div style={{ fontFamily: "var(--font-headline)", fontSize: "clamp(1.75rem, 2.4vw, 2.2rem)", fontWeight: 700, color: "var(--color-text)", letterSpacing: "-0.02em" }}>
+                {nextIndex === null ? "—" : nextIndex}
+              </div>
+              <div style={{ fontSize: "12px", color: "var(--color-muted)", fontFamily: "var(--font-body)" }}>
+                of 1,048,576 leaf capacity (Depth 20)
+              </div>
+            </div>
+
+            <div
+              className="veil-card-white"
+              style={{
+                padding: "var(--space-5)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  Fixed Denomination
+                </span>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--color-muted)" }}>
+                  FIXED R1
+                </span>
+              </div>
+              <div style={{ fontFamily: "var(--font-headline)", fontSize: "clamp(1.75rem, 2.4vw, 2.2rem)", fontWeight: 700, color: "var(--color-text)", letterSpacing: "-0.02em" }}>
+                {denomination === null ? "—" : `${denomination} ETH`}
+              </div>
+              <div style={{ fontSize: "12px", color: "var(--color-muted)", fontFamily: "var(--font-body)" }}>
+                Uniform note size for maximum entropy
+              </div>
+            </div>
+
+            <div
+              className="veil-card-white"
+              style={{
+                padding: "var(--space-5)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  Pool Lifetime Cap
+                </span>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--color-muted)" }}>
+                  SECURITY
+                </span>
+              </div>
+              <div style={{ fontFamily: "var(--font-headline)", fontSize: "clamp(1.75rem, 2.4vw, 2.2rem)", fontWeight: 700, color: "var(--color-text)", letterSpacing: "-0.02em" }}>
+                {poolCap === null ? "—" : `${poolCap} ETH`}
+              </div>
+              <div style={{ fontSize: "12px", color: "var(--color-muted)", fontFamily: "var(--font-body)" }}>
+                Strict contract invariant deposit limit
+              </div>
+            </div>
           </div>
 
-          {/* Log Event Inspection Section */}
+          {/* Cryptographic Parameters & Invariants Detail Card */}
           <div
+            className="veil-card-white"
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(min(480px, 100%), 1fr))",
-              gap: "var(--space-6)",
-              alignItems: "start",
+              padding: "var(--space-6)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--space-4)",
             }}
           >
-            {/* Column 1: Deposits */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "var(--space-2)" }}>
+              <div>
+                <h2 style={{ margin: 0, fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", color: "var(--color-text)" }}>
+                  Cryptographic Parameters &amp; Security Controls
+                </h2>
+                <p style={{ margin: "4px 0 0 0", fontSize: "var(--text-body-sm)", color: "var(--color-muted)", fontFamily: "var(--font-body)" }}>
+                  Immutable smart contract boundaries guarding anonymity sets and non-blocking withdrawals.
+                </p>
+              </div>
+              <a
+                href={`${EXPLORER}/address/${POOL_ADDRESS}`}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "6px 12px",
+                  borderRadius: "var(--radius-sm)",
+                  backgroundColor: "rgba(26, 26, 26, 0.04)",
+                  border: "1px solid var(--color-border)",
+                  color: "var(--color-text)",
+                  fontSize: "12px",
+                  fontFamily: "var(--font-body)",
+                  fontWeight: 600,
+                  textDecoration: "none",
+                }}
+              >
+                <span>View Pool on Explorer</span>
+                <ArrowUpRight size={13} />
+              </a>
+            </div>
+
             <div
-              className="veil-card-white"
               style={{
-                padding: "var(--space-6)",
-                borderRadius: "var(--radius-lg)",
-                border: "1px solid var(--color-border)",
-                display: "flex",
-                flexDirection: "column",
-                gap: "var(--space-4)",
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                gap: "var(--space-3)",
+                marginTop: "var(--space-2)",
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <h2 style={{ margin: 0, fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", color: "var(--color-text)" }}>
-                    Onchain Deposits
-                  </h2>
-                  <p style={{ margin: "4px 0 0 0", fontSize: "var(--text-body-sm)", color: "var(--color-muted)", fontFamily: "var(--font-body)" }}>
-                    Commitments verified in LeanIMT leaves.
-                  </p>
+              {/* Item: Latest Root */}
+              <div
+                style={{
+                  padding: "var(--space-4)",
+                  borderRadius: "var(--radius-md)",
+                  backgroundColor: "rgba(26, 26, 26, 0.02)",
+                  border: "1px solid var(--color-border)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "6px",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                    Current Merkle Root
+                  </span>
+                  {latestRoot && (
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(latestRoot, "root")}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        padding: 0,
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        fontSize: "11px",
+                        fontFamily: "var(--font-mono)",
+                        color: copiedId === "root" ? "var(--color-accent)" : "var(--color-muted)",
+                      }}
+                    >
+                      {copiedId === "root" ? <Check size={12} /> : <Copy size={12} />}
+                      {copiedId === "root" ? "Copied" : "Copy"}
+                    </button>
+                  )}
                 </div>
-                <span style={{ fontFamily: "monospace", fontSize: "11px", color: "var(--color-muted)", padding: "2px 8px", borderRadius: "var(--radius-sm)", backgroundColor: "rgba(26, 26, 26, 0.04)" }}>
-                  {deposits.length} Recorded
-                </span>
+                <div style={{ fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 600, color: "var(--color-text)", overflowWrap: "anywhere", wordBreak: "break-all" }}>
+                  {latestRoot ?? "0x0000000000000000000000000000000000000000000000000000000000000000"}
+                </div>
               </div>
 
-              {deposits.length === 0 ? (
-                <div style={{ padding: "var(--space-6)", textAlign: "center", color: "var(--color-muted)", fontFamily: "monospace", fontSize: "12px", backgroundColor: "rgba(26, 26, 26, 0.02)", borderRadius: "var(--radius-md)", border: "1px dashed var(--color-border)" }}>
-                  No deposits yet recorded on this pool.
+              {/* Item: Guardian Address */}
+              <div
+                style={{
+                  padding: "var(--space-4)",
+                  borderRadius: "var(--radius-md)",
+                  backgroundColor: "rgba(26, 26, 26, 0.02)",
+                  border: "1px solid var(--color-border)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "6px",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                    Guardian Controller
+                  </span>
+                  {guardian && (
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(guardian, "guardian")}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        padding: 0,
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        fontSize: "11px",
+                        fontFamily: "var(--font-mono)",
+                        color: copiedId === "guardian" ? "var(--color-accent)" : "var(--color-muted)",
+                      }}
+                    >
+                      {copiedId === "guardian" ? <Check size={12} /> : <Copy size={12} />}
+                      {copiedId === "guardian" ? "Copied" : "Copy"}
+                    </button>
+                  )}
                 </div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)", maxHeight: "420px", overflowY: "auto" }}>
-                  {deposits.map((d, i) => (
+                <div style={{ fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 600, color: "var(--color-text)", overflowWrap: "anywhere", wordBreak: "break-all" }}>
+                  {guardian ?? "—"}
+                </div>
+              </div>
+
+              {/* Item: Deposit Gating */}
+              <div
+                style={{
+                  padding: "var(--space-4)",
+                  borderRadius: "var(--radius-md)",
+                  backgroundColor: "rgba(26, 26, 26, 0.02)",
+                  border: "1px solid var(--color-border)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "6px",
+                }}
+              >
+                <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  Deposits Invariant
+                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span
+                    style={{
+                      padding: "2px 8px",
+                      borderRadius: "var(--radius-sm)",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      backgroundColor: depositsPaused ? "rgba(180, 83, 9, 0.1)" : "rgba(26, 26, 26, 0.06)",
+                      color: depositsPaused ? "#b45309" : "var(--color-text)",
+                    }}
+                  >
+                    {depositsPaused ? "PAUSED" : "ACTIVE & OPEN"}
+                  </span>
+                  <span style={{ fontSize: "12px", color: "var(--color-muted)", fontFamily: "var(--font-body)" }}>
+                    Non-custodial LeanIMT
+                  </span>
+                </div>
+              </div>
+
+              {/* Item: Withdrawal Freedom */}
+              <div
+                style={{
+                  padding: "var(--space-4)",
+                  borderRadius: "var(--radius-md)",
+                  backgroundColor: "rgba(26, 26, 26, 0.02)",
+                  border: "1px solid var(--color-border)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "6px",
+                }}
+              >
+                <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  Withdrawal Execution
+                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span
+                    style={{
+                      padding: "2px 8px",
+                      borderRadius: "var(--radius-sm)",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      backgroundColor: "rgba(255, 140, 0, 0.1)",
+                      color: "var(--color-accent-ink)",
+                    }}
+                  >
+                    NON-BLOCKING (§4.1)
+                  </span>
+                  <span style={{ fontSize: "12px", color: "var(--color-muted)", fontFamily: "var(--font-body)" }}>
+                    Cannot be paused or censored
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Log Event Inspection Section */}
+          <div
+            className="veil-card-white"
+            style={{
+              padding: "var(--space-6)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--space-4)",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--space-3)" }}>
+              <div>
+                <h2 style={{ margin: 0, fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", color: "var(--color-text)" }}>
+                  On-Chain Event Ledger
+                </h2>
+                <p style={{ margin: "4px 0 0 0", fontSize: "var(--text-body-sm)", color: "var(--color-muted)", fontFamily: "var(--font-body)" }}>
+                  Raw Merkle leaf commitments and spent nullifiers recorded directly from smart contract events.
+                </p>
+              </div>
+
+              {/* Filter Tabs */}
+              <div
+                style={{
+                  display: "inline-flex",
+                  padding: "3px",
+                  borderRadius: "var(--radius-md)",
+                  backgroundColor: "rgba(26, 26, 26, 0.05)",
+                  border: "1px solid var(--color-border)",
+                  gap: "2px",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("all")}
+                  style={{
+                    padding: "4px 12px",
+                    borderRadius: "var(--radius-sm)",
+                    border: "none",
+                    background: activeTab === "all" ? "#ffffff" : "transparent",
+                    color: activeTab === "all" ? "var(--color-text)" : "var(--color-muted)",
+                    fontWeight: 600,
+                    fontSize: "12px",
+                    cursor: "pointer",
+                    boxShadow: activeTab === "all" ? "0 1px 3px rgba(0,0,0,0.06)" : "none",
+                  }}
+                >
+                  All Events ({deposits.length + withdrawals.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("deposits")}
+                  style={{
+                    padding: "4px 12px",
+                    borderRadius: "var(--radius-sm)",
+                    border: "none",
+                    background: activeTab === "deposits" ? "#ffffff" : "transparent",
+                    color: activeTab === "deposits" ? "var(--color-text)" : "var(--color-muted)",
+                    fontWeight: 600,
+                    fontSize: "12px",
+                    cursor: "pointer",
+                    boxShadow: activeTab === "deposits" ? "0 1px 3px rgba(0,0,0,0.06)" : "none",
+                  }}
+                >
+                  Deposits ({deposits.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("withdrawals")}
+                  style={{
+                    padding: "4px 12px",
+                    borderRadius: "var(--radius-sm)",
+                    border: "none",
+                    background: activeTab === "withdrawals" ? "#ffffff" : "transparent",
+                    color: activeTab === "withdrawals" ? "var(--color-text)" : "var(--color-muted)",
+                    fontWeight: 600,
+                    fontSize: "12px",
+                    cursor: "pointer",
+                    boxShadow: activeTab === "withdrawals" ? "0 1px 3px rgba(0,0,0,0.06)" : "none",
+                  }}
+                >
+                  Withdrawals ({withdrawals.length})
+                </button>
+              </div>
+            </div>
+
+            {/* Event List */}
+            {deposits.length === 0 && withdrawals.length === 0 ? (
+              <div
+                style={{
+                  padding: "var(--space-10)",
+                  textAlign: "center",
+                  color: "var(--color-muted)",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "13px",
+                  backgroundColor: "rgba(26, 26, 26, 0.02)",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px dashed var(--color-border)",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <span>No deposit or withdrawal events indexed in this range.</span>
+                <span style={{ fontSize: "11px", color: "var(--color-muted)", opacity: 0.8 }}>
+                  Events stream automatically from deployment block {POOL_DEPLOYMENT_BLOCK}.
+                </span>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)", maxHeight: "540px", overflowY: "auto" }}>
+                {/* Render deposits when tab is 'all' or 'deposits' */}
+                {(activeTab === "all" || activeTab === "deposits") &&
+                  deposits.map((d, i) => (
                     <div
-                      key={`${d.txHash}-${i}`}
+                      key={`dep-${d.txHash}-${i}`}
                       style={{
                         padding: "var(--space-3) var(--space-4)",
                         borderRadius: "var(--radius-md)",
-                        backgroundColor: "rgba(26, 26, 26, 0.02)",
+                        backgroundColor: "rgba(26, 26, 26, 0.015)",
                         border: "1px solid var(--color-border)",
-                        fontFamily: "monospace",
+                        fontFamily: "var(--font-mono)",
                         fontSize: "12px",
-                        color: "var(--color-text)",
-                        overflowWrap: "anywhere",
                         display: "flex",
                         flexDirection: "column",
-                        gap: "4px",
+                        gap: "6px",
                       }}
                     >
-                      <div style={{ display: "flex", justifyContent: "space-between", color: "var(--color-muted)", fontSize: "11px" }}>
-                        <span>Leaf #{d.index}</span>
-                        <span>Block #{d.blockNumber.toString()}</span>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--space-2)" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <span
+                            style={{
+                              padding: "2px 6px",
+                              borderRadius: "var(--radius-sm)",
+                              fontSize: "10px",
+                              fontWeight: 700,
+                              backgroundColor: "rgba(255, 140, 0, 0.12)",
+                              color: "var(--color-accent-ink)",
+                            }}
+                          >
+                            DEPOSIT
+                          </span>
+                          <span style={{ color: "var(--color-text)", fontWeight: 600 }}>Leaf #{d.index}</span>
+                          <a
+                            href={`${EXPLORER}/block/${d.blockNumber.toString()}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{ color: "var(--color-muted)", textDecoration: "none", fontSize: "11px" }}
+                          >
+                            Block #{d.blockNumber.toString()} ↗
+                          </a>
+                        </div>
+                        {d.txHash && (
+                          <a
+                            href={`${EXPLORER}/tx/${d.txHash}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{ color: "var(--color-accent)", textDecoration: "none", fontSize: "11px", fontWeight: 600 }}
+                          >
+                            {d.txHash.slice(0, 8)}...{d.txHash.slice(-6)} ↗
+                          </a>
+                        )}
                       </div>
-                      <div style={{ color: "var(--color-text)", fontWeight: 500 }}>
-                        {d.commitment}
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#ffffff", padding: "6px 10px", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)" }}>
+                        <span style={{ color: "var(--color-muted)", fontSize: "11px" }}>Commitment:</span>
+                        <span style={{ color: "var(--color-text)", fontWeight: 500, overflowWrap: "anywhere" }}>
+                          {d.commitment}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(d.commitment, `c-${i}`)}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            padding: 0,
+                            cursor: "pointer",
+                            color: copiedId === `c-${i}` ? "var(--color-accent)" : "var(--color-muted)",
+                            marginLeft: "8px",
+                          }}
+                        >
+                          {copiedId === `c-${i}` ? <Check size={12} /> : <Copy size={12} />}
+                        </button>
                       </div>
                     </div>
                   ))}
-                </div>
-              )}
-            </div>
 
-            {/* Column 2: Withdrawals */}
-            <div
-              className="veil-card-white"
-              style={{
-                padding: "var(--space-6)",
-                borderRadius: "var(--radius-lg)",
-                border: "1px solid var(--color-border)",
-                display: "flex",
-                flexDirection: "column",
-                gap: "var(--space-4)",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <h2 style={{ margin: 0, fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", color: "var(--color-text)" }}>
-                    Unlinked Withdrawals
-                  </h2>
-                  <p style={{ margin: "4px 0 0 0", fontSize: "var(--text-body-sm)", color: "var(--color-muted)", fontFamily: "var(--font-body)" }}>
-                    Nullifier hashes spent with ZK proofs.
-                  </p>
-                </div>
-                <span style={{ fontFamily: "monospace", fontSize: "11px", color: "var(--color-muted)", padding: "2px 8px", borderRadius: "var(--radius-sm)", backgroundColor: "rgba(26, 26, 26, 0.04)" }}>
-                  {withdrawals.length} Recorded
-                </span>
-              </div>
-
-              {withdrawals.length === 0 ? (
-                <div style={{ padding: "var(--space-6)", textAlign: "center", color: "var(--color-muted)", fontFamily: "monospace", fontSize: "12px", backgroundColor: "rgba(26, 26, 26, 0.02)", borderRadius: "var(--radius-md)", border: "1px dashed var(--color-border)" }}>
-                  No withdrawals yet recorded on this pool.
-                </div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)", maxHeight: "420px", overflowY: "auto" }}>
-                  {withdrawals.map((w, i) => (
+                {/* Render withdrawals when tab is 'all' or 'withdrawals' */}
+                {(activeTab === "all" || activeTab === "withdrawals") &&
+                  withdrawals.map((w, i) => (
                     <div
-                      key={`${w.txHash}-${i}`}
+                      key={`wd-${w.txHash}-${i}`}
                       style={{
                         padding: "var(--space-3) var(--space-4)",
                         borderRadius: "var(--radius-md)",
-                        backgroundColor: "rgba(26, 26, 26, 0.02)",
+                        backgroundColor: "rgba(26, 26, 26, 0.015)",
                         border: "1px solid var(--color-border)",
-                        fontFamily: "monospace",
+                        fontFamily: "var(--font-mono)",
                         fontSize: "12px",
-                        color: "var(--color-text)",
-                        overflowWrap: "anywhere",
                         display: "flex",
                         flexDirection: "column",
-                        gap: "4px",
+                        gap: "6px",
                       }}
                     >
-                      <div style={{ display: "flex", justifyContent: "space-between", color: "var(--color-muted)", fontSize: "11px" }}>
-                        <span>To: {w.recipient.slice(0, 8)}...{w.recipient.slice(-6)}</span>
-                        <span>Block #{w.blockNumber.toString()}</span>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--space-2)" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <span
+                            style={{
+                              padding: "2px 6px",
+                              borderRadius: "var(--radius-sm)",
+                              fontSize: "10px",
+                              fontWeight: 700,
+                              backgroundColor: "rgba(26, 26, 26, 0.06)",
+                              color: "var(--color-text)",
+                            }}
+                          >
+                            WITHDRAW
+                          </span>
+                          <span style={{ color: "var(--color-text)", fontWeight: 600 }}>
+                            To {w.recipient.slice(0, 6)}...{w.recipient.slice(-4)}
+                          </span>
+                          <a
+                            href={`${EXPLORER}/block/${w.blockNumber.toString()}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{ color: "var(--color-muted)", textDecoration: "none", fontSize: "11px" }}
+                          >
+                            Block #{w.blockNumber.toString()} ↗
+                          </a>
+                        </div>
+                        {w.txHash && (
+                          <a
+                            href={`${EXPLORER}/tx/${w.txHash}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{ color: "var(--color-accent)", textDecoration: "none", fontSize: "11px", fontWeight: 600 }}
+                          >
+                            {w.txHash.slice(0, 8)}...{w.txHash.slice(-6)} ↗
+                          </a>
+                        )}
                       </div>
-                      <div style={{ color: "var(--color-text)", fontWeight: 500 }}>
-                        Nullifier: {w.nullifierHash}
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#ffffff", padding: "6px 10px", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)" }}>
+                        <span style={{ color: "var(--color-muted)", fontSize: "11px" }}>Nullifier:</span>
+                        <span style={{ color: "var(--color-text)", fontWeight: 500, overflowWrap: "anywhere" }}>
+                          {w.nullifierHash}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(w.nullifierHash, `n-${i}`)}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            padding: 0,
+                            cursor: "pointer",
+                            color: copiedId === `n-${i}` ? "var(--color-accent)" : "var(--color-muted)",
+                            marginLeft: "8px",
+                          }}
+                        >
+                          {copiedId === `n-${i}` ? <Check size={12} /> : <Copy size={12} />}
+                        </button>
                       </div>
                     </div>
                   ))}
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </>
       )}

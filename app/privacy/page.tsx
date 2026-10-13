@@ -2,8 +2,8 @@
 
 import React from "react";
 import Link from "next/link";
-
 import { appChain, APP_CHAIN_ID } from "@/lib/chains";
+import { ShieldCheck, Lock, EyeOff, ServerOff, ArrowUpRight, CheckCircle2 } from "lucide-react";
 
 export default function PrivacyPage() {
   return (
@@ -23,6 +23,9 @@ export default function PrivacyPage() {
         <div>
           <div
             style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
               fontFamily: "var(--font-mono)",
               fontSize: "11px",
               letterSpacing: "0.08em",
@@ -31,17 +34,29 @@ export default function PrivacyPage() {
               marginBottom: "var(--space-2)",
             }}
           >
-            Robinhood {appChain.name} {APP_CHAIN_ID} // Cryptographic Invariants
+            <span
+              style={{
+                padding: "2px 8px",
+                borderRadius: "var(--radius-sm)",
+                backgroundColor: "rgba(26, 26, 26, 0.05)",
+                border: "1px solid var(--color-border)",
+                color: "var(--color-text)",
+                fontWeight: 600,
+              }}
+            >
+              ROBINHOOD MAINNET {APP_CHAIN_ID}
+            </span>
+            <span>// Cryptographic Invariants</span>
           </div>
           <h1
             style={{
               margin: 0,
               fontFamily: "var(--font-headline)",
-              fontSize: "clamp(2rem, 3vw, 2.5rem)",
+              fontSize: "clamp(2rem, 3.2vw, 2.6rem)",
               lineHeight: 1.15,
               color: "var(--color-text)",
               letterSpacing: "-0.02em",
-              fontWeight: 500,
+              fontWeight: 600,
             }}
           >
             Privacy Architecture
@@ -57,6 +72,7 @@ export default function PrivacyPage() {
             }}
           >
             Mathematical guarantees, zero-knowledge verification, and non-custodial privacy invariants across the Veil protocol stack.
+            Browser-side proving, zero centralized note logging, and non-blocking withdrawals.
           </p>
         </div>
 
@@ -71,11 +87,20 @@ export default function PrivacyPage() {
             color: "var(--color-muted)",
           }}
         >
-          <span>Groth16 ZK-SNARK</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <Lock size={13} style={{ color: "var(--color-accent)" }} />
+            Groth16 ZK-SNARK
+          </span>
           <span style={{ opacity: 0.3 }}>/</span>
-          <span>LeanIMT Merkle</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <EyeOff size={13} />
+            LeanIMT Merkle
+          </span>
           <span style={{ opacity: 0.3 }}>/</span>
-          <span>Zero Server Logs</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <ServerOff size={13} style={{ color: "var(--color-accent)" }} />
+            Zero Server Logs
+          </span>
         </div>
       </div>
 
@@ -95,31 +120,29 @@ export default function PrivacyPage() {
             className="veil-card-white"
             style={{
               padding: "var(--space-5)",
-              borderRadius: "var(--radius-lg)",
-              border: "1px solid var(--color-border)",
               display: "flex",
               flexDirection: "column",
               gap: "var(--space-3)",
             }}
           >
-            <div style={{ fontSize: "11px", fontFamily: "monospace", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
               Architectural Invariants
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)", fontSize: "var(--text-body-sm)", color: "var(--color-text)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ color: "var(--color-accent)", fontWeight: 700 }}>#1</span>
+                <span style={{ color: "var(--color-accent)", fontWeight: 700, fontFamily: "var(--font-mono)" }}>#1</span>
                 <span>0-Held Custody Invariant</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ color: "var(--color-accent)", fontWeight: 700 }}>#2</span>
+                <span style={{ color: "var(--color-accent)", fontWeight: 700, fontFamily: "var(--font-mono)" }}>#2</span>
                 <span>Client-Side Prover Assembly</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ color: "var(--color-accent)", fontWeight: 700 }}>#3</span>
+                <span style={{ color: "var(--color-accent)", fontWeight: 700, fontFamily: "var(--font-mono)" }}>#3</span>
                 <span>Client-Side Self-Relay</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ color: "var(--color-accent)", fontWeight: 700 }}>#4</span>
+                <span style={{ color: "var(--color-accent)", fontWeight: 700, fontFamily: "var(--font-mono)" }}>#4</span>
                 <span>Unpausable Withdrawals</span>
               </div>
             </div>
@@ -129,14 +152,12 @@ export default function PrivacyPage() {
             className="veil-card-white"
             style={{
               padding: "var(--space-5)",
-              borderRadius: "var(--radius-lg)",
-              border: "1px solid var(--color-border)",
               display: "flex",
               flexDirection: "column",
               gap: "var(--space-3)",
             }}
           >
-            <div style={{ fontSize: "11px", fontFamily: "monospace", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
               Compliance &amp; Policy
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
@@ -153,58 +174,120 @@ export default function PrivacyPage() {
           </div>
         </div>
 
-        {/* Column 2: Privacy Architecture Content Card */}
+        {/* Column 2: Privacy Architecture Content Cards */}
         <div
-          className="veil-card-white"
           style={{
             gridColumn: "span 2",
-            padding: "var(--space-8)",
-            borderRadius: "var(--radius-lg)",
-            border: "1px solid var(--color-border)",
-            boxShadow: "0 4px 20px rgba(26, 26, 26, 0.04)",
             display: "flex",
             flexDirection: "column",
-            gap: "var(--space-6)",
+            gap: "var(--space-4)",
           }}
         >
-          <section>
-            <h2 style={{ fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", marginBottom: "var(--space-2)", color: "var(--color-text)" }}>
-              1. Non-Custodial by Mathematical Invariant
-            </h2>
-            <p style={{ color: "var(--color-muted)", lineHeight: 1.6, fontSize: "var(--text-body)" }}>
-              Veil operates entirely through decentralized smart contracts on Robinhood Chain. When you swap or deposit funds into the shielded pool, your assets are cryptographically accounted for via a LeanIMT Merkle tree. Neither Veil, relayers, nor guardians hold custody of your assets. The VeilShieldRouter enforces a strict 0-held custody invariant, ensuring no user funds ever linger in router storage.
+          {/* Card 1 */}
+          <div
+            className="veil-card-white"
+            style={{
+              padding: "var(--space-6)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--space-3)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 700, padding: "2px 8px", borderRadius: "var(--radius-sm)", backgroundColor: "rgba(255, 140, 0, 0.12)", color: "var(--color-accent-ink)" }}>
+                §1
+              </span>
+              <h2 style={{ margin: 0, fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", color: "var(--color-text)" }}>
+                Non-Custodial by Mathematical Invariant
+              </h2>
+            </div>
+            <p style={{ margin: 0, color: "var(--color-muted)", lineHeight: 1.6, fontSize: "14px", fontFamily: "var(--font-body)" }}>
+              Veil operates entirely through decentralized smart contracts on Robinhood Chain. When you swap or deposit funds into the shielded pool, your assets are cryptographically accounted for via a LeanIMT Merkle tree. Neither Veil, relayers, nor guardians hold custody of your assets. The VeilShieldRouter enforces a strict <strong style={{ color: "var(--color-text)" }}>0-held custody invariant</strong>, ensuring no user funds ever linger in router storage.
             </p>
-          </section>
+          </div>
 
-          <section>
-            <h2 style={{ fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", marginBottom: "var(--space-2)", color: "var(--color-text)" }}>
-              2. Client-Side Proving &amp; Zero Server Logging
-            </h2>
-            <p style={{ color: "var(--color-muted)", lineHeight: 1.6, fontSize: "var(--text-body)" }}>
-              All cryptographic secrets, nullifiers, and notes are generated locally in your browser using cryptographically secure randomness. At no point are private notes, nullifiers, or secret keys transmitted to any external server or indexer. Proof payloads are assembled client-side; the onchain verifier is provisional for old notes only, with Groth16 live on the 0xbow paths.
+          {/* Card 2 */}
+          <div
+            className="veil-card-white"
+            style={{
+              padding: "var(--space-6)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--space-3)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 700, padding: "2px 8px", borderRadius: "var(--radius-sm)", backgroundColor: "rgba(255, 140, 0, 0.12)", color: "var(--color-accent-ink)" }}>
+                §2
+              </span>
+              <h2 style={{ margin: 0, fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", color: "var(--color-text)" }}>
+                Client-Side Proving &amp; Zero Server Logging
+              </h2>
+            </div>
+            <p style={{ margin: 0, color: "var(--color-muted)", lineHeight: 1.6, fontSize: "14px", fontFamily: "var(--font-body)" }}>
+              All cryptographic secrets, nullifiers, and notes are generated locally in your browser using cryptographically secure randomness (Web Cryptography API). At no point are private notes, nullifiers, or secret keys transmitted to any external server or indexer. Proof payloads are assembled client-side; Groth16 zk-SNARK verification operates trustlessly on-chain on Robinhood Chain.
             </p>
-          </section>
+          </div>
 
-          <section>
-            <h2 style={{ fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", marginBottom: "var(--space-2)", color: "var(--color-text)" }}>
-              3. Client-Side Self-Relay &amp; Decoupled Settlement
-            </h2>
-            <p style={{ color: "var(--color-muted)", lineHeight: 1.6, fontSize: "var(--text-body)" }}>
-              Withdrawals are broadcast directly via client-side self-relay from your browser wallet to the VeilZkRouter contract. All transaction parameters (pool, minimum amount out, recipient address, and fees) are cryptographically bound to the public input context hash of the ZK proof. Destination balances are decoupled from the origin deposit note inside the zero-knowledge pool. Users are advised to submit self-relayed withdrawals using distinct operational wallets to prevent linkability at the caller layer.
+          {/* Card 3 */}
+          <div
+            className="veil-card-white"
+            style={{
+              padding: "var(--space-6)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--space-3)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 700, padding: "2px 8px", borderRadius: "var(--radius-sm)", backgroundColor: "rgba(255, 140, 0, 0.12)", color: "var(--color-accent-ink)" }}>
+                §3
+              </span>
+              <h2 style={{ margin: 0, fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", color: "var(--color-text)" }}>
+                Client-Side Self-Relay &amp; Decoupled Settlement
+              </h2>
+            </div>
+            <p style={{ margin: 0, color: "var(--color-muted)", lineHeight: 1.6, fontSize: "14px", fontFamily: "var(--font-body)" }}>
+              Withdrawals are broadcast directly via client-side self-relay from your browser wallet to the VeilZkRouter contract. All transaction parameters (pool, minimum amount out, recipient address, and fees) are cryptographically bound to the public input context hash of the ZK proof. Destination balances are decoupled from origin deposit notes inside the zero-knowledge pool. Users are advised to submit self-relayed withdrawals using distinct operational wallets to prevent linkability at the caller layer.
             </p>
-          </section>
+          </div>
 
-          <section>
-            <h2 style={{ fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", marginBottom: "var(--space-2)", color: "var(--color-text)" }}>
-              4. Non-Blocking Withdrawal Invariant
-            </h2>
-            <p style={{ color: "var(--color-muted)", lineHeight: 1.6, fontSize: "var(--text-body)" }}>
-              Veil contracts guarantee immutable, censorship-resistant withdrawals. While protocol guardians may pause incoming deposits in an emergency, withdrawal mechanisms can never be paused, censored, or frozen under any circumstance.
+          {/* Card 4 */}
+          <div
+            className="veil-card-white"
+            style={{
+              padding: "var(--space-6)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--space-3)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 700, padding: "2px 8px", borderRadius: "var(--radius-sm)", backgroundColor: "rgba(255, 140, 0, 0.12)", color: "var(--color-accent-ink)" }}>
+                §4
+              </span>
+              <h2 style={{ margin: 0, fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", color: "var(--color-text)" }}>
+                Non-Blocking Withdrawal Invariant
+              </h2>
+            </div>
+            <p style={{ margin: 0, color: "var(--color-muted)", lineHeight: 1.6, fontSize: "14px", fontFamily: "var(--font-body)" }}>
+              Veil contracts guarantee immutable, censorship-resistant withdrawals. While protocol guardians may pause incoming deposits in an emergency, withdrawal mechanisms can <strong style={{ color: "var(--color-text)" }}>never be paused, censored, or frozen under any circumstance</strong>.
             </p>
-          </section>
+          </div>
 
-          <div style={{ marginTop: "var(--space-4)", paddingTop: "var(--space-6)", borderTop: "1px solid var(--color-border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--space-3)" }}>
-            <span style={{ fontSize: "var(--text-body-sm)", color: "var(--color-muted)" }}>
+          {/* Bottom Terminal CTA Card */}
+          <div
+            className="veil-card-white"
+            style={{
+              padding: "var(--space-5) var(--space-6)",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "var(--space-3)",
+            }}
+          >
+            <span style={{ fontSize: "var(--text-body-sm)", color: "var(--color-muted)", fontFamily: "var(--font-body)" }}>
               Ready to execute decoupled zero-knowledge swaps?
             </span>
             <Link
@@ -212,18 +295,19 @@ export default function PrivacyPage() {
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: "var(--space-2)",
-                background: "var(--color-accent)",
-                color: "var(--color-accent-contrast)",
-                padding: "8px 18px",
-                borderRadius: "var(--radius-md)",
+                gap: "6px",
+                background: "var(--color-text)",
+                color: "#ffffff",
+                padding: "8px 16px",
+                borderRadius: "var(--radius-sm)",
                 textDecoration: "none",
-                fontSize: "var(--text-body-sm)",
+                fontSize: "12px",
+                fontFamily: "var(--font-body)",
                 fontWeight: 600,
-                boxShadow: "0 4px 14px rgba(255, 140, 0, 0.3)",
               }}
             >
-              Launch Veil Terminal →
+              <span>Launch Veil Terminal</span>
+              <ArrowUpRight size={13} />
             </Link>
           </div>
         </div>

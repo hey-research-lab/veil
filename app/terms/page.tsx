@@ -2,8 +2,8 @@
 
 import React from "react";
 import Link from "next/link";
-
 import { appChain, APP_CHAIN_ID } from "@/lib/chains";
+import { Scale, ShieldCheck, FileCheck, AlertTriangle, ArrowUpRight } from "lucide-react";
 
 export default function TermsPage() {
   return (
@@ -23,6 +23,9 @@ export default function TermsPage() {
         <div>
           <div
             style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
               fontFamily: "var(--font-mono)",
               fontSize: "11px",
               letterSpacing: "0.08em",
@@ -31,17 +34,29 @@ export default function TermsPage() {
               marginBottom: "var(--space-2)",
             }}
           >
-            Robinhood {appChain.name} {APP_CHAIN_ID} // Governance &amp; Legal
+            <span
+              style={{
+                padding: "2px 8px",
+                borderRadius: "var(--radius-sm)",
+                backgroundColor: "rgba(26, 26, 26, 0.05)",
+                border: "1px solid var(--color-border)",
+                color: "var(--color-text)",
+                fontWeight: 600,
+              }}
+            >
+              ROBINHOOD MAINNET {APP_CHAIN_ID}
+            </span>
+            <span>// Terms of Service</span>
           </div>
           <h1
             style={{
               margin: 0,
               fontFamily: "var(--font-headline)",
-              fontSize: "clamp(2rem, 3vw, 2.5rem)",
+              fontSize: "clamp(2rem, 3.2vw, 2.6rem)",
               lineHeight: 1.15,
               color: "var(--color-text)",
               letterSpacing: "-0.02em",
-              fontWeight: 500,
+              fontWeight: 600,
             }}
           >
             Terms of Service
@@ -57,6 +72,7 @@ export default function TermsPage() {
             }}
           >
             Protocol usage rules, non-custodial responsibility, and user sovereignty guidelines for Veil smart contracts.
+            Autonomous execution, client-side secret management, and as-is software warranties.
           </p>
         </div>
 
@@ -71,11 +87,20 @@ export default function TermsPage() {
             color: "var(--color-muted)",
           }}
         >
-          <span>Protocol v1</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <Scale size={13} style={{ color: "var(--color-accent)" }} />
+            Non-Custodial
+          </span>
           <span style={{ opacity: 0.3 }}>/</span>
-          <span>Non-Custodial</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <ShieldCheck size={13} />
+            User Sovereignty
+          </span>
           <span style={{ opacity: 0.3 }}>/</span>
-          <span>Autonomous Execution</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <FileCheck size={13} style={{ color: "var(--color-accent)" }} />
+            Protocol v1
+          </span>
         </div>
       </div>
 
@@ -89,37 +114,35 @@ export default function TermsPage() {
           width: "100%",
         }}
       >
-        {/* Column 1: Quick Navigation & Companion Docs Sidebar */}
+        {/* Column 1: Core Tenets Sidebar */}
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
           <div
             className="veil-card-white"
             style={{
               padding: "var(--space-5)",
-              borderRadius: "var(--radius-lg)",
-              border: "1px solid var(--color-border)",
               display: "flex",
               flexDirection: "column",
               gap: "var(--space-3)",
             }}
           >
-            <div style={{ fontSize: "11px", fontFamily: "monospace", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
               Core Tenets
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)", fontSize: "var(--text-body-sm)", color: "var(--color-text)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ color: "var(--color-accent)", fontWeight: 700 }}>§1</span>
+                <span style={{ color: "var(--color-accent)", fontWeight: 700, fontFamily: "var(--font-mono)" }}>§1</span>
                 <span>Decentralized &amp; Non-Custodial</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ color: "var(--color-accent)", fontWeight: 700 }}>§2</span>
+                <span style={{ color: "var(--color-accent)", fontWeight: 700, fontFamily: "var(--font-mono)" }}>§2</span>
                 <span>Exclusive Key Custody</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ color: "var(--color-accent)", fontWeight: 700 }}>§3</span>
+                <span style={{ color: "var(--color-accent)", fontWeight: 700, fontFamily: "var(--font-mono)" }}>§3</span>
                 <span>Association Set Proofs (ASP)</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ color: "var(--color-accent)", fontWeight: 700 }}>§4</span>
+                <span style={{ color: "var(--color-accent)", fontWeight: 700, fontFamily: "var(--font-mono)" }}>§4</span>
                 <span>As-Is Software Warranty</span>
               </div>
             </div>
@@ -129,14 +152,12 @@ export default function TermsPage() {
             className="veil-card-white"
             style={{
               padding: "var(--space-5)",
-              borderRadius: "var(--radius-lg)",
-              border: "1px solid var(--color-border)",
               display: "flex",
               flexDirection: "column",
               gap: "var(--space-3)",
             }}
           >
-            <div style={{ fontSize: "11px", fontFamily: "monospace", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
               Related Documentation
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
@@ -147,64 +168,126 @@ export default function TermsPage() {
                 → Association Set Policy (ASP)
               </Link>
               <Link href="/docs/decisions" style={{ color: "var(--color-accent)", fontSize: "var(--text-body-sm)", textDecoration: "none", fontWeight: 600 }}>
-                → Veil Owner Decisions (Binding)
+                → Owner Decisions (Binding)
               </Link>
             </div>
           </div>
         </div>
 
-        {/* Column 2: Terms of Service Content Card */}
+        {/* Column 2: Terms of Service Content Cards */}
         <div
-          className="veil-card-white"
           style={{
             gridColumn: "span 2",
-            padding: "var(--space-8)",
-            borderRadius: "var(--radius-lg)",
-            border: "1px solid var(--color-border)",
-            boxShadow: "0 4px 20px rgba(26, 26, 26, 0.04)",
             display: "flex",
             flexDirection: "column",
-            gap: "var(--space-6)",
+            gap: "var(--space-4)",
           }}
         >
-          <section>
-            <h2 style={{ fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", marginBottom: "var(--space-2)", color: "var(--color-text)" }}>
-              1. Nature of the Protocol
-            </h2>
-            <p style={{ color: "var(--color-muted)", lineHeight: 1.6, fontSize: "var(--text-body)" }}>
+          {/* Card 1 */}
+          <div
+            className="veil-card-white"
+            style={{
+              padding: "var(--space-6)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--space-3)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 700, padding: "2px 8px", borderRadius: "var(--radius-sm)", backgroundColor: "rgba(255, 140, 0, 0.12)", color: "var(--color-accent-ink)" }}>
+                §1
+              </span>
+              <h2 style={{ margin: 0, fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", color: "var(--color-text)" }}>
+                Nature of the Protocol
+              </h2>
+            </div>
+            <p style={{ margin: 0, color: "var(--color-muted)", lineHeight: 1.6, fontSize: "14px", fontFamily: "var(--font-body)" }}>
               Veil is a decentralized, non-custodial privacy infrastructure deployed on Robinhood Chain and integrated with Uniswap v4. The protocol comprises open-source, immutable smart contracts that execute autonomously according to public code.
             </p>
-          </section>
+          </div>
 
-          <section>
-            <h2 style={{ fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", marginBottom: "var(--space-2)", color: "var(--color-text)" }}>
-              2. User Responsibility &amp; Key Management
-            </h2>
-            <p style={{ color: "var(--color-muted)", lineHeight: 1.6, fontSize: "var(--text-body)" }}>
+          {/* Card 2 */}
+          <div
+            className="veil-card-white"
+            style={{
+              padding: "var(--space-6)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--space-3)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 700, padding: "2px 8px", borderRadius: "var(--radius-sm)", backgroundColor: "rgba(255, 140, 0, 0.12)", color: "var(--color-accent-ink)" }}>
+                §2
+              </span>
+              <h2 style={{ margin: 0, fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", color: "var(--color-text)" }}>
+                User Responsibility &amp; Key Management
+              </h2>
+            </div>
+            <p style={{ margin: 0, color: "var(--color-muted)", lineHeight: 1.6, fontSize: "14px", fontFamily: "var(--font-body)" }}>
               Users retain sole and exclusive custody of their cryptographic private keys, secret commitments, and nullifiers. Because Veil is non-custodial, lost notes or nullifiers cannot be restored by any protocol developer or validator. Users are responsible for maintaining secure backups of their encrypted note strings.
             </p>
-          </section>
+          </div>
 
-          <section>
-            <h2 style={{ fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", marginBottom: "var(--space-2)", color: "var(--color-text)" }}>
-              3. Association Set Provider (ASP) Architecture &amp; User Attestation
-            </h2>
-            <p style={{ color: "var(--color-muted)", lineHeight: 1.6, fontSize: "var(--text-body)" }}>
+          {/* Card 3 */}
+          <div
+            className="veil-card-white"
+            style={{
+              padding: "var(--space-6)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--space-3)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 700, padding: "2px 8px", borderRadius: "var(--radius-sm)", backgroundColor: "rgba(255, 140, 0, 0.12)", color: "var(--color-accent-ink)" }}>
+                §3
+              </span>
+              <h2 style={{ margin: 0, fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", color: "var(--color-text)" }}>
+                Association Set Provider (ASP) Architecture &amp; User Attestation
+              </h2>
+            </div>
+            <p style={{ margin: 0, color: "var(--color-muted)", lineHeight: 1.6, fontSize: "14px", fontFamily: "var(--font-body)" }}>
               Veil incorporates zero-knowledge Association Set Provider (ASP) proofs allowing depositors to prove membership in published deposit sets. Under the protocol&apos;s open self-attestation architecture, attestations are generated permissionlessly on the client side without centralized surveillance or custodial screening. Users remain solely responsible for complying with applicable local laws and regulations governing digital asset transactions.
             </p>
-          </section>
+          </div>
 
-          <section>
-            <h2 style={{ fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", marginBottom: "var(--space-2)", color: "var(--color-text)" }}>
-              4. "As-Is" Software Disclaimer
-            </h2>
-            <p style={{ color: "var(--color-muted)", lineHeight: 1.6, fontSize: "var(--text-body)" }}>
-              Veil is provided &quot;as is&quot; without warranties of any kind. Smart contract interactions involve inherent financial and technological risks. Users interact with the protocol at their own discretion.
+          {/* Card 4 */}
+          <div
+            className="veil-card-white"
+            style={{
+              padding: "var(--space-6)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--space-3)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 700, padding: "2px 8px", borderRadius: "var(--radius-sm)", backgroundColor: "rgba(255, 140, 0, 0.12)", color: "var(--color-accent-ink)" }}>
+                §4
+              </span>
+              <h2 style={{ margin: 0, fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", color: "var(--color-text)" }}>
+                &ldquo;As-Is&rdquo; Software Disclaimer
+              </h2>
+            </div>
+            <p style={{ margin: 0, color: "var(--color-muted)", lineHeight: 1.6, fontSize: "14px", fontFamily: "var(--font-body)" }}>
+              Veil is provided &ldquo;as is&rdquo; without warranties of any kind. Smart contract interactions involve inherent financial and technological risks. Users interact with the protocol at their own discretion.
             </p>
-          </section>
+          </div>
 
-          <div style={{ marginTop: "var(--space-4)", paddingTop: "var(--space-6)", borderTop: "1px solid var(--color-border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--space-3)" }}>
-            <span style={{ fontSize: "var(--text-body-sm)", color: "var(--color-muted)" }}>
+          {/* Bottom Terminal CTA Card */}
+          <div
+            className="veil-card-white"
+            style={{
+              padding: "var(--space-5) var(--space-6)",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "var(--space-3)",
+            }}
+          >
+            <span style={{ fontSize: "var(--text-body-sm)", color: "var(--color-muted)", fontFamily: "var(--font-body)" }}>
               Need help or have questions regarding protocol invariants?
             </span>
             <Link
@@ -212,18 +295,19 @@ export default function TermsPage() {
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: "var(--space-2)",
-                background: "var(--color-accent)",
-                color: "var(--color-accent-contrast)",
-                padding: "8px 18px",
-                borderRadius: "var(--radius-md)",
+                gap: "6px",
+                background: "var(--color-text)",
+                color: "#ffffff",
+                padding: "8px 16px",
+                borderRadius: "var(--radius-sm)",
                 textDecoration: "none",
-                fontSize: "var(--text-body-sm)",
+                fontSize: "12px",
+                fontFamily: "var(--font-body)",
                 fontWeight: 600,
-                boxShadow: "0 4px 14px rgba(255, 140, 0, 0.3)",
               }}
             >
-              Launch Veil Terminal →
+              <span>Launch Veil Terminal</span>
+              <ArrowUpRight size={13} />
             </Link>
           </div>
         </div>

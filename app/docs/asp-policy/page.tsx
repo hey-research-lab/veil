@@ -1,7 +1,22 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { appChain, APP_CHAIN_ID } from "@/lib/chains";
+import { Copy, Check, ShieldCheck, Scale, FileText, ArrowUpRight, Terminal, CheckCircle2 } from "lucide-react";
 
 export default function AspPolicyDocPage() {
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const GENESIS_CID = "QmVtkNm5Ro2F1oVBdP17TxcAcafXtMoG8rYPnu7S8kXJxV";
+  const SCRIPT_CMD = "node scripts/publish-asp.mjs --network mainnet";
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)", width: "100%" }}>
       {/* Editorial Header */}
@@ -19,6 +34,9 @@ export default function AspPolicyDocPage() {
         <div>
           <div
             style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
               fontFamily: "var(--font-mono)",
               fontSize: "11px",
               letterSpacing: "0.08em",
@@ -27,17 +45,29 @@ export default function AspPolicyDocPage() {
               marginBottom: "var(--space-2)",
             }}
           >
-            Robinhood {appChain.name} {APP_CHAIN_ID} // Compliance Pillar §8
+            <span
+              style={{
+                padding: "2px 8px",
+                borderRadius: "var(--radius-sm)",
+                backgroundColor: "rgba(26, 26, 26, 0.05)",
+                border: "1px solid var(--color-border)",
+                color: "var(--color-text)",
+                fontWeight: 600,
+              }}
+            >
+              ROBINHOOD MAINNET {APP_CHAIN_ID}
+            </span>
+            <span>// Association Set Policy (ASP)</span>
           </div>
           <h1
             style={{
               margin: 0,
               fontFamily: "var(--font-headline)",
-              fontSize: "clamp(2rem, 3vw, 2.5rem)",
+              fontSize: "clamp(2rem, 3.2vw, 2.6rem)",
               lineHeight: 1.15,
               color: "var(--color-text)",
               letterSpacing: "-0.02em",
-              fontWeight: 500,
+              fontWeight: 600,
             }}
           >
             Association Set Policy (v1)
@@ -53,6 +83,7 @@ export default function AspPolicyDocPage() {
             }}
           >
             Deterministic, mechanical inclusion rules for clean withdrawal sets on Robinhood Chain.
+            Zero human discretion, open automated publishing tooling, and anti-censorship guarantees.
           </p>
         </div>
 
@@ -67,11 +98,20 @@ export default function AspPolicyDocPage() {
             color: "var(--color-muted)",
           }}
         >
-          <span>Deterministic</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <Scale size={13} style={{ color: "var(--color-accent)" }} />
+            Mechanical Inclusion
+          </span>
           <span style={{ opacity: 0.3 }}>/</span>
-          <span>No Human Discretion</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <ShieldCheck size={13} />
+            Zero Discretion
+          </span>
           <span style={{ opacity: 0.3 }}>/</span>
-          <span>Open Tooling</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <FileText size={13} style={{ color: "var(--color-accent)" }} />
+            Open Source Tooling
+          </span>
         </div>
       </div>
 
@@ -91,31 +131,29 @@ export default function AspPolicyDocPage() {
             className="veil-card-white"
             style={{
               padding: "var(--space-5)",
-              borderRadius: "var(--radius-lg)",
-              border: "1px solid var(--color-border)",
               display: "flex",
               flexDirection: "column",
               gap: "var(--space-3)",
             }}
           >
-            <div style={{ fontSize: "11px", fontFamily: "monospace", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-              Policy Rules Summary
+            <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+              Core Policy Rules
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)", fontSize: "var(--text-body-sm)", color: "var(--color-text)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ color: "var(--color-accent)", fontWeight: 700 }}>§1</span>
+                <span style={{ color: "var(--color-accent)", fontWeight: 700, fontFamily: "var(--font-mono)" }}>§1</span>
                 <span>Every Onchain Label Included</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ color: "var(--color-accent)", fontWeight: 700 }}>§2</span>
+                <span style={{ color: "var(--color-accent)", fontWeight: 700, fontFamily: "var(--font-mono)" }}>§2</span>
                 <span>Mechanical Script Execution</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ color: "var(--color-accent)", fontWeight: 700 }}>§3</span>
+                <span style={{ color: "var(--color-accent)", fontWeight: 700, fontFamily: "var(--font-mono)" }}>§3</span>
                 <span>Anti-Censorship Gated Role</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ color: "var(--color-accent)", fontWeight: 700 }}>§4</span>
+                <span style={{ color: "var(--color-accent)", fontWeight: 700, fontFamily: "var(--font-mono)" }}>§4</span>
                 <span>Zero Human Discretion</span>
               </div>
             </div>
@@ -125,14 +163,12 @@ export default function AspPolicyDocPage() {
             className="veil-card-white"
             style={{
               padding: "var(--space-5)",
-              borderRadius: "var(--radius-lg)",
-              border: "1px solid var(--color-border)",
               display: "flex",
               flexDirection: "column",
               gap: "var(--space-3)",
             }}
           >
-            <div style={{ fontSize: "11px", fontFamily: "monospace", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
               Related Governance
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
@@ -149,94 +185,250 @@ export default function AspPolicyDocPage() {
           </div>
         </div>
 
-        {/* Column 2: ASP Policy Content Card */}
+        {/* Column 2: ASP Policy Content */}
         <div
-          className="veil-card-white"
           style={{
             gridColumn: "span 2",
-            padding: "var(--space-8)",
-            borderRadius: "var(--radius-lg)",
-            border: "1px solid var(--color-border)",
-            boxShadow: "0 4px 20px rgba(26, 26, 26, 0.04)",
             display: "flex",
             flexDirection: "column",
-            gap: "var(--space-6)",
+            gap: "var(--space-4)",
           }}
         >
-          <section>
-            <h2 style={{ fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", marginBottom: "var(--space-2)", color: "var(--color-text)" }}>
-              1. The Rule
-            </h2>
-            <p style={{ color: "var(--color-muted)", lineHeight: 1.6, fontSize: "var(--text-body)" }}>
-              The association set contains <strong>every label ever deposited onchain</strong> plus the
-              genesis sentinel, nothing more, nothing less. No human decides inclusion
-              or exclusion. Publication is mechanical: <code>scripts/publish-asp.mjs</code> rebuilds
-              the set from <code>Deposited</code> events and calls <code>updateRoot</code>. Anyone holding the
-              postman key can run it; the scheduled operator run is the canonical one.
+          {/* Section 1: The Rule */}
+          <div
+            className="veil-card-white"
+            style={{
+              padding: "var(--space-6)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--space-3)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 700, padding: "2px 8px", borderRadius: "var(--radius-sm)", backgroundColor: "rgba(255, 140, 0, 0.12)", color: "var(--color-accent-ink)" }}>
+                §1
+              </span>
+              <h2 style={{ margin: 0, fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", color: "var(--color-text)" }}>
+                The Inclusion Rule
+              </h2>
+            </div>
+            <p style={{ margin: 0, color: "var(--color-muted)", lineHeight: 1.6, fontSize: "14px", fontFamily: "var(--font-body)" }}>
+              The association set contains <strong style={{ color: "var(--color-text)" }}>every label ever deposited onchain</strong> plus the
+              genesis sentinel, nothing more, nothing less. No human decides inclusion or exclusion.
+              Publication is strictly mechanical: <code>scripts/publish-asp.mjs</code> rebuilds the Merkle tree from on-chain <code>Deposited</code> events and submits <code>updateRoot</code> to the 0xbow Entrypoint proxy.
             </p>
-          </section>
 
-          <section>
-            <h2 style={{ fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", marginBottom: "var(--space-2)", color: "var(--color-text)" }}>
-              2. Why the updater key is still gated
-            </h2>
-            <p style={{ color: "var(--color-muted)", lineHeight: 1.6, fontSize: "var(--text-body)" }}>
-              <code>updateRoot</code> requires the postman role. An open <code>updateRoot</code> would let anyone
-              publish a root that omits labels, stranding other users withdrawals. Open
-              tooling plus gated key is the minimal safe combination: the rule is public
-              and deterministic, the key only prevents censorship.
+            {/* Publication Script Box */}
+            <div
+              style={{
+                marginTop: "var(--space-2)",
+                padding: "10px 14px",
+                borderRadius: "var(--radius-sm)",
+                backgroundColor: "rgba(26, 26, 26, 0.03)",
+                border: "1px solid var(--color-border)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: "var(--space-3)",
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <Terminal size={14} style={{ color: "var(--color-muted)" }} />
+                <code style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--color-text)" }}>
+                  {SCRIPT_CMD}
+                </code>
+              </div>
+              <button
+                type="button"
+                onClick={() => copyToClipboard(SCRIPT_CMD, "script")}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  padding: "4px 8px",
+                  borderRadius: "var(--radius-sm)",
+                  backgroundColor: "#ffffff",
+                  border: "1px solid var(--color-border)",
+                  color: copiedId === "script" ? "var(--color-accent)" : "var(--color-text)",
+                  fontSize: "11px",
+                  fontFamily: "var(--font-mono)",
+                  cursor: "pointer",
+                }}
+              >
+                {copiedId === "script" ? <Check size={12} /> : <Copy size={12} />}
+                {copiedId === "script" ? "Copied" : "Copy Command"}
+              </button>
+            </div>
+          </div>
+
+          {/* Section 2: Why Updater Key is Gated */}
+          <div
+            className="veil-card-white"
+            style={{
+              padding: "var(--space-6)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--space-3)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 700, padding: "2px 8px", borderRadius: "var(--radius-sm)", backgroundColor: "rgba(255, 140, 0, 0.12)", color: "var(--color-accent-ink)" }}>
+                §2
+              </span>
+              <h2 style={{ margin: 0, fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", color: "var(--color-text)" }}>
+                Why the Updater Role is Gated
+              </h2>
+            </div>
+            <p style={{ margin: 0, color: "var(--color-muted)", lineHeight: 1.6, fontSize: "14px", fontFamily: "var(--font-body)" }}>
+              <code>updateRoot</code> on the 0xbow Entrypoint proxy requires the designated postman role.
+              An open, unpermissioned <code>updateRoot</code> would allow malicious actors to publish fraudulent roots that omit legitimate user labels, effectively stranding withdrawals.
+              Open deterministic publication tooling paired with a dedicated operational updater key represents the minimal safe architecture: the rule is public and mathematically verifiable, while the key prevents censorship.
             </p>
-          </section>
+          </div>
 
-          <section>
-            <h2 style={{ fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", marginBottom: "var(--space-2)", color: "var(--color-text)" }}>
-              3. Current sets
-            </h2>
-            <ul style={{ color: "var(--color-muted)", lineHeight: 1.6, paddingLeft: "20px", display: "flex", flexDirection: "column", gap: "var(--space-2)", fontSize: "var(--text-body)" }}>
-              <li><strong>Testnet 46630 (v1 entrypoint):</strong> local sentinel set (see deployment manifests).</li>
-              <li>
-                <strong>Testnet 46630 (v3 entrypoint):</strong> sentinel-only genesis; labels join
-                automatically per the rule above.
-              </li>
-              <li><strong>Mainnet 4663:</strong> live, published from live deposits under the same rule — see the manifests, explorer, and the IPFS CID on the landing page.</li>
-            </ul>
-          </section>
+          {/* Section 3: Current Sets */}
+          <div
+            className="veil-card-white"
+            style={{
+              padding: "var(--space-6)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--space-3)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 700, padding: "2px 8px", borderRadius: "var(--radius-sm)", backgroundColor: "rgba(255, 140, 0, 0.12)", color: "var(--color-accent-ink)" }}>
+                §3
+              </span>
+              <h2 style={{ margin: 0, fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", color: "var(--color-text)" }}>
+                Current Association Sets
+              </h2>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+              <div
+                style={{
+                  padding: "12px 16px",
+                  borderRadius: "var(--radius-sm)",
+                  backgroundColor: "rgba(26, 26, 26, 0.02)",
+                  border: "1px solid var(--color-border)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "6px",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontWeight: 600, color: "var(--color-text)", fontSize: "13px" }}>
+                    Robinhood Chain Mainnet (4663)
+                  </span>
+                  <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-accent)", fontWeight: 600 }}>
+                    CANONICAL LIVE
+                  </span>
+                </div>
+                <p style={{ margin: 0, fontSize: "12px", color: "var(--color-muted)", fontFamily: "var(--font-body)", lineHeight: 1.5 }}>
+                  Published from live pool deposits with deterministic root updates under the rule above. Genesis sentinel CID is permanently pinned to IPFS.
+                </p>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", marginTop: "4px", backgroundColor: "#ffffff", padding: "6px 10px", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)" }}>
+                  <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-muted)" }}>
+                    Genesis IPFS CID:
+                  </span>
+                  <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-text)", fontWeight: 500 }}>
+                    {GENESIS_CID}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(GENESIS_CID, "cid")}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      padding: 0,
+                      cursor: "pointer",
+                      color: copiedId === "cid" ? "var(--color-accent)" : "var(--color-muted)",
+                    }}
+                  >
+                    {copiedId === "cid" ? <Check size={12} /> : <Copy size={12} />}
+                  </button>
+                </div>
+              </div>
 
-          <section>
-            <h2 style={{ fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", marginBottom: "var(--space-2)", color: "var(--color-text)" }}>
-              4. Changes
-            </h2>
-            <p style={{ color: "var(--color-muted)", lineHeight: 1.6, fontSize: "var(--text-body)" }}>
-              Any rule change requires a published policy revision before the code
-              follows. Code never leads policy. See also{" "}
-              <Link href="/docs/decisions" style={{ color: "var(--color-accent)", fontWeight: 600 }}>
-                Owner Decisions
-              </Link>
-              .
+              <div
+                style={{
+                  padding: "12px 16px",
+                  borderRadius: "var(--radius-sm)",
+                  backgroundColor: "rgba(26, 26, 26, 0.01)",
+                  border: "1px solid var(--color-border)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "4px",
+                }}
+              >
+                <span style={{ fontWeight: 600, color: "var(--color-muted)", fontSize: "13px" }}>
+                  Testnet 46630 (Historic Reference Only)
+                </span>
+                <p style={{ margin: 0, fontSize: "12px", color: "var(--color-muted)", fontFamily: "var(--font-body)", lineHeight: 1.5 }}>
+                  Sentinel-only genesis retained strictly for regression testing and historic telemetry benchmarks.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 4: Policy Evolution */}
+          <div
+            className="veil-card-white"
+            style={{
+              padding: "var(--space-6)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--space-3)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 700, padding: "2px 8px", borderRadius: "var(--radius-sm)", backgroundColor: "rgba(255, 140, 0, 0.12)", color: "var(--color-accent-ink)" }}>
+                §4
+              </span>
+              <h2 style={{ margin: 0, fontFamily: "var(--font-headline)", fontSize: "var(--text-h3)", color: "var(--color-text)" }}>
+                Rule Mutations
+              </h2>
+            </div>
+            <p style={{ margin: 0, color: "var(--color-muted)", lineHeight: 1.6, fontSize: "14px", fontFamily: "var(--font-body)" }}>
+              Any rule change requires a published policy revision before code changes are deployed. Code never leads policy.
+              Refer to ratified <Link href="/docs/decisions" style={{ color: "var(--color-accent)", fontWeight: 600 }}>Owner Decisions</Link> for ratification histories.
             </p>
-          </section>
+          </div>
 
-          <div style={{ marginTop: "var(--space-4)", paddingTop: "var(--space-6)", borderTop: "1px solid var(--color-border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--space-3)" }}>
-            <span style={{ fontSize: "var(--text-body-sm)", color: "var(--color-muted)" }}>
-              Ready to verify association sets onchain?
+          {/* Bottom Terminal CTA Card */}
+          <div
+            className="veil-card-white"
+            style={{
+              padding: "var(--space-5) var(--space-6)",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "var(--space-3)",
+            }}
+          >
+            <span style={{ fontSize: "var(--text-body-sm)", color: "var(--color-muted)", fontFamily: "var(--font-body)" }}>
+              Ready to verify association sets on-chain?
             </span>
             <Link
               href="/trade"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: "var(--space-2)",
-                background: "var(--color-accent)",
-                color: "var(--color-accent-contrast)",
-                padding: "8px 18px",
-                borderRadius: "var(--radius-md)",
+                gap: "6px",
+                background: "var(--color-text)",
+                color: "#ffffff",
+                padding: "8px 16px",
+                borderRadius: "var(--radius-sm)",
                 textDecoration: "none",
-                fontSize: "var(--text-body-sm)",
+                fontSize: "12px",
+                fontFamily: "var(--font-body)",
                 fontWeight: 600,
-                boxShadow: "0 4px 14px rgba(255, 140, 0, 0.3)",
               }}
             >
-              Launch Veil Terminal →
+              <span>Launch Veil Terminal</span>
+              <ArrowUpRight size={13} />
             </Link>
           </div>
         </div>
