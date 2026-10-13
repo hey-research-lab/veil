@@ -124,7 +124,8 @@ export const TokenIcon: React.FC<{
 
   const isVeil =
     sym === "VEIL" ||
-    (asset && asset.toLowerCase() === "0x019086f63407fadf0ccb89516e465baef5031aa9"); // mainnet VEIL
+    (asset && asset.toLowerCase() === "0x019086f63407fadf0ccb89516e465baef5031aa9") || // testnet VEIL
+    (asset && asset.toLowerCase() === "0xe0e11ec0d62eda12de796d025d6334fadfe5ab2a"); // mainnet temp VEIL (canonical added at Pons cutover)
 
   if (isEth) return <EthLogo size={size} className={className} />;
   if (isVeil) return <VeilLogoMark size={size} className={className} />;
