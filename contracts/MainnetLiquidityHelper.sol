@@ -43,7 +43,7 @@ contract MainnetLiquidityHelper {
         IERC20(p.veil).transferFrom(msg.sender, address(this), p.amount1Max);
         IERC20(p.veil).approve(address(manager), p.amount1Max);
         delta = abi.decode(
-            manager.unlock(abi.encode(msg.sender, p)),
+            manager.unlock(abi.encode(uint8(0), abi.encode(msg.sender, p))),
             (BalanceDelta)
         );
         uint256 leftoverVeil = IERC20(p.veil).balanceOf(address(this));
@@ -59,26 +59,50 @@ contract MainnetLiquidityHelper {
 
     /// @notice Remove liquidity and send everything to the owner. Reverts if
     /// called by anyone else. Takes full credit of both legs.
-    function removeLiquidity(PoolKey calldata key, int24 tickLower, int24 tickUpper, uint256 liquidity) external onlyOwner {
-        (BalanceDelta delta,) = manager.modifyLiquidity(
-            key,
-            ModifyLiquidityParams({
-                tickLower: tickLower,
-                tickUpper: tickUpper,
-                liquidityDelta: -int256(liquidity),
-                salt: bytes32(0)
-            }),
-            ""
-        );
-        int256 d0 = delta.amount0();
-        int256 d1 = delta.amount1();
-        if (d0 > 0) key.currency0.take(manager, owner, uint256(d0), false);
-        if (d1 > 0) key.currency1.take(manager, owner, uint256(d1), false);
+    function removeLiquidity(PoolKey calldata key, int24 tickLower, int24 tickUpper, uint256 liquidity)
+        external
+        onlyOwner
+        returns (uint256 amount0, uint256 amount1)
+    {
+        bytes memory ret = manager.unlock(abi.encode(uint8(1), abi.encode(key, tickLower, tickUpper, liquidity)));
+        (amount0, amount1) = abi.decode(ret, (uint256, uint256));
     }
 
     function unlockCallback(bytes calldata rawData) external returns (bytes memory) {
         require(msg.sender == address(manager), "only manager");
-        (address sender, AddParams memory p) = abi.decode(rawData, (address, AddParams));
+        (uint8 action, bytes memory payload) = abi.decode(rawData, (uint8, bytes));
+        if (action == 1) {
+            (
+                PoolKey memory key,
+                int24 tickLower,
+                int24 tickUpper,
+                uint256 liquidity
+            ) = abi.decode(payload, (PoolKey, int24, int24, uint256));
+            (BalanceDelta delta,) = manager.modifyLiquidity(
+                key,
+                ModifyLiquidityParams({
+                    tickLower: tickLower,
+                    tickUpper: tickUpper,
+                    liquidityDelta: -int256(liquidity),
+                    salt: bytes32(0)
+                }),
+                ""
+            );
+            uint256 out0;
+            uint256 out1;
+            int256 d0 = delta.amount0();
+            int256 d1 = delta.amount1();
+            if (d0 > 0) {
+                key.currency0.take(manager, owner, uint256(d0), false);
+                out0 = uint256(d0);
+            }
+            if (d1 > 0) {
+                key.currency1.take(manager, owner, uint256(d1), false);
+                out1 = uint256(d1);
+            }
+            return abi.encode(out0, out1);
+        }
+        (address sender, AddParams memory p) = abi.decode(payload, (address, AddParams));
         (BalanceDelta delta,) = manager.modifyLiquidity(
             p.key,
             ModifyLiquidityParams({

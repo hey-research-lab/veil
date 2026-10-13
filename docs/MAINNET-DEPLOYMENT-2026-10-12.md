@@ -189,3 +189,14 @@ skipped. Post-cycle invariant re-run: **5/5 PASS**.
 - Gating window 30d: 0x98e9af04e2641195cf48ea7c77a3b77460d9ccb8df6f8b310dd250f989abbd1c
 - Attested dust swap 0.0002 ETH: 0x4228714bec66077bb02dd463f75061171c89fa6cb8249a2122898c578153a26f � treasury +320857510136 wei (flywheel ALIVE). Unattested path reverts (negative proof).
 - Script: scripts/mainnet-gated-pool.mjs. Contract: contracts/MainnetSwapHelper.sol.
+
+
+## 11. Liquidity Recoverability: v1 = Permanent POL, v2 Ready, Wallet Empty (2026-10-13)
+
+- Design gap found in helper v1 ( xd1dd7d22dd3a2953af5a1383d9bfedbbc3064693 plain pool,  x13... hooked pool): emoveLiquidity called manager.modifyLiquidity DIRECTLY, but PoolManager.modifyLiquidity has onlyWhenUnlocked -> every removal path reverts. The v1 seeds (~0.001 ETH + ~1-2 temp VEIL per pool) are therefore PERMANENT protocol-owned liquidity: locked, unrecoverable by anyone, still earning nothing but deepening both pools. Honest reframe: involuntary POL, not a loss of user funds (temp VEIL worthless pre-Pons).
+- Periphery PositionManager-direct minting investigated and ABANDONED: modifyLiquidities(MINT+SETTLE) reverts with EMPTY data on 4663 in all combos (L 1e6..9e5, with/without SWEEP, hookData 0x/empty, full-range and ITM ranges, allowance double-set); empty-actions probe succeeds (selector exists, 
+extTokenId=3752545, onchain PM live). Root cause unproven; documented, not chased further. The v2-helper path uses only mainnet-proven primitives (unlock + v4-core modifyLiquidity + CurrencySettler.take, the same take path the live swap helper uses).
+- Helper v2 (contracts/MainnetLiquidityHelper.sol): unlock-routed removal via action byte (0=add unchanged, 1=remove -> negative-delta modifyLiquidity + take() both legs to owner, returns (amount0, amount1)). Compiled clean (scripts/compile-liqhelper.mjs, artifact deployments/mainnet-liqhelper-artifact.json now contains removeLiquidity). NOT deployed. Round-trip proof script ready: scripts/mainnet-liq-roundtrip.mjs (dust 0.0002 ETH / 0.4 VEIL: deploy v2 -> seed -> remove -> assert pool back to baseline + zero helper residue).
+- Wallet state: operator  xCAB1... holds 0.0000558 ETH / ~8997 temp VEIL. All ETH deployed (0.001 privacy-pool dust + 0.002 pool seeds + gas across ~50 txs at 0.02 gwei). The round-trip script REFUSED to run (fail-closed guard working as designed); forcing a micro round-trip was rejected (deploy alone ~60% of balance, stranding risk).
+- BLOCKED on top-up: single-ZK live (needs pool depth + gas), v2 deploy + round-trip, real re-seeding via v2, multi-withdrawal live. Ask: ~0.01 ETH to the operator. Local tree green: tsc 0, vitest 39 files / 229 tests PASS.
+
