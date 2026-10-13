@@ -12,7 +12,7 @@ import {
   TESTNET_CHAIN_ID,
   isMainnetBowConfigured,
 } from "@/lib/privacy-pools";
-import { fetchBowPoolEvents } from "@/lib/0xbow-client";
+import { fetchBowPoolEvents, resolveBowStartBlock } from "@/lib/0xbow-client";
 import { buildBowAssociationSet } from "@/lib/0xbow-association";
 
 export interface AspSyncSuite {
@@ -22,6 +22,12 @@ export interface AspSyncSuite {
   pools: [Address, Address];
   tag: string;
 }
+
+// Genesis sentinel: SNARK field - 1. The only root under which an empty
+// label set is publishable (brand-new chain). Anything else + zero labels
+// means a broken scan, never an empty pool.
+const ASP_GENESIS_SENTINEL =
+  21888242871839275222246405745257275088548364400416034343698204186575808495616n;
 
 // Chain-aware suite selector. Testnet resolves to the fresh v3 constants;
 // mainnet resolves to the migrated env suite and fails closed (null) until
@@ -51,10 +57,16 @@ export function resolveAspSuite(chainId: number): AspSyncSuite | null {
 // Fresh suite inputs (entrypoint 0xb68c… on testnet).
 // Scans BOTH pools' full history like scripts/publish-asp.mjs: omitting old
 // labels would censor dormant depositors, so partial ranges are not acceptable.
-async function fetchAspInputs(publicClient: any, pools: [Address, Address]) {
+// The scan MUST start at the chain's deployment block — the fetch helper
+// defaults to the TESTNET block, which sits above mainnet's tip and would
+// silently return zero labels on 4663 (incident 2026-10-13: empty set
+// published over a live root). Chain id is required, never defaulted.
+async function fetchAspInputs(publicClient: any, chainId: number, pools: [Address, Address]) {
+  const startBlock = resolveBowStartBlock(chainId);
+  if (startBlock === null) throw new Error("Unsupported chain for ASP scan");
   const [eth, veil] = await Promise.all([
-    fetchBowPoolEvents(publicClient, pools[0]),
-    fetchBowPoolEvents(publicClient, pools[1]),
+    fetchBowPoolEvents(publicClient, pools[0], startBlock),
+    fetchBowPoolEvents(publicClient, pools[1], startBlock),
   ]);
   return {
     labels: [...eth.labels, ...veil.labels.filter((l) => !eth.labels.some((e) => e === l))],
@@ -104,7 +116,7 @@ export async function GET(req: NextRequest) {
       transport: createBypassTransport(suite.chainId),
     });
 
-    const { labels, depositLogs } = await fetchAspInputs(publicClient as any, suite.pools);
+    const { labels, depositLogs } = await fetchAspInputs(publicClient as any, chainId, suite.pools);
     const aspSet = buildBowAssociationSet(labels);
     const onchainRoot = await publicClient.readContract({
       address: suite.entrypoint,
@@ -164,13 +176,20 @@ export async function POST(req: NextRequest) {
       transport: createBypassTransport(suite.chainId),
     });
 
-    const { labels, depositLogs } = await fetchAspInputs(publicClient as any, suite.pools);
+    const { labels, depositLogs } = await fetchAspInputs(publicClient as any, suite.chainId, suite.pools);
     const aspSet = buildBowAssociationSet(labels);
     const onchainRoot = await publicClient.readContract({
       address: suite.entrypoint,
       abi: ENTRYPOINT_ABI,
       functionName: "latestRoot",
     });
+
+    // Empty-set guard (incident 2026-10-13): never publish an empty label set
+    // over a live root — a blind scan means broken RPC, not an empty pool.
+    // Genesis case (onchain still sentinel) is the only exception.
+    if (labels.length === 0 && BigInt(onchainRoot) !== ASP_GENESIS_SENTINEL) {
+      throw new Error("ASP scan returned zero labels while onchain root is non-genesis; refusing to publish an empty set.");
+    }
 
     if (BigInt(onchainRoot) === aspSet.root) {
       return NextResponse.json({
