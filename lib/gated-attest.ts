@@ -83,6 +83,12 @@ export const GATED_EXPLORER_TX_BASE =
 export const GATED_EXPLORER_ADDRESS_BASE =
   "https://explorer.testnet.chain.robinhood.com/address/";
 
+// Mainnet explorer bases (AttestPanel is chain-aware; testnet stays default).
+export const MAINNET_EXPLORER_TX_BASE =
+  "https://explorer.mainnet.chain.robinhood.com/tx/";
+export const MAINNET_EXPLORER_ADDRESS_BASE =
+  "https://explorer.mainnet.chain.robinhood.com/address/";
+
 // Proven-script mirrors: self-attest deadline = now + 3600s
 // (scripts/selfattest-hook-v2.mjs deadline1), hookData deadline = now + 600s
 // (scripts/gated-swap-v2.mjs signedHookData), gated demo amount 0.5 VEIL,

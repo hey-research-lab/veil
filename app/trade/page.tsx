@@ -29,6 +29,7 @@ import { VaultPanel } from "../../components/trade/VaultPanel";
 import { WithdrawPanel } from "../../components/trade/WithdrawPanel";
 import { BuyAndShieldPanel } from "../../components/trade/BuyAndShieldPanel";
 import { AttestPanel } from "../../components/trade/AttestPanel";
+import { JourneyGuide } from "../../components/trade/JourneyGuide";
 import { ZkShieldRadar } from "../../components/ZkShieldRadar";
 import { TokenSelectModal, SUPPORTED_TOKENS, type TokenItem } from "../../components/TokenSelectModal";
 import { SlippageSettingsModal } from "../../components/SlippageSettingsModal";
@@ -2829,7 +2830,7 @@ export default function SwapToShieldPage() {
       {
         title: "3. On-Chain Deposit Execution",
         detail: isBowEthDeposit
-          ? "Calling entrypoint.deposit() with 0.001 ETH on Robinhood Testnet"
+          ? "Calling entrypoint.deposit() with 0.001 ETH on Robinhood Mainnet"
           : "Approving VEIL when needed, then calling entrypoint.deposit(asset, value, precommitment)",
         status: "pending",
       },
@@ -3920,6 +3921,22 @@ export default function SwapToShieldPage() {
             boxShadow: "0 12px 36px -8px rgba(26, 26, 26, 0.08)",
           }}
         >
+          {/* Guided journey 1-2-3-4 (plain language) + trader entry. */}
+          <JourneyGuide
+            activeTab={activeTab}
+            onTab={(tab) => switchTab(tab)}
+            notesCount={notes.length}
+            attested={attestation?.attested ?? null}
+            showTraderEntry={isTestnetBuild || isMainnetGatedLive}
+            onTradeEntry={() => {
+              switchTab("buy_and_shield");
+              window.setTimeout(() => {
+                document
+                  .querySelector('[aria-label="Self-attestation and gated pool"]')
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }, 80);
+            }}
+          />
           {/* Terminal Tabs & Slippage Trigger */}
           <div
             style={{
@@ -4142,6 +4159,7 @@ export default function SwapToShieldPage() {
           {/* TAB 1: SHIELD (0xbow only) */}
           {activeTab === "buy_and_shield" && (
             <BuyAndShieldPanel
+              chainId={APP_CHAIN_ID}
               depositAsset={bowDepositAsset}
               onSelectDepositAsset={(asset) => {
                 setBowDepositAsset(asset);
@@ -4186,6 +4204,10 @@ export default function SwapToShieldPage() {
                   onGatedSwap={handleGatedSwap}
                   gatedSimNote={gatedSimNote}
                   gatedTxHash={gatedTxHash}
+                  registryAddress={(resolveGatedSuite(APP_CHAIN_ID) ?? TESTNET_GATED_SUITE).registry}
+                  hookAddress={(resolveGatedSuite(APP_CHAIN_ID) ?? TESTNET_GATED_SUITE).hook}
+                  explorerAddressBase={(resolveGatedSuite(APP_CHAIN_ID) ?? TESTNET_GATED_SUITE).explorerAddressBase}
+                  explorerTxBase={(resolveGatedSuite(APP_CHAIN_ID) ?? TESTNET_GATED_SUITE).explorerTxBase}
                 />
               )}
           {/* attest body lives in components/trade/AttestPanel.tsx */}

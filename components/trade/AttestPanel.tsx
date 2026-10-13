@@ -33,6 +33,12 @@ export interface AttestPanelProps {
   onGatedSwap: () => void;
   gatedSimNote: string | null;
   gatedTxHash: string | null;
+  // Chain-aware display overrides (mainnet suite). Defaults keep every
+  // existing testnet caller unchanged.
+  registryAddress?: string;
+  hookAddress?: string;
+  explorerAddressBase?: string;
+  explorerTxBase?: string;
 }
 
 /** Self-attestation + gated-pool region inside the Buy & Shield tab. */
@@ -55,6 +61,10 @@ export const AttestPanel: React.FC<AttestPanelProps> = ({
   onGatedSwap,
   gatedSimNote,
   gatedTxHash,
+  registryAddress = GATED_REGISTRY_ADDRESS,
+  hookAddress = GATED_HOOK_ADDRESS,
+  explorerAddressBase = GATED_EXPLORER_ADDRESS_BASE,
+  explorerTxBase = GATED_EXPLORER_TX_BASE,
 }) => {
   const gatedDisabled = isGatedExecuteDisabled({
     isSwapping: isGatedSwapping,
@@ -104,14 +114,14 @@ export const AttestPanel: React.FC<AttestPanelProps> = ({
       <div style={{ display: "flex", flexDirection: "column", gap: "6px", fontSize: "var(--text-caption)", fontFamily: "monospace" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
           <span style={{ color: "var(--color-muted)" }}>Registry:</span>
-          <a href={`${GATED_EXPLORER_ADDRESS_BASE}${GATED_REGISTRY_ADDRESS}`} target="_blank" rel="noreferrer" style={{ color: "var(--color-accent-ink)", overflowWrap: "anywhere" }}>
-            {`${GATED_REGISTRY_ADDRESS.slice(0, 6)}…${GATED_REGISTRY_ADDRESS.slice(-4)}`}
+          <a href={`${explorerAddressBase}${registryAddress}`} target="_blank" rel="noreferrer" style={{ color: "var(--color-accent-ink)", overflowWrap: "anywhere" }}>
+            {`${registryAddress.slice(0, 6)}…${registryAddress.slice(-4)}`}
           </a>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
           <span style={{ color: "var(--color-muted)" }}>Hook:</span>
-          <a href={`${GATED_EXPLORER_ADDRESS_BASE}${GATED_HOOK_ADDRESS}`} target="_blank" rel="noreferrer" style={{ color: "var(--color-accent-ink)", overflowWrap: "anywhere" }}>
-            {`${GATED_HOOK_ADDRESS.slice(0, 6)}…${GATED_HOOK_ADDRESS.slice(-4)}`}
+          <a href={`${explorerAddressBase}${hookAddress}`} target="_blank" rel="noreferrer" style={{ color: "var(--color-accent-ink)", overflowWrap: "anywhere" }}>
+            {`${hookAddress.slice(0, 6)}…${hookAddress.slice(-4)}`}
           </a>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
@@ -204,7 +214,7 @@ export const AttestPanel: React.FC<AttestPanelProps> = ({
       {attestTxHash && (
         <span style={{ fontSize: "var(--text-caption)", fontFamily: "monospace", overflowWrap: "anywhere" }}>
           <span style={{ color: "var(--color-muted)" }}>Attestation tx: </span>
-          <a href={`${GATED_EXPLORER_TX_BASE}${attestTxHash}`} target="_blank" rel="noreferrer" style={{ color: "var(--color-accent-ink)" }}>
+          <a href={`${explorerTxBase}${attestTxHash}`} target="_blank" rel="noreferrer" style={{ color: "var(--color-accent-ink)" }}>
             {attestTxHash}
           </a>
         </span>
@@ -297,7 +307,7 @@ export const AttestPanel: React.FC<AttestPanelProps> = ({
         {gatedTxHash && (
           <span style={{ fontSize: "var(--text-caption)", fontFamily: "monospace", overflowWrap: "anywhere" }}>
             <span style={{ color: "var(--color-muted)" }}>Gated swap tx: </span>
-            <a href={`${GATED_EXPLORER_TX_BASE}${gatedTxHash}`} target="_blank" rel="noreferrer" style={{ color: "var(--color-accent-ink)" }}>
+            <a href={`${explorerTxBase}${gatedTxHash}`} target="_blank" rel="noreferrer" style={{ color: "var(--color-accent-ink)" }}>
               {gatedTxHash}
             </a>
           </span>

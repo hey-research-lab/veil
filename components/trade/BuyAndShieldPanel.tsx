@@ -2,11 +2,12 @@
 
 import React from "react";
 import { formatEther } from "viem";
-import { TESTNET_BOW_V3_VEIL_TOKEN } from "../../lib/privacy-pools";
+import { MAINNET_BOW_V3_VEIL_TOKEN, TESTNET_BOW_V3_VEIL_TOKEN, TESTNET_CHAIN_ID } from "../../lib/privacy-pools";
 
 export type BowDepositAsset = "ETH" | "VEIL";
 
 export interface BuyAndShieldPanelProps {
+  chainId: number;
   depositAsset: BowDepositAsset;
   onSelectDepositAsset: (asset: BowDepositAsset) => void;
   depositAmount: string;
@@ -24,6 +25,7 @@ export interface BuyAndShieldPanelProps {
 
 /** Buy & Shield tab: 0xbow-only shield surface (native ETH + ERC20 VEIL). */
 export const BuyAndShieldPanel: React.FC<BuyAndShieldPanelProps> = ({
+  chainId,
   depositAsset,
   onSelectDepositAsset,
   depositAmount,
@@ -39,6 +41,9 @@ export const BuyAndShieldPanel: React.FC<BuyAndShieldPanelProps> = ({
   onExecute,
 }) => {
   const isEth = depositAsset === "ETH";
+  // Mainnet has no faucet and no "test" assets; testnet keeps its guidance.
+  const isMainnet = chainId !== TESTNET_CHAIN_ID;
+  const veilTokenShown = isMainnet ? MAINNET_BOW_V3_VEIL_TOKEN : TESTNET_BOW_V3_VEIL_TOKEN;
   const denomLabel = isEth
     ? `${formatEther(ethDenomination)} ETH`
     : veilMinimum !== null
@@ -92,11 +97,11 @@ export const BuyAndShieldPanel: React.FC<BuyAndShieldPanelProps> = ({
             }}
           />
 
-          {/* Shield-asset toggle: native test ETH or test VEIL.
+          {/* Shield-asset toggle: native ETH or VEIL.
               Direction drives the entrypoint deposit leg. */}
           <div
             role="group"
-            aria-label="Shield asset: test ETH or test VEIL"
+            aria-label={isMainnet ? "Shield asset: ETH or VEIL" : "Shield asset: test ETH or test VEIL"}
             style={{
               display: "flex",
               alignItems: "center",
@@ -115,7 +120,7 @@ export const BuyAndShieldPanel: React.FC<BuyAndShieldPanelProps> = ({
                   key={sym}
                   type="button"
                   aria-pressed={active}
-                  aria-label={`Shield test ${sym}`}
+                  aria-label={isMainnet ? `Shield ${sym}` : `Shield test ${sym}`}
                   onClick={() => onSelectDepositAsset(sym)}
                   style={{
                     padding: "6px 12px",
@@ -204,8 +209,12 @@ export const BuyAndShieldPanel: React.FC<BuyAndShieldPanelProps> = ({
       >
         <span style={{ color: "var(--color-muted)", fontFamily: "var(--font-body)", lineHeight: 1.5, overflowWrap: "anywhere", wordBreak: "break-word", minWidth: 0 }}>
           {isEth
-            ? "Fund testnet ETH at the testnet faucet (https://faucet.testnet.chain.robinhood.com/) — gas plus shield input both need it."
-            : `Needs test VEIL already in your wallet — there is no onchain faucet. Test VEIL: ${TESTNET_BOW_V3_VEIL_TOKEN}. VEIL deposits approve the entrypoint first; the app sends the approval in the same flow when allowance is short.`}
+            ? isMainnet
+              ? "You need real ETH for gas plus the 0.001 shield — Robinhood Mainnet has no faucet."
+              : "Fund testnet ETH at the testnet faucet (https://faucet.testnet.chain.robinhood.com/) — gas plus shield input both need it."
+            : isMainnet
+            ? `Needs VEIL already in your wallet — there is no onchain faucet. VEIL: ${veilTokenShown}. VEIL deposits approve the entrypoint first; the app sends the approval in the same flow when allowance is short.`
+            : `Needs test VEIL already in your wallet — there is no onchain faucet. Test VEIL: ${veilTokenShown}. VEIL deposits approve the entrypoint first; the app sends the approval in the same flow when allowance is short.`}
         </span>
       </div>
 
