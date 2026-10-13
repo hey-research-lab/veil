@@ -200,3 +200,14 @@ extTokenId=3752545, onchain PM live). Root cause unproven; documented, not chase
 - Wallet state: operator  xCAB1... holds 0.0000558 ETH / ~8997 temp VEIL. All ETH deployed (0.001 privacy-pool dust + 0.002 pool seeds + gas across ~50 txs at 0.02 gwei). The round-trip script REFUSED to run (fail-closed guard working as designed); forcing a micro round-trip was rejected (deploy alone ~60% of balance, stranding risk).
 - BLOCKED on top-up: single-ZK live (needs pool depth + gas), v2 deploy + round-trip, real re-seeding via v2, multi-withdrawal live. Ask: ~0.01 ETH to the operator. Local tree green: tsc 0, vitest 39 files / 229 tests PASS.
 
+
+
+## 12. Micro Round-Trip PROVEN on Fumes (2026-10-13, REAL funds)
+
+- Wallet had 0.0000558 ETH. Maximum physically attemptable: deploy v2 + micro round-trip with per-step live guards. Result: FULL SUCCESS, nothing stranded.
+- Helper v2 deployed: 0xb4194deb8a51b69118e5d5414d7d08326a2e9b0b (tx 0xf42074984647e1f0173f406020ec53f1535042505babf79647d50fbad26176a8, 1348595 gas).
+- Micro seed L=100000000000000 (3e-6 ETH / 0.006 VEIL caps): tx 0xbf91daff0d79d4b7996981f5953bf3d060e90c0005d21d3c8f91f039ff301a49, pool 37500000000000000 -> 37600000000000000.
+- Removal: tx 0x233f6523af2e12a3791f15d85d389725c47524fc225cbf11302e551c6b80c365, sim returned amount0=2472052377607 / amount1=4045221731781668, pool back to 37500000000000000, owner VEIL +0.004045, helper residue 0 ETH / 0 VEIL. RECOVERABILITY PROVEN: seed -> remove -> funds back, zero residue.
+- Chain quirk documented: this node rejects txs carrying explicit maxFeePerGas/maxPriorityFeePerGas ('gas required exceeds allowance' / 'code storage out of gas' on estimation). Sends must omit fee fields; spike protection via pre-send gasPrice re-check (calmNetwork) instead. Script: scripts/mainnet-micro-roundtrip.mjs (fresh + HELPER=/LIQ= resume/skip-seed modes).
+- Wallet left: ~0.0000212 ETH. Still blocked on top-up for: single-ZK live rerun (needs 0.001 deposit), real re-seeding via v2, multi live. Local tree green.
+
