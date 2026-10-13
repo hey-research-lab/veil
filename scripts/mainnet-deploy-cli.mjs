@@ -196,11 +196,13 @@ async function addressBook() {
   console.log(`${C.bold}📖 MAINNET ADDRESS BOOK · chain 4663${C.reset}`);
   for (const [label, addr] of [
     ["Entrypoint (proxy)", m.entrypoint], ["ETH pool", m.ethPool], ["VEIL pool", m.veilPool],
+    ["VEIL token", m.veilToken],
     ["Treasury", m.treasury], ["Registry v2", m.registryV2], ["Hook v2", m.hookV2],
     ["ShieldRouter", m.routerFixed], ["VeilZkRouter", m.zkRouter],
+    ["Swap helper", m.swapHelper], ["Liq helper v2", m.liqHelper],
     ["Legacy ETH", m.legacyEthPool], ["VEIL 0.5", m.veilPool05], ["VEIL 2", m.veilPool2],
   ]) {
-    console.log(`  ${label.padEnd(20)} ${tx(addr)}`);
+    if (typeof addr === "string" && addr.startsWith("0x")) console.log(`  ${label.padEnd(20)} ${tx(addr)}`);
   }
   console.log();
 }
