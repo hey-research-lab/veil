@@ -22,6 +22,8 @@ export interface WithdrawPanelProps {
   onWithdraw: () => void;
   noteBackedUp: boolean;
   onBackupNow: () => void;
+  // Optional way out of the zero-notes dead end.
+  onGoShield?: () => void;
 }
 
 /** Withdraw tab: note picker, clean recipient, unlinkable-withdraw CTA. */
@@ -38,6 +40,7 @@ export const WithdrawPanel: React.FC<WithdrawPanelProps> = ({
   onWithdraw,
   noteBackedUp,
   onBackupNow,
+  onGoShield,
 }) => {
   const recipientInvalid = cleanRecipient.length > 0 && !isAddress(cleanRecipient);
   // Explicit ack when the note has no recorded backup: withdrawing without
@@ -117,6 +120,25 @@ export const WithdrawPanel: React.FC<WithdrawPanelProps> = ({
             <p style={{ margin: 0, color: "var(--color-muted)", fontSize: "var(--text-caption)" }}>
               You have no active notes in encrypted local storage.
             </p>
+            {onGoShield && (
+              <button
+                type="button"
+                onClick={onGoShield}
+                style={{
+                  padding: "6px 12px",
+                  minHeight: "28px",
+                  borderRadius: "var(--radius-sm)",
+                  backgroundColor: "transparent",
+                  border: "1px solid var(--color-border-strong)",
+                  color: "var(--color-text)",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Go to Shield →
+              </button>
+            )}
           </div>
         ) : (
           <div style={{ position: "relative" }}>

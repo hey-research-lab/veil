@@ -33,6 +33,10 @@ export interface ZkShieldedSwapPanelProps {
   onExecute: () => void;
   payoutAddress: string;
   onPayoutAddressChange: (value: string) => void;
+  // Optional way out of the zero-notes dead end + honesty when spending a
+  // note with no recorded backup (warning only — execution stays enabled).
+  onGoShield?: () => void;
+  noteBackedUp?: boolean | null;
 }
 
 /** Shielded Swap tab: atomic relay -> swap -> deposit via the ZK routers. */
@@ -59,6 +63,8 @@ export const ZkShieldedSwapPanel: React.FC<ZkShieldedSwapPanelProps> = ({
   onExecute,
   payoutAddress,
   onPayoutAddressChange,
+  onGoShield,
+  noteBackedUp = null,
 }) => {
   const handlePastePayout = async () => {
     try {
@@ -136,6 +142,31 @@ export const ZkShieldedSwapPanel: React.FC<ZkShieldedSwapPanelProps> = ({
             </option>
           ))}
         </select>
+        {notes.length === 0 && onGoShield && (
+          <button
+            type="button"
+            onClick={onGoShield}
+            style={{
+              alignSelf: "flex-start",
+              padding: "6px 12px",
+              minHeight: "28px",
+              borderRadius: "var(--radius-sm)",
+              backgroundColor: "transparent",
+              border: "1px solid var(--color-border-strong)",
+              color: "var(--color-text)",
+              fontSize: "12px",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            Go to Shield →
+          </button>
+        )}
+        {notes.length > 0 && noteBackedUp === false && (
+          <div role="status" style={{ fontSize: "12px", color: "#b42318", lineHeight: 1.5 }}>
+            This note has no recorded backup. A failed spend without one risks permanent loss — back it up in the Vault tab first.
+          </div>
+        )}
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
           <div

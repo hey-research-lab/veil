@@ -3185,7 +3185,7 @@ export default function SwapToShieldPage() {
         },
         {
           title: "4. Entrypoint Proxy Relay & On-Chain Settlement",
-          detail: "Submitting verified proof to Entrypoint relay on Robinhood Testnet",
+          detail: `Submitting verified proof to Entrypoint relay on Robinhood ${netLabel}`,
           status: "pending",
         },
       ];
