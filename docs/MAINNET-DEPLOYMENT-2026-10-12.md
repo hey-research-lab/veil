@@ -305,3 +305,12 @@ extTokenId=3752545, onchain PM live). Root cause unproven; documented, not chase
 - Verified non-issues: LEANIMT correct; swapHelper live; entrypoint proxy size; codos hero/faq sections dead data (fixed anyway); legacy-exit resolver (legacy path only).
 - Local: tsc 0, vitest 39 files / 232 tests PASS.
 
+
+
+## 26. ASP Server Bug: Blind Mainnet Scans + Sentinel Overwrite (2026-10-13)
+
+- Vercel env fixed by operator login: PRIVATE_KEY + ASP_PUBLISH_TOKEN set (Production, Secret), redeploy done. First live POST returned 500 before, then 200 after redeploy.
+- BUT the first 200 hid a landmine: server computed labelCount 0 (fetchBowPoolEvents defaults to the TESTNET deployment block, above mainnet tip -> loop never runs) and PUBLISHED the sentinel root over the live 5-label root (tx 0xa449..., real gas). Any in-flight proof would have failed IncorrectASPRoot.
+- Contained: restored complete 6-label root via fixed-window publish (0x71e2...), after catching my own relative-window drift (headNow-1000000 now misses dust era; fixed 86330000 used).
+- Fixed in code (commit e4e8ede): fetchAspInputs takes chainId -> resolveBowStartBlock (mainnet 86334089 covers dust 86370415); empty-set guard refuses to publish zero labels over a non-genesis root. Verified live on prod: labelCount 6, depositCount 6, up-to-date, no publish. Vitest 232 PASS.
+
