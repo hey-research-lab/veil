@@ -4293,7 +4293,10 @@ export default function SwapToShieldPage() {
               mainnet once the migrated suite is live. Paused elsewhere.
               The paused swap route only settles into pools that no longer
               accept new deposits. */}
-          {(isTestnetBuild || isMainnetZkLive) && activeTab === "shielded_swap" ? (
+          {/* TAB 2: SHIELDED SWAP — panel or paused placeholder ONLY on its
+              own tab (a bare ternary leaked the paused banner onto every
+              other tab). */}
+          {activeTab === "shielded_swap" && ((isTestnetBuild || isMainnetZkLive) ? (
               <ZkShieldedSwapPanel
                 connectedAddress={connectedAddress}
                 notes={zkShieldedSwapOptions}
@@ -4376,7 +4379,8 @@ export default function SwapToShieldPage() {
                   Go to Shield
                 </button>
               </div>
-            )}
+            ))}
+
 
           {/* TAB 3: WITHDRAW */}
           {activeTab === "withdraw" && (
