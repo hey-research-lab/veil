@@ -207,23 +207,25 @@ export function Navbar() {
               rel="noopener noreferrer"
               aria-label="Official X (Twitter) Account"
               title="Official X: @veilpools"
+              className="lp-btn lp-btn--filled"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
                 width: "2.25rem",
                 height: "2.25rem",
+                minHeight: "2.25rem",
                 borderRadius: "var(--radius-md)",
-                backgroundColor: "#ffffff",
-                border: "1px solid var(--color-border-strong)",
-                color: "var(--color-text)",
-                boxShadow: "0 2px 6px rgba(26, 26, 26, 0.06)",
+                background: "var(--color-text)",
+                color: "var(--color-bg)",
+                border: "var(--border-thin) solid transparent",
+                boxSizing: "border-box",
+                padding: 0,
                 transition: "all var(--duration-fast) var(--ease-out)",
                 flexShrink: 0,
               }}
-              className="hover:border-[#1a1a1a] hover:scale-105 active:scale-95"
             >
-              <XLogo size={16} />
+              <XLogo size={15} color="var(--color-bg)" />
             </a>
 
             {wallet ? (
