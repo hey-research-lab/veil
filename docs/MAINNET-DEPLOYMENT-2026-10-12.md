@@ -246,3 +246,12 @@ extTokenId=3752545, onchain PM live). Root cause unproven; documented, not chase
 - Headless tab-equivalent test, scripts/mainnet-veil-relay.mjs: shielded 0.001 VEIL note -> fresh decoupled 0x8d49842f8810f6fefb8c6d6a525ecf55799d322f. ASP republished 0xadff52010c81ab1d0a6ff0661cc4e7296107d242fa93e702d59cac31691eec49 (VEIL label was new), relay 0x4f24a9da4d0e484bf97eb416c338521ff744b8a013df57357a3816d7b261a7e3 block 87216572, nullifier spent, recipient 0 -> exactly 1000000000000000.
 - First-ever VEIL (ERC20-leg) relay on mainnet. Withdraw coverage now: ETH notes 3x + VEIL notes 1x + decoupled recipient 1x. Remaining UI-only (untestable without user wallet): browser proving + vault storage — same code runs on testnet.
 
+
+
+## 17. Gap Closures: Shield VEIL + Direct Payout + Treasury Burn (2026-10-13, REAL funds)
+
+- Shield VEIL live (first direct VEIL deposit): 0x2a197f60528aa1d0ce47c59fc00e676f801c69c403a424ac9bec0646bee0c2f6 block 87244637, note label 4546881801548954115841985692374102307572614598204679118004839837707537819537. Script scripts/mainnet-shield-veil.mjs (secrets pre-persist, approve-then-sim-then-send).
+- Direct payout live (first executeFullZkFlowDirect): same VEIL note relayed -> swapped VEIL->ETH (offchain quote 0.000001985921916801) -> visible payout to operator. Tx 0x546762b919e6c54135c7f6b67f3e91d776788f69c30a2a2cd2382ad3da22f339 block 87245269 (gas 620818), ZkDirectPayoutExecuted + nullifier spent verified. Script scripts/mainnet-direct-veil.mjs.
+- Treasury burn live (flywheel complete): treasury held 0.00096655483101693 VEIL + 320857510136 wei ETH fees; executeBurn is permissionless. Tx 0x0451edd31396ca11297dbe10a1cde7f79f8490a08e803a89487edf86add4cd33 (gas 58698), totalBurned 0 -> 966554831016930. Fee -> treasury -> burn proven end to end.
+- Remaining untested: multi-note flow (needs 0.002-0.003 lock, modal) + UI click-through with user wallet. Everything else on the lifecycle is now proven live on mainnet 4663.
+
