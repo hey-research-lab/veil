@@ -14,7 +14,7 @@ export const HowItWorksSection: React.FC = () => {
     >
       <SectionHeader
         kicker="Architecture"
-        title="From testnet to mainnet — verifiable on-chain."
+        title="Live on mainnet — verifiable on-chain."
         titleMaxW="22ch"
         kickerColor="#FF8C00"
       />
@@ -150,7 +150,7 @@ export const HowItWorksSection: React.FC = () => {
                 maxWidth: "40ch",
               }}
             >
-              Private pool-to-pool token swaps and unlinked withdrawals on Robinhood Chain via self-relay.
+              Private pool-to-pool token swaps and unlinked withdrawals on Robinhood Chain via self-relay. Single-note flows live; multi-note batching requires funding.
             </p>
             <a
               href="/contracts"

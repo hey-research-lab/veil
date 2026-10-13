@@ -30,7 +30,8 @@ interface BurnEvent {
 
 function formatVeil(raw: bigint): string {
   const n = Number(formatEther(raw));
-  return `${n.toLocaleString(undefined, { maximumFractionDigits: 2 })} VEIL`;
+  // Dust-scale burns (e.g. 0.000966 VEIL) must not render as "0 VEIL".
+  return `${n.toLocaleString(undefined, { maximumFractionDigits: 6 })} VEIL`;
 }
 
 function formatEth(raw: bigint): string {
@@ -144,7 +145,7 @@ export const FlywheelBurnSection: React.FC = () => {
         <SectionHeader
           kicker="Protocol Flywheel"
           title="Protocol Fee Treasury & Token Burn Engine."
-          sub="VeilTreasury accumulates swap fees from the Uniswap v4 hook. Burns execute on-chain via ERC20 burn() reducing VEIL supply. No mainnet burns yet — the ledger below reads live."
+          sub="VeilTreasury accumulates swap fees from the Uniswap v4 hook. Burns execute on-chain via ERC20 burn() reducing VEIL supply. The ledger below reads live."
           titleMaxW="26ch"
           kickerColor="#FF8C00"
         />
@@ -445,7 +446,7 @@ export const FlywheelBurnSection: React.FC = () => {
                   </span>
                 </div>
                 <p style={{ margin: 0, fontFamily: "var(--font-body)", fontSize: "var(--text-body-sm)", color: "var(--color-muted)", lineHeight: "var(--leading-body-sm)" }}>
-                  Creator fees routed to VeilTreasury for protocol reserves and on-chain token burns.
+                  Creator fees will route to VeilTreasury for protocol reserves and on-chain token burns once the Pons token is live (pre-Pons: not active).
                 </p>
               </div>
             </div>
@@ -481,7 +482,7 @@ export const FlywheelBurnSection: React.FC = () => {
 
             {burnHistory.length === 0 ? (
               <p style={{ fontFamily: "monospace", fontSize: "var(--text-body-sm)", color: "var(--color-muted)" }}>
-                {loading ? "Loading live state…" : "No burns yet — 0"}
+                {loading ? "Loading live state…" : "No burn events indexed in this range — total above reads live."}
               </p>
             ) : (
             <div

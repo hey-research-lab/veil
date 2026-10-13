@@ -294,3 +294,14 @@ extTokenId=3752545, onchain PM live). Root cause unproven; documented, not chase
 - TRIAGED (no change, safe): disconnected-CTA labels, VEIL-min floor (impossible by guard math), router-unconfigured messaging (dev-only), legacy-withdraw chain guard (no mainnet legacy notes), gated-tab disappearance (dev-only), telemetry Reading-stuck (warn-only, non-blocking), ASP-429 generic message (no send).
 - Local: tsc 0, vitest 39 files / 232 tests PASS.
 
+
+
+## 25. Copy Accuracy Sweep: Every Page vs Live Mainnet (2026-10-13, no sends)
+
+- Fixed contradictions: contracts page 'verified on Blockscout' + 'Solidity 0.8.26' -> Sourcify-verified + 0.8.37; landing 'verification pending' aligned; 8/10 matrix rows 8+10 now badged RESIDUAL (over-cap impractical, manual rebuild) matching header; drill line dated to legacy-suite completion.
+- Fixed stale futures: ASP policy 'to be published at migration' -> live; HowItWorks + FAQ + TechRibbon + codos re-framed mainnet-live (testnet historic); Footer testnet link historicized; contact email .org -> .tech; Pons royalties labeled pre-Pons future.
+- Fixed fake-live demos: ShieldConsole impossible denoms (0.003/1.000 VEIL) -> valid 0.001s + 'Simulated demo'; Flowchart 'LIVE CIRCUIT STREAM' -> illustrative + multi-batch funding note; DashboardStep4 'live stream' -> simulated feed + preview caption; ComparisonSection absolute 'Zero' softened + fictional MEV labeled illustrative.
+- Fixed precision lies: formatVeil 2 -> 6 decimals (landing + /burn) so 0.000966 VEIL no longer renders '0 VEIL'; burn empty states totalBurned-aware; association root labeled genesis reference with live pointer; contracts page footnotes plain pool + 30d window; JourneyGuide step 1 includes VEIL; swap panel discloses multi funding need.
+- Verified non-issues: LEANIMT correct; swapHelper live; entrypoint proxy size; codos hero/faq sections dead data (fixed anyway); legacy-exit resolver (legacy path only).
+- Local: tsc 0, vitest 39 files / 232 tests PASS.
+

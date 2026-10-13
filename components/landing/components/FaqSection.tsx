@@ -19,7 +19,7 @@ const faqItems: FaqItem[] = [
   },
   {
     q: "What chains are supported?",
-    a: "Veil is natively deployed on Robinhood Chain (Testnet 46630 and Mainnet 4663) leveraging Uniswap v4's custom hook architecture and 0xbow Privacy Pool circuits for high-throughput, low-fee execution.",
+    a: "Veil is live on Robinhood Chain Mainnet 4663 (Testnet 46630 historic only) leveraging Uniswap v4's custom hook architecture and 0xbow Privacy Pool circuits for high-throughput, low-fee execution.",
   },
   {
     q: "Can anyone freeze my funds or block withdrawals?",

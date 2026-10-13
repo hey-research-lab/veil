@@ -30,7 +30,7 @@ const CYCLES: CycleData[] = [
     notesInPool: "4,814",
   },
   {
-    amount: "0.003 ETH (Batch)",
+    amount: "0.001 ETH",
     token: "ETH",
     leafIndex: 4815,
     secretEntropy: "0x91d0442a...e391",
@@ -38,7 +38,7 @@ const CYCLES: CycleData[] = [
     notesInPool: "4,815",
   },
   {
-    amount: "1.000 VEIL",
+    amount: "0.001 VEIL",
     token: "VEIL",
     leafIndex: 4816,
     secretEntropy: "0x5ac7e189...72ef",
@@ -172,7 +172,7 @@ export const ShieldConsoleStep1: React.FC = () => {
                 fontWeight: 500,
               }}
             >
-              Live stream
+              Simulated demo
             </span>
           </div>
 

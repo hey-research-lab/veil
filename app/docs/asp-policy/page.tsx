@@ -198,7 +198,7 @@ export default function AspPolicyDocPage() {
                 <strong>Testnet 46630 (v3 entrypoint):</strong> sentinel-only genesis; labels join
                 automatically per the rule above.
               </li>
-              <li><strong>Mainnet 4663:</strong> to be published at migration from live deposits under the same rule.</li>
+              <li><strong>Mainnet 4663:</strong> live, published from live deposits under the same rule — see the manifests, explorer, and the IPFS CID on the landing page.</li>
             </ul>
           </section>
 

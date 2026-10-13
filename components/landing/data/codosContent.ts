@@ -190,7 +190,7 @@ export const codosContent = {
       },
       {
         q: "What chains are supported?",
-        a: "Veil is natively deployed on Robinhood Chain (Testnet 46630 fresh suite live and Mainnet 4663 deployment ready) leveraging Uniswap v4's custom hook architecture for high-throughput, low-fee execution."
+        a: "Veil is live on Robinhood Chain Mainnet 4663 (Testnet 46630 historic only) leveraging Uniswap v4's custom hook architecture for high-throughput, low-fee execution."
       },
       {
         q: "Can anyone freeze my funds or block withdrawals?",
@@ -206,7 +206,7 @@ export const codosContent = {
   },
   footer: {
     tagline: "Zero-Knowledge privacy layer for Uniswap v4 on Robinhood Chain.",
-    email: "contact@veilpools.org",
+    email: "contact@veilpools.tech",
     columns: [
       {
         title: "Protocol",

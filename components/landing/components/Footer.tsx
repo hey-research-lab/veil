@@ -74,7 +74,7 @@ export const Footer: React.FC = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Testnet Explorer
+                  Testnet Explorer (historic)
                 </a>
               </li>
             </ul>

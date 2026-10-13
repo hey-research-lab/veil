@@ -181,7 +181,10 @@ export const DashboardStep4: React.FC = () => {
               strokeWidth="1.5"
             />
           </svg>
-          live stream
+          simulated feed
+        </span>
+        <span style={{ fontFamily: "monospace", fontSize: "11px", color: "var(--color-muted)" }}>
+          Illustrative preview — launch the app for live state.
         </span>
       </div>
 

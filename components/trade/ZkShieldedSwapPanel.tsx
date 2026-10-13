@@ -331,7 +331,7 @@ export const ZkShieldedSwapPanel: React.FC<ZkShieldedSwapPanelProps> = ({
         <div style={{ display: "flex", justifyContent: "space-between" }}>
           <span style={{ color: "var(--color-muted)" }}>Flow:</span>
           <span style={{ color: "var(--color-text)", fontWeight: 600 }}>
-            {flowKind === "multi" ? "Batched (multi-note)" : flowKind === "single" ? "Single note" : flowKind === "direct" ? "Direct payout (visible onchain)" : "—"}
+            {flowKind === "multi" ? "Batched (multi-note — needs funding)" : flowKind === "single" ? "Single note" : flowKind === "direct" ? "Direct payout (visible onchain)" : "—"}
           </span>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -341,8 +341,8 @@ export const ZkShieldedSwapPanel: React.FC<ZkShieldedSwapPanelProps> = ({
           </span>
         </div>
         <span style={{ color: "var(--color-muted)", fontFamily: "var(--font-body)", lineHeight: 1.5, overflowWrap: "anywhere", minWidth: 0, fontSize: "11px", marginTop: "2px" }}>
-          {quoteNote ??
-            "Quote runs free exact-calldata simulations (no transaction), then bounds the live output by your Execution Settings slippage. One note funds the destination when possible, otherwise a same-asset batch is quoted. Execution re-simulates immediately before sending and fails closed on any revert."}
+            {quoteNote ??
+              "Quote runs free exact-calldata simulations (no transaction), then bounds the live output by your Execution Settings slippage. One note funds the destination when possible, otherwise a same-asset batch is quoted (single-note live; multi-note batch requires funding). Execution re-simulates immediately before sending and fails closed on any revert."}
         </span>
         {txHash && (
           <span style={{ color: "var(--color-muted)", overflowWrap: "anywhere", fontSize: "11px" }}>

@@ -179,7 +179,7 @@ export default function ContractsPage() {
             }}
           >
             Live smart contract deployments on Robinhood {appChain.name} ({APP_CHAIN_ID}).
-            All bytecode, ABIs, and interfaces are verified on Blockscout and bound to immutable governance rules.
+            All bytecode, ABIs, and interfaces are source-verified (Sourcify 10/10); Blockscout checkmarks follow explorer recovery. Bound to immutable governance rules.
           </p>
         </div>
 
@@ -194,11 +194,11 @@ export default function ContractsPage() {
             color: "var(--color-muted)",
           }}
         >
-          <span>Solidity 0.8.26</span>
+          <span>Solidity 0.8.37</span>
           <span style={{ opacity: 0.3 }}>/</span>
           <span>Cancun EVM</span>
           <span style={{ opacity: 0.3 }}>/</span>
-          <span>Blockscout Verified</span>
+          <span>Sourcify Verified</span>
         </div>
       </div>
 
@@ -217,6 +217,9 @@ export default function ContractsPage() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-1)" }}>
             <span style={{ fontSize: "var(--text-caption)", fontWeight: 700, color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em", fontFamily: "var(--font-mono)" }}>
               Core Protocol Deployments ({ROWS.length})
+            </span>
+            <span style={{ fontSize: "11px", color: "var(--color-muted)", fontFamily: "var(--font-mono)" }}>
+              Plus: plain v4 ETH/VEIL pool (deep, see /trade) + 30-day gated window — live state on /trade and /status.
             </span>
           </div>
 

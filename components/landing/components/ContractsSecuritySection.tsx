@@ -199,7 +199,7 @@ export const ContractsSecuritySection: React.FC = () => {
     },
   ];
 
-  const acceptanceChecklist = [
+  const acceptanceChecklist: { id: number; scenario: string; detail: string; residual?: boolean }[] = [
     { id: 1, scenario: "Standard 1-Tx Swap-to-Shield", detail: "Commitment enters tree, router balance = 0 invariant confirmed" },
     { id: 2, scenario: "Slippage threshold exceeded", detail: "Reverted on-chain, 100% user funds returned" },
     { id: 3, scenario: "Double withdrawal of same note", detail: "Rejected automatically with NullifierAlreadySpent" },
@@ -207,9 +207,9 @@ export const ContractsSecuritySection: React.FC = () => {
     { id: 5, scenario: "Shielded swap A -> B", detail: "Shielded B balance increases, zero public wallet linkage" },
     { id: 6, scenario: "Browser wallet submission", detail: "Permissionless client-side self-relay executes directly without hosted intermediaries" },
     { id: 7, scenario: "Unregistered address in gated pool", detail: "Swap rejected with GatingActiveUserNotAttested" },
-    { id: 8, scenario: "Deposit exceeds 10 ETH pool cap", detail: "Rejected by contract with PoolCapExceeded" },
-    { id: 9, scenario: "Guardian pauses deposits", detail: "Deposits halt at the contract; withdraw path has no pause switch (live drill pending)" },
-    { id: 10, scenario: "Rebuild Merkle tree in fresh browser", detail: "Balance verified against on-chain Merkle root" },
+    { id: 8, scenario: "Deposit exceeds 10 ETH pool cap", detail: "Rejected by contract with PoolCapExceeded (accepted residual: live over-cap drill impractical)", residual: true },
+    { id: 9, scenario: "Guardian pauses deposits", detail: "Deposits halt at the contract; withdraw path has no pause switch (drill completed on legacy suite 2026-10-12)" },
+    { id: 10, scenario: "Rebuild Merkle tree in fresh browser", detail: "Balance verified against on-chain Merkle root (accepted residual: manual procedure)", residual: true },
   ];
 
   const displayedContracts = contracts.filter((c) => c.category === activeTab);
@@ -584,7 +584,7 @@ export const ContractsSecuritySection: React.FC = () => {
               }}
             >
               <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                <span style={{ color: "var(--color-muted)" }}>Poseidon Association Root:</span>
+                <span style={{ color: "var(--color-muted)" }}>Genesis Association Root (reference — live root on /status):</span>
                 <span style={{ color: "var(--color-text)", wordBreak: "break-all", fontWeight: 600 }}>{telemetry.associationRoot}</span>
               </div>
 
@@ -717,7 +717,7 @@ export const ContractsSecuritySection: React.FC = () => {
                 color: "var(--color-muted)",
               }}
             >
-              Cancun EVM · Source verification pending on Blockscout; local builds proven byte-identical (fallback: vendored source + byte-identical proof)
+              Cancun EVM · Source-verified via Sourcify; Blockscout checkmarks follow explorer recovery
             </span>
           </div>
 
@@ -1014,12 +1014,13 @@ export const ContractsSecuritySection: React.FC = () => {
                           fontSize: "11px",
                           padding: "2px 6px",
                           borderRadius: "var(--radius-sm)",
-                          background: "rgba(0, 0, 0, 0.08)",
+                          background: item.residual ? "transparent" : "rgba(0, 0, 0, 0.08)",
+                          border: item.residual ? "1px solid var(--color-border-strong)" : "none",
                           color: "var(--color-text)",
                           fontWeight: 700,
                         }}
                       >
-                        PASS
+                        {item.residual ? "RESIDUAL" : "PASS"}
                       </span>
                     </div>
                     <span style={{ fontFamily: "var(--font-body)", color: "var(--color-muted)" }}>

@@ -36,7 +36,7 @@ const STEPS: Step[] = [
     id: "buy_and_shield",
     num: "1",
     title: "Shield",
-    desc: "Deposit ETH & mint note",
+    desc: "Deposit ETH or VEIL & mint note",
     icon: Shield,
   },
   {
@@ -327,7 +327,7 @@ export const JourneyGuide: React.FC<JourneyGuideProps> = ({
                     You have {notesCount} private note{notesCount > 1 ? "s" : ""} in vault.
                   </span>
                 ) : (
-                  <span>Deposit ETH in Step 1 to generate your first private note.</span>
+                  <span>Deposit ETH or VEIL in Step 1 to generate your first private note.</span>
                 )}
                 {attested === true && (
                   <span style={{ marginLeft: "4px", fontWeight: 600, color: "var(--color-text)" }}>

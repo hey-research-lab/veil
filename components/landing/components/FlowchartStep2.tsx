@@ -29,9 +29,9 @@ const TRADE_CYCLES = [
     executionTime: "8.2ms",
   },
   {
-    inputAsset: "3× Notes (0.003 ETH)",
+    inputAsset: "3× Notes (0.003 ETH) — needs funding",
     outputAsset: "New Note (0.001 VEIL) + Dust",
-    poolFee: "VeilZkRouter Multi-Batch · Uniswap v4",
+    poolFee: "VeilZkRouter Multi-Batch · Uniswap v4 (not live)",
     executionTime: "9.4ms",
   },
   {
@@ -301,7 +301,7 @@ export const FlowchartStep2: React.FC = () => {
                   animation: "pulse 1.5s infinite",
                 }}
               />
-              LIVE CIRCUIT STREAM
+              Illustrative flow (simulated)
             </span>
 
             <span

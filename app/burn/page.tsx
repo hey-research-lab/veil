@@ -28,7 +28,8 @@ interface BurnRow {
 
 function formatVeil(raw: bigint): string {
   const n = Number(formatEther(raw));
-  return `${n.toLocaleString(undefined, { maximumFractionDigits: 2 })} VEIL`;
+  // Dust-scale burns must not render as "0 VEIL".
+  return `${n.toLocaleString(undefined, { maximumFractionDigits: 6 })} VEIL`;
 }
 
 function formatEth(raw: bigint): string {
@@ -374,7 +375,9 @@ export default function BurnPage() {
 
             {history.length === 0 ? (
               <div style={{ padding: "var(--space-8)", textAlign: "center", color: "var(--color-muted)", fontFamily: "monospace", fontSize: "var(--text-body-sm)", backgroundColor: "rgba(26, 26, 26, 0.02)", borderRadius: "var(--radius-md)", border: "1px dashed var(--color-border)" }}>
-                No burns yet recorded on this chain. Burns trigger automatically when protocol fees accumulate.
+                {totalBurned !== null && totalBurned > 0n
+                  ? "No burn events indexed in this range — total above reads live."
+                  : "No burns yet recorded on this chain. Burns trigger automatically when protocol fees accumulate."}
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>

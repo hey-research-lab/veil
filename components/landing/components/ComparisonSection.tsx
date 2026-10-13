@@ -13,7 +13,7 @@ const rows: ComparisonRow[] = [
   {
     metric: "Mempool exposure",
     publicPool: "100% visible to bots & searchers",
-    veil: "Zero (encrypted notes)",
+    veil: "Shielded (commitments + ZK proofs; self-relay advised)",
   },
   {
     metric: "MEV vulnerability",
@@ -211,7 +211,7 @@ export const ComparisonSection: React.FC = () => {
                       fontWeight: 600,
                     }}
                   >
-                    Exposed to Sandwich Bots (-$1,420 MEV)
+                    Exposed to Sandwich Bots (illustrative — ~$1,420 MEV)
                   </span>
                 </div>
 
