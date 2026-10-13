@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { formatEther } from "viem";
 import { Lock } from "lucide-react";
 import { EthLogo, VeilLogoMark } from "../TokenLogos";
@@ -44,6 +44,36 @@ export const BuyAndShieldPanel: React.FC<BuyAndShieldPanelProps> = ({
   executeDisabled,
   onExecute,
 }) => {
+  const assetNavRef = useRef<HTMLDivElement>(null);
+  const [assetIndicatorStyle, setAssetIndicatorStyle] = useState<{ left: number; width: number; opacity: number }>({
+    left: 0,
+    width: 0,
+    opacity: 0,
+  });
+
+  useEffect(() => {
+    const updateIndicator = () => {
+      const container = assetNavRef.current;
+      if (!container) return;
+      const activeEl = container.querySelector<HTMLElement>(`[data-asset="${depositAsset}"]`);
+      if (activeEl) {
+        setAssetIndicatorStyle({
+          left: activeEl.offsetLeft,
+          width: activeEl.offsetWidth,
+          opacity: 1,
+        });
+      }
+    };
+
+    updateIndicator();
+    const t = setTimeout(updateIndicator, 40);
+    window.addEventListener("resize", updateIndicator);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("resize", updateIndicator);
+    };
+  }, [depositAsset]);
+
   const isEth = depositAsset === "ETH";
   const isMainnet = chainId !== TESTNET_CHAIN_ID;
   const veilTokenShown = isMainnet ? MAINNET_BOW_V3_VEIL_TOKEN : TESTNET_BOW_V3_VEIL_TOKEN;
@@ -127,6 +157,7 @@ export const BuyAndShieldPanel: React.FC<BuyAndShieldPanelProps> = ({
 
           {/* Shield-asset toggle: native ETH or VEIL */}
           <div
+            ref={assetNavRef}
             role="group"
             aria-label={isMainnet ? "Shield asset: ETH or VEIL" : "Shield asset: test ETH or test VEIL"}
             style={{
@@ -137,13 +168,35 @@ export const BuyAndShieldPanel: React.FC<BuyAndShieldPanelProps> = ({
               borderRadius: "var(--radius-md)",
               backgroundColor: "rgba(26, 26, 26, 0.04)",
               border: "1px solid var(--color-border)",
+              position: "relative",
             }}
           >
+            {/* Sliding Pill Indicator */}
+            <div
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                top: "4px",
+                bottom: "4px",
+                left: `${assetIndicatorStyle.left}px`,
+                width: `${assetIndicatorStyle.width}px`,
+                backgroundColor: "#ffffff",
+                borderRadius: "var(--radius-sm)",
+                border: "1px solid var(--color-border-strong)",
+                boxShadow: "0 1px 3px rgba(26, 26, 26, 0.06)",
+                pointerEvents: "none",
+                opacity: assetIndicatorStyle.opacity,
+                transition: "left 240ms cubic-bezier(0.22, 1, 0.36, 1), width 240ms cubic-bezier(0.22, 1, 0.36, 1), opacity 150ms ease",
+                zIndex: 1,
+              }}
+            />
+
             {(["ETH", "VEIL"] as const).map((sym) => {
               const active = depositAsset === sym;
               return (
                 <button
                   key={sym}
+                  data-asset={sym}
                   type="button"
                   aria-pressed={active}
                   aria-label={isMainnet ? `Shield ${sym}` : `Shield test ${sym}`}
@@ -152,6 +205,8 @@ export const BuyAndShieldPanel: React.FC<BuyAndShieldPanelProps> = ({
                     onDepositAmount(sym === "ETH" ? formatEther(ethDenomination) : "0.001");
                   }}
                   style={{
+                    position: "relative",
+                    zIndex: 2,
                     padding: "6px 12px",
                     minHeight: "28px",
                     borderRadius: "var(--radius-sm)",
@@ -159,13 +214,11 @@ export const BuyAndShieldPanel: React.FC<BuyAndShieldPanelProps> = ({
                     fontSize: "var(--text-body-sm)",
                     fontWeight: active ? 700 : 500,
                     cursor: "pointer",
-                    border: active
-                      ? "1px solid var(--color-border-strong)"
-                      : "1px solid transparent",
-                    backgroundColor: active ? "#ffffff" : "transparent",
+                    border: "1px solid transparent",
+                    backgroundColor: "transparent",
                     color: active ? "var(--color-text)" : "var(--color-muted)",
-                    boxShadow: active ? "0 1px 3px rgba(26, 26, 26, 0.05)" : "none",
-                    transition: "all var(--duration-fast)",
+                    boxShadow: "none",
+                    transition: "color 180ms ease, opacity 180ms ease",
                     display: "inline-flex",
                     alignItems: "center",
                     gap: "6px",

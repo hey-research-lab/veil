@@ -507,6 +507,36 @@ export default function SwapToShieldPage() {
     setFlowError(null);
   }
 
+  const tabNavRef = useRef<HTMLDivElement>(null);
+  const [indicatorStyle, setIndicatorStyle] = useState<{ left: number; width: number; opacity: number }>({
+    left: 0,
+    width: 0,
+    opacity: 0,
+  });
+
+  useEffect(() => {
+    const updateIndicator = () => {
+      const container = tabNavRef.current;
+      if (!container) return;
+      const activeEl = container.querySelector<HTMLElement>(`[data-tab="${activeTab}"]`);
+      if (activeEl) {
+        setIndicatorStyle({
+          left: activeEl.offsetLeft,
+          width: activeEl.offsetWidth,
+          opacity: 1,
+        });
+      }
+    };
+
+    updateIndicator();
+    const t = setTimeout(updateIndicator, 50);
+    window.addEventListener("resize", updateIndicator);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("resize", updateIndicator);
+    };
+  }, [activeTab]);
+
   // Load notes from localStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -3994,16 +4024,41 @@ export default function SwapToShieldPage() {
           >
             {/* Segmented Control */}
             <div
+              ref={tabNavRef}
               className="flex items-center gap-1 p-1 rounded-md border border-[var(--color-border)] bg-[rgba(26,26,26,0.04)] overflow-x-auto max-w-full"
               style={{
                 scrollbarWidth: "none",
+                position: "relative",
               }}
             >
+              {/* Sliding Pill Indicator */}
+              <div
+                aria-hidden="true"
+                style={{
+                  position: "absolute",
+                  top: "4px",
+                  bottom: "4px",
+                  left: `${indicatorStyle.left}px`,
+                  width: `${indicatorStyle.width}px`,
+                  backgroundColor: "#ffffff",
+                  borderRadius: "var(--radius-sm)",
+                  border: "1px solid var(--color-border-strong)",
+                  boxShadow: "0 1px 3px rgba(26, 26, 26, 0.06)",
+                  pointerEvents: "none",
+                  opacity: indicatorStyle.opacity,
+                  transition: "left 240ms cubic-bezier(0.22, 1, 0.36, 1), width 240ms cubic-bezier(0.22, 1, 0.36, 1), opacity 150ms ease",
+                  zIndex: 1,
+                }}
+              />
+
               <button
                 type="button"
+                data-tab="buy_and_shield"
                 onClick={() => switchTab("buy_and_shield")}
                 aria-current={activeTab === "buy_and_shield" ? "true" : undefined}
                 style={{
+                  position: "relative",
+                  zIndex: 2,
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "6px",
@@ -4012,24 +4067,26 @@ export default function SwapToShieldPage() {
                   fontSize: "var(--text-body-sm)",
                   fontFamily: "var(--font-body)",
                   fontWeight: activeTab === "buy_and_shield" ? 600 : 500,
-                  backgroundColor: activeTab === "buy_and_shield" ? "#ffffff" : "transparent",
+                  backgroundColor: "transparent",
                   color: activeTab === "buy_and_shield" ? "var(--color-text)" : "var(--color-muted)",
-                  border: activeTab === "buy_and_shield" ? "1px solid var(--color-border-strong)" : "1px solid transparent",
-                  boxShadow: activeTab === "buy_and_shield" ? "0 1px 3px rgba(26, 26, 26, 0.05)" : "none",
+                  border: "1px solid transparent",
                   cursor: "pointer",
-                  transition: "all var(--duration-fast)",
+                  transition: "color 180ms ease, opacity 180ms ease",
                   flexShrink: 0,
                   whiteSpace: "nowrap",
                 }}
               >
-                <ShieldCheck size={13} style={{ opacity: activeTab === "buy_and_shield" ? 1 : 0.6 }} />
+                <ShieldCheck size={13} style={{ opacity: activeTab === "buy_and_shield" ? 1 : 0.6, transition: "opacity 180ms ease" }} />
                 <span>Shield</span>
               </button>
               <button
                 type="button"
+                data-tab="shielded_swap"
                 onClick={() => switchTab("shielded_swap")}
                 aria-current={activeTab === "shielded_swap" ? "true" : undefined}
                 style={{
+                  position: "relative",
+                  zIndex: 2,
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "6px",
@@ -4038,24 +4095,26 @@ export default function SwapToShieldPage() {
                   fontSize: "var(--text-body-sm)",
                   fontFamily: "var(--font-body)",
                   fontWeight: activeTab === "shielded_swap" ? 600 : 500,
-                  backgroundColor: activeTab === "shielded_swap" ? "#ffffff" : "transparent",
+                  backgroundColor: "transparent",
                   color: activeTab === "shielded_swap" ? "var(--color-text)" : "var(--color-muted)",
-                  border: activeTab === "shielded_swap" ? "1px solid var(--color-border-strong)" : "1px solid transparent",
-                  boxShadow: activeTab === "shielded_swap" ? "0 1px 3px rgba(26, 26, 26, 0.05)" : "none",
+                  border: "1px solid transparent",
                   cursor: "pointer",
-                  transition: "all var(--duration-fast)",
+                  transition: "color 180ms ease, opacity 180ms ease",
                   flexShrink: 0,
                   whiteSpace: "nowrap",
                 }}
               >
-                <ArrowLeftRight size={13} style={{ opacity: activeTab === "shielded_swap" ? 1 : 0.6 }} />
+                <ArrowLeftRight size={13} style={{ opacity: activeTab === "shielded_swap" ? 1 : 0.6, transition: "opacity 180ms ease" }} />
                 <span>ZK Swap</span>
               </button>
               <button
                 type="button"
+                data-tab="withdraw"
                 onClick={() => switchTab("withdraw")}
                 aria-current={activeTab === "withdraw" ? "true" : undefined}
                 style={{
+                  position: "relative",
+                  zIndex: 2,
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "6px",
@@ -4064,25 +4123,27 @@ export default function SwapToShieldPage() {
                   fontSize: "var(--text-body-sm)",
                   fontFamily: "var(--font-body)",
                   fontWeight: activeTab === "withdraw" ? 600 : 500,
-                  backgroundColor: activeTab === "withdraw" ? "#ffffff" : "transparent",
+                  backgroundColor: "transparent",
                   color: activeTab === "withdraw" ? "var(--color-text)" : "var(--color-muted)",
-                  border: activeTab === "withdraw" ? "1px solid var(--color-border-strong)" : "1px solid transparent",
-                  boxShadow: activeTab === "withdraw" ? "0 1px 3px rgba(26, 26, 26, 0.05)" : "none",
+                  border: "1px solid transparent",
                   cursor: "pointer",
-                  transition: "all var(--duration-fast)",
+                  transition: "color 180ms ease, opacity 180ms ease",
                   flexShrink: 0,
                   whiteSpace: "nowrap",
                 }}
               >
-                <ArrowUpRight size={13} style={{ opacity: activeTab === "withdraw" ? 1 : 0.6 }} />
+                <ArrowUpRight size={13} style={{ opacity: activeTab === "withdraw" ? 1 : 0.6, transition: "opacity 180ms ease" }} />
                 <span>Withdraw</span>
               </button>
               {(isTestnetBuild || isMainnetGatedLive) && (
               <button
                 type="button"
+                data-tab="trade"
                 onClick={() => switchTab("trade")}
                 aria-current={activeTab === "trade" ? "true" : undefined}
                 style={{
+                  position: "relative",
+                  zIndex: 2,
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "6px",
@@ -4091,25 +4152,27 @@ export default function SwapToShieldPage() {
                   fontSize: "var(--text-body-sm)",
                   fontFamily: "var(--font-body)",
                   fontWeight: activeTab === "trade" ? 600 : 500,
-                  backgroundColor: activeTab === "trade" ? "#ffffff" : "transparent",
+                  backgroundColor: "transparent",
                   color: activeTab === "trade" ? "var(--color-text)" : "var(--color-muted)",
-                  border: activeTab === "trade" ? "1px solid var(--color-border-strong)" : "1px solid transparent",
-                  boxShadow: activeTab === "trade" ? "0 1px 3px rgba(26, 26, 26, 0.05)" : "none",
+                  border: "1px solid transparent",
                   cursor: "pointer",
-                  transition: "all var(--duration-fast)",
+                  transition: "color 180ms ease, opacity 180ms ease",
                   flexShrink: 0,
                   whiteSpace: "nowrap",
                 }}
               >
-                <BadgeCheck size={13} style={{ opacity: activeTab === "trade" ? 1 : 0.6 }} />
+                <BadgeCheck size={13} style={{ opacity: activeTab === "trade" ? 1 : 0.6, transition: "opacity 180ms ease" }} />
                 <span>Gated Pool</span>
               </button>
               )}
               <button
                 type="button"
+                data-tab="vault"
                 onClick={() => switchTab("vault")}
                 aria-current={activeTab === "vault" ? "true" : undefined}
                 style={{
+                  position: "relative",
+                  zIndex: 2,
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "6px",
@@ -4118,17 +4181,16 @@ export default function SwapToShieldPage() {
                   fontSize: "var(--text-body-sm)",
                   fontFamily: "var(--font-body)",
                   fontWeight: activeTab === "vault" ? 600 : 500,
-                  backgroundColor: activeTab === "vault" ? "#ffffff" : "transparent",
+                  backgroundColor: "transparent",
                   color: activeTab === "vault" ? "var(--color-text)" : "var(--color-muted)",
-                  border: activeTab === "vault" ? "1px solid var(--color-border-strong)" : "1px solid transparent",
-                  boxShadow: activeTab === "vault" ? "0 1px 3px rgba(26, 26, 26, 0.05)" : "none",
+                  border: "1px solid transparent",
                   cursor: "pointer",
-                  transition: "all var(--duration-fast)",
+                  transition: "color 180ms ease, opacity 180ms ease",
                   flexShrink: 0,
                   whiteSpace: "nowrap",
                 }}
               >
-                <Wallet size={13} style={{ opacity: activeTab === "vault" ? 1 : 0.6 }} />
+                <Wallet size={13} style={{ opacity: activeTab === "vault" ? 1 : 0.6, transition: "opacity 180ms ease" }} />
                 <span>Vault</span>
                 <span
                   style={{
@@ -4236,6 +4298,8 @@ export default function SwapToShieldPage() {
             </div>
           )}
 
+          {/* Animated Tab Content Body */}
+          <div key={activeTab} className="tab-content-enter" style={{ width: "100%" }}>
           {/* TAB 1: SHIELD (0xbow only) */}
           {activeTab === "buy_and_shield" && (
             <BuyAndShieldPanel
@@ -4455,6 +4519,7 @@ export default function SwapToShieldPage() {
             />
           )}
           {/* Vault tab lives in components/trade/VaultPanel.tsx */}
+          </div>
         </div>
 
         {/* Column 2: Telemetry HUD & Vault Overview (Pro DEX Sidebar) */}
