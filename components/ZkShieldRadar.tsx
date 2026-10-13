@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, Activity } from "lucide-react";
 import { parseAbi, formatEther, toHex, type Address } from "viem";
 import { publicClient } from "@/lib/balances";
 import { CONTRACT_ADDRESSES, CONTRACT_ABIS } from "@/lib/contracts";
@@ -188,214 +188,390 @@ export const ZkShieldRadar: React.FC = () => {
 
   return (
     <div
-      className="veil-card-white"
+      className="veil-card-white p-4 sm:p-5"
       style={{
-        padding: "var(--space-6)",
         display: "flex",
         flexDirection: "column",
-        gap: "var(--space-5)",
+        gap: "var(--space-4)",
         backgroundColor: "#ffffff",
         borderRadius: "var(--radius-lg)",
-        border: "1px solid var(--color-border)",
-        boxShadow: "0 8px 24px -4px rgba(26, 26, 26, 0.05)",
+        border: "1px solid var(--color-border-strong)",
+        boxShadow: "0 12px 36px -8px rgba(26, 26, 26, 0.08)",
+        boxSizing: "border-box",
       }}
     >
       {/* Telemetry Header */}
       <div
         style={{
           display: "flex",
+          alignItems: "center",
           justifyContent: "space-between",
-          alignItems: "flex-start",
-          flexWrap: "wrap",
-          gap: "var(--space-3)",
+          gap: "8px",
           borderBottom: "1px solid var(--color-border)",
-          paddingBottom: "var(--space-4)",
+          paddingBottom: "10px",
         }}
       >
-        <div>
-          <h2
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div
             style={{
-              margin: 0,
-              fontFamily: "var(--font-headline)",
-              fontSize: "var(--text-h4)",
-              color: "var(--color-text)",
-              fontWeight: 500,
+              width: "26px",
+              height: "26px",
+              borderRadius: "var(--radius-sm)",
+              backgroundColor: "rgba(255, 140, 0, 0.12)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
             }}
           >
-            Cryptographic Telemetry
-          </h2>
-          <p style={{ margin: "4px 0 0 0", fontSize: "var(--text-body-sm)", color: "var(--color-muted)", fontFamily: "var(--font-body)" }}>
-            Live on-chain state validation of Robinhood privacy pools &amp; Uniswap v4 hook.
-          </p>
+            <Activity size={14} style={{ color: "var(--color-accent-ink)" }} />
+          </div>
+          <div>
+            <div
+              style={{
+                fontSize: "13px",
+                fontWeight: 700,
+                color: "var(--color-text)",
+                fontFamily: "var(--font-headline)",
+                letterSpacing: "0.02em",
+                lineHeight: 1.2,
+              }}
+            >
+              Cryptographic Telemetry
+            </div>
+            <div style={{ fontSize: "11px", color: "var(--color-muted)", fontFamily: "var(--font-mono)" }}>
+              LeanIMT Merkle Tree &amp; Hook Validation
+            </div>
+          </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", fontSize: "11px", fontFamily: "monospace", color: "var(--color-muted)" }}>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "5px",
+            padding: "3px 8px",
+            borderRadius: "var(--radius-full)",
+            backgroundColor: isLiveLoaded ? "rgba(22, 163, 74, 0.08)" : "rgba(202, 138, 4, 0.08)",
+            border: `1px solid ${isLiveLoaded ? "rgba(22, 163, 74, 0.2)" : "rgba(202, 138, 4, 0.2)"}`,
+            fontSize: "10px",
+            fontFamily: "var(--font-mono)",
+            color: isLiveLoaded ? "#15803d" : "#a16207",
+            fontWeight: 600,
+          }}
+        >
           <span
-            aria-hidden="true"
             style={{
-              width: "6px",
-              height: "6px",
+              width: "5px",
+              height: "5px",
               borderRadius: "50%",
               backgroundColor: statusDotColor,
               display: "inline-block",
             }}
           />
-          <span>Robinhood {APP_CHAIN_ID}</span>
-          <span aria-hidden="true" style={{ opacity: 0.4 }}>/</span>
           <span>{statusLabel}</span>
         </div>
       </div>
 
-      {!isLiveLoaded && !rpcError && (
-        <p style={{ margin: 0, fontSize: "var(--text-body-sm)", color: "var(--color-muted)", fontFamily: "monospace" }}>
-          Loading live state…
-        </p>
-      )}
-      {rpcError && !isLiveLoaded && (
-        <p style={{ margin: 0, fontSize: "var(--text-body-sm)", color: "#b45309", fontFamily: "monospace" }}>
-          RPC unreachable, retrying…
-        </p>
-      )}
-      {rpcError && isLiveLoaded && (
-        <p style={{ margin: 0, fontSize: "11px", color: "#b45309", fontFamily: "monospace" }}>
-          RPC unreachable, retrying… showing last synced values.
-        </p>
-      )}
-
-      {/* 4 Metric Cards */}
+      {/* 2x2 Telemetry Metrics Grid */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-          gap: "var(--space-3)",
+          gridTemplateColumns: "repeat(2, 1fr)",
+          gap: "8px",
         }}
       >
-        {/* Metric 1 */}
+        {/* Metric 1: Merkle Tree */}
         <div
           style={{
-            padding: "var(--space-4)",
-            borderRadius: "var(--radius-md)",
+            padding: "10px 12px",
+            borderRadius: "var(--radius-sm)",
             backgroundColor: "rgba(26, 26, 26, 0.02)",
             border: "1px solid var(--color-border)",
             display: "flex",
             flexDirection: "column",
-            gap: "2px",
+            gap: "3px",
           }}
         >
-          <div style={{ fontSize: "11px", fontFamily: "monospace", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-            LeanIMT Depth
-          </div>
-          <div style={{ fontFamily: "var(--font-headline)", fontSize: "1.35rem", fontWeight: 600, color: "var(--color-text)" }}>
-            {depthLabel}
-          </div>
-          <div style={{ fontSize: "11px", fontFamily: "monospace", color: "var(--color-faint)", marginTop: "4px" }}>
-            {capacityLabel} Capacity · Leaf #{formatNumber(nextIndex)}
-          </div>
-        </div>
-
-        {/* Metric 2 */}
-        <div
-          style={{
-            padding: "var(--space-4)",
-            borderRadius: "var(--radius-md)",
-            backgroundColor: "rgba(26, 26, 26, 0.02)",
-            border: "1px solid var(--color-border)",
-            display: "flex",
-            flexDirection: "column",
-            gap: "2px",
-          }}
-        >
-          <div style={{ fontSize: "11px", fontFamily: "monospace", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-            On-Chain Shielded Notes
-          </div>
-          <div style={{ fontFamily: "var(--font-headline)", fontSize: "1.35rem", fontWeight: 600, color: "var(--color-text)" }}>
-            {formatNumber(nextIndex)} Notes
-          </div>
-          <div style={{ fontSize: "11px", fontFamily: "monospace", color: "var(--color-faint)", marginTop: "4px" }}>
-            Total: {totalDepositsEth} ETH Deposited
-          </div>
-        </div>
-
-        {/* Metric 3 */}
-        <div
-          style={{
-            padding: "var(--space-4)",
-            borderRadius: "var(--radius-md)",
-            backgroundColor: "rgba(26, 26, 26, 0.02)",
-            border: "1px solid var(--color-border)",
-            display: "flex",
-            flexDirection: "column",
-            gap: "2px",
-          }}
-        >
-          <div style={{ fontSize: "11px", fontFamily: "monospace", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-            Hook Permissions
-          </div>
-          <div style={{ fontFamily: "monospace", fontSize: "1.2rem", fontWeight: 600, color: "var(--color-text)" }}>
-            {hookPermissions ? `${enabledFlags.length} enabled` : "—"}
+          <div
+            style={{
+              fontSize: "10px",
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+              color: "var(--color-muted)",
+              fontFamily: "var(--font-mono)",
+            }}
+          >
+            LeanIMT Tree
           </div>
           <div
             style={{
-              fontSize: "11px",
-              fontFamily: "monospace",
-              color: "var(--color-faint)",
-              marginTop: "4px",
-              maxHeight: "72px",
-              overflowY: "auto",
+              fontFamily: "var(--font-headline)",
+              fontSize: "15px",
+              fontWeight: 700,
+              color: "var(--color-text)",
+              lineHeight: 1.2,
             }}
           >
-            {hookPermissions
-              ? Object.entries(hookPermissions).map(([flag, on]) => (
-                  <div key={flag}>
-                    {flag}: {String(on)}
-                  </div>
-                ))
-              : "Loading live state…"}
+            {depthLabel}
+          </div>
+          <div
+            style={{
+              fontSize: "10px",
+              fontFamily: "var(--font-mono)",
+              color: "var(--color-faint)",
+              lineHeight: 1.3,
+            }}
+          >
+            Cap: {capacityLabel}
           </div>
         </div>
 
-        {/* Metric 4 */}
+        {/* Metric 2: Shielded Notes / Deposits */}
         <div
           style={{
-            padding: "var(--space-4)",
-            borderRadius: "var(--radius-md)",
+            padding: "10px 12px",
+            borderRadius: "var(--radius-sm)",
             backgroundColor: "rgba(26, 26, 26, 0.02)",
             border: "1px solid var(--color-border)",
             display: "flex",
             flexDirection: "column",
-            gap: "2px",
+            gap: "3px",
           }}
         >
-          <div style={{ fontSize: "11px", fontFamily: "monospace", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-            Fee Burn Allocation
+          <div
+            style={{
+              fontSize: "10px",
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+              color: "var(--color-muted)",
+              fontFamily: "var(--font-mono)",
+            }}
+          >
+            Shielded Notes
           </div>
-          <div style={{ fontFamily: "var(--font-headline)", fontSize: "1.35rem", fontWeight: 600, color: "var(--color-text)" }}>
+          <div
+            style={{
+              fontFamily: "var(--font-headline)",
+              fontSize: "15px",
+              fontWeight: 700,
+              color: "var(--color-text)",
+              lineHeight: 1.2,
+            }}
+          >
+            {formatNumber(nextIndex)} Notes
+          </div>
+          <div
+            style={{
+              fontSize: "10px",
+              fontFamily: "var(--font-mono)",
+              color: "var(--color-faint)",
+              lineHeight: 1.3,
+            }}
+          >
+            {totalDepositsEth} ETH Pooled
+          </div>
+        </div>
+
+        {/* Metric 3: Hook Permissions */}
+        <div
+          style={{
+            padding: "10px 12px",
+            borderRadius: "var(--radius-sm)",
+            backgroundColor: "rgba(26, 26, 26, 0.02)",
+            border: "1px solid var(--color-border)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "3px",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "10px",
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+              color: "var(--color-muted)",
+              fontFamily: "var(--font-mono)",
+            }}
+          >
+            v4 Hook Gating
+          </div>
+          <div
+            style={{
+              fontFamily: "var(--font-headline)",
+              fontSize: "15px",
+              fontWeight: 700,
+              color: "var(--color-text)",
+              lineHeight: 1.2,
+            }}
+          >
+            {hookPermissions ? `${enabledFlags.length} Enabled` : "—"}
+          </div>
+          <div
+            style={{
+              fontSize: "10px",
+              fontFamily: "var(--font-mono)",
+              color: "var(--color-faint)",
+              lineHeight: 1.3,
+            }}
+          >
+            beforeSwap · afterSwap
+          </div>
+        </div>
+
+        {/* Metric 4: Fee Burn Allocation */}
+        <div
+          style={{
+            padding: "10px 12px",
+            borderRadius: "var(--radius-sm)",
+            backgroundColor: "rgba(26, 26, 26, 0.02)",
+            border: "1px solid var(--color-border)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "3px",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "10px",
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+              color: "var(--color-muted)",
+              fontFamily: "var(--font-mono)",
+            }}
+          >
+            Fee Buyback
+          </div>
+          <div
+            style={{
+              fontFamily: "var(--font-headline)",
+              fontSize: "15px",
+              fontWeight: 700,
+              color: "var(--color-text)",
+              lineHeight: 1.2,
+            }}
+          >
             {burnShareLabel}
           </div>
-          <div style={{ fontSize: "11px", fontFamily: "monospace", color: "var(--color-faint)", marginTop: "4px" }}>
-            VeilTreasury Engine · On-Chain
+          <div
+            style={{
+              fontSize: "10px",
+              fontFamily: "var(--font-mono)",
+              color: "var(--color-faint)",
+              lineHeight: 1.3,
+            }}
+          >
+            VeilTreasury Engine
           </div>
+        </div>
+      </div>
+
+      {/* Active Hook Permission Badges */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "6px",
+          padding: "8px 10px",
+          borderRadius: "var(--radius-sm)",
+          backgroundColor: "rgba(26, 26, 26, 0.02)",
+          border: "1px solid var(--color-border)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span
+            style={{
+              fontSize: "10px",
+              fontFamily: "var(--font-mono)",
+              color: "var(--color-muted)",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+              fontWeight: 600,
+            }}
+          >
+            Active Hook Permissions
+          </span>
+          <span
+            style={{
+              fontSize: "10px",
+              fontFamily: "var(--font-mono)",
+              color: "var(--color-faint)",
+            }}
+          >
+            CREATE2 0x20c4
+          </span>
+        </div>
+
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+          {enabledFlags.length > 0 ? (
+            enabledFlags.map((flag) => (
+              <span
+                key={flag}
+                style={{
+                  fontSize: "10px",
+                  fontFamily: "var(--font-mono)",
+                  padding: "2px 7px",
+                  borderRadius: "var(--radius-full)",
+                  backgroundColor: "rgba(22, 163, 74, 0.08)",
+                  color: "#15803d",
+                  border: "1px solid rgba(22, 163, 74, 0.2)",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  fontWeight: 500,
+                }}
+              >
+                <span style={{ width: "4px", height: "4px", borderRadius: "50%", backgroundColor: "#16a34a" }} />
+                {flag}
+              </span>
+            ))
+          ) : (
+            <span style={{ fontSize: "11px", color: "var(--color-faint)", fontFamily: "var(--font-mono)" }}>
+              {isLiveLoaded ? "No hook flags active" : "Reading hook permissions…"}
+            </span>
+          )}
         </div>
       </div>
 
       {/* Merkle Root Surface */}
       <div
         style={{
-          padding: "var(--space-4)",
-          borderRadius: "var(--radius-md)",
-          backgroundColor: "rgba(26, 26, 26, 0.025)",
-          border: "1px solid var(--color-border)",
           display: "flex",
           flexDirection: "column",
-          gap: "var(--space-2)",
+          gap: "5px",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: "11px", fontFamily: "monospace", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-            Current Merkle Root (live)
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span
+            style={{
+              fontSize: "10px",
+              fontFamily: "var(--font-mono)",
+              color: "var(--color-muted)",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+              fontWeight: 600,
+            }}
+          >
+            Live Merkle Root
           </span>
-          <span style={{ fontSize: "11px", fontFamily: "monospace", color: "var(--color-accent-ink)", fontWeight: 600 }}>
-            {isLiveLoaded ? "Live Sync" : "Syncing…"}
+          <span style={{ fontSize: "10px", fontFamily: "var(--font-mono)", color: "var(--color-accent-ink)", fontWeight: 600 }}>
+            {isLiveLoaded ? "Verified Onchain" : "Syncing…"}
           </span>
         </div>
 
@@ -404,57 +580,63 @@ export const ZkShieldRadar: React.FC = () => {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            backgroundColor: "#ffffff",
-            padding: "8px 12px",
+            backgroundColor: "rgba(26, 26, 26, 0.02)",
+            padding: "6px 10px",
             borderRadius: "var(--radius-sm)",
             border: "1px solid var(--color-border)",
-            gap: "var(--space-3)",
+            gap: "8px",
           }}
         >
           <span
             style={{
-              fontFamily: "monospace",
-              fontSize: "12px",
+              fontFamily: "var(--font-mono)",
+              fontSize: "11px",
               color: "var(--color-text)",
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
             }}
+            title={merkleRoot}
           >
-            {!isLiveLoaded ? "Loading live state…" : nextIndex === 0 ? "Empty pool — no deposits yet" : merkleRoot}
+            {!isLiveLoaded
+              ? "Reading state tree…"
+              : nextIndex === 0
+              ? "Empty tree — 0x00...00"
+              : `${merkleRoot.slice(0, 10)}...${merkleRoot.slice(-8)}`}
           </span>
 
           <button
             type="button"
             onClick={handleCopyRoot}
             disabled={!isLiveLoaded || nextIndex === 0}
-            title="Copy Merkle Root"
+            title="Copy Full Merkle Root"
             aria-label="Copy full Merkle root hash"
             style={{
               display: "inline-flex",
               alignItems: "center",
               gap: "4px",
-              padding: "4px 8px",
-              minHeight: "24px",
+              padding: "3px 8px",
+              minHeight: "22px",
               borderRadius: "var(--radius-sm)",
-              backgroundColor: "rgba(26, 26, 26, 0.04)",
+              backgroundColor: "#ffffff",
               border: "1px solid var(--color-border)",
               color: "var(--color-text)",
               fontSize: "11px",
-              fontFamily: "monospace",
+              fontFamily: "var(--font-mono)",
               cursor: "pointer",
               flexShrink: 0,
+              boxShadow: "0 1px 2px rgba(26, 26, 26, 0.04)",
             }}
             className="hover:border-[#FF8C00] transition-colors"
           >
             {copiedRoot ? (
               <>
-                <Check className="w-3.5 h-3.5 text-emerald-600" aria-hidden="true" />
+                <Check className="w-3 h-3 text-emerald-600" aria-hidden="true" />
                 <span>Copied</span>
               </>
             ) : (
               <>
-                <Copy className="w-3.5 h-3.5 text-neutral-400" aria-hidden="true" />
+                <Copy className="w-3 h-3 text-neutral-400" aria-hidden="true" />
                 <span>Copy</span>
               </>
             )}
