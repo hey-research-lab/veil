@@ -25,17 +25,15 @@ export const Header: React.FC = () => {
 
       <nav
         aria-label="Primary"
+        className="flex items-center gap-3 sm:gap-4 md:gap-6"
         style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "var(--space-6)",
           fontSize: "var(--text-body-sm)",
           fontFamily: "var(--font-body)",
         }}
       >
         <a
           href="#how"
-          className="lp-link"
+          className="lp-link hidden lg:inline-block"
           style={{
             color: "var(--color-muted)",
             textDecoration: "none",
@@ -46,7 +44,7 @@ export const Header: React.FC = () => {
         </a>
         <a
           href="#why-veil"
-          className="lp-link"
+          className="lp-link hidden lg:inline-block"
           style={{
             color: "var(--color-muted)",
             textDecoration: "none",
@@ -57,7 +55,7 @@ export const Header: React.FC = () => {
         </a>
         <a
           href="#flywheel"
-          className="lp-link"
+          className="lp-link hidden xl:inline-block"
           style={{
             color: "var(--color-muted)",
             textDecoration: "none",
@@ -68,7 +66,7 @@ export const Header: React.FC = () => {
         </a>
         <a
           href="#security"
-          className="lp-link"
+          className="lp-link hidden lg:inline-block"
           style={{
             color: "var(--color-muted)",
             textDecoration: "none",
@@ -79,7 +77,7 @@ export const Header: React.FC = () => {
         </a>
         <a
           href="#faq"
-          className="lp-link"
+          className="lp-link hidden md:inline-block"
           style={{
             color: "var(--color-muted)",
             textDecoration: "none",
@@ -92,7 +90,7 @@ export const Header: React.FC = () => {
           href="https://x.com/veilpools"
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Official X (Twitter) Account"
+          aria-label="Official X (Twitter) Account @veilpools"
           title="Official X: @veilpools"
           style={{
             display: "inline-flex",
@@ -101,15 +99,16 @@ export const Header: React.FC = () => {
             width: "2.25rem",
             height: "2.25rem",
             borderRadius: "var(--radius-md)",
-            backgroundColor: "rgba(255, 255, 255, 0.06)",
-            border: "1px solid rgba(255, 255, 255, 0.12)",
-            color: "#ffffff",
+            backgroundColor: "#ffffff",
+            border: "1px solid var(--color-border-strong)",
+            color: "var(--color-text)",
+            boxShadow: "0 2px 6px rgba(26, 26, 26, 0.08)",
             transition: "all var(--duration-fast) var(--ease-out)",
             flexShrink: 0,
           }}
-          className="hover:bg-white/10 active:scale-95"
+          className="hover:border-[#1a1a1a] hover:scale-105 active:scale-95"
         >
-          <XLogo size={14} color="#ffffff" />
+          <XLogo size={16} color="var(--color-text)" />
         </a>
         <a
           href="/trade"

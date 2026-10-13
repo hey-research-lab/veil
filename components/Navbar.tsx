@@ -214,15 +214,16 @@ export function Navbar() {
                 width: "2.25rem",
                 height: "2.25rem",
                 borderRadius: "var(--radius-md)",
-                backgroundColor: "rgba(26, 26, 26, 0.04)",
-                border: "1px solid var(--color-border)",
+                backgroundColor: "#ffffff",
+                border: "1px solid var(--color-border-strong)",
                 color: "var(--color-text)",
+                boxShadow: "0 2px 6px rgba(26, 26, 26, 0.06)",
                 transition: "all var(--duration-fast) var(--ease-out)",
                 flexShrink: 0,
               }}
-              className="hover:border-[var(--color-border-strong)] hover:bg-[rgba(26,26,26,0.08)] active:scale-95"
+              className="hover:border-[#1a1a1a] hover:scale-105 active:scale-95"
             >
-              <XLogo size={14} />
+              <XLogo size={16} />
             </a>
 
             {wallet ? (
