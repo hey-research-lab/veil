@@ -50,27 +50,27 @@
 ```mermaid
 flowchart LR
     subgraph Shield["🛡️ Shield (deposit)"]
-        User([User Wallet]) -->|0.001 ETH / VEIL| EP[0xbow Entrypoint<br/>deposit]
-        EP --> PoolB[(0xbow Pool<br/>commitment in tree)]
-        PoolB --> Note[📝 Shielded Note<br/>secret + nullifier<br/>client-side only]
+        User([User Wallet]) -->|"0.001 ETH / VEIL"| EP["0xbow Entrypoint<br/>deposit"]
+        EP --> PoolB[("0xbow Pool<br/>commitment in tree")]
+        PoolB --> Note["📝 Shielded Note<br/>secret + nullifier<br/>client-side only"]
     end
 
     subgraph ZKFlow["⚡ Full-ZK Flow (VeilZkRouter, 1 atomic tx)"]
-        Note -->|Groth16 proof| Relay[1. Relay exit<br/>to router]
-        Relay --> Swap[2. v4 Swap<br/>exact-input]
-        Swap -->|≥ 0.001| Dep[3a. Shielded note<br/>single / multi]
-        Swap -->|< 0.001| Direct[3b. Direct payout<br/>visible onchain]
+        Note -->|"Groth16 proof"| Relay["1. Relay exit<br/>to router"]
+        Relay --> Swap["2. v4 Swap<br/>exact-input"]
+        Swap -->|"≥ 0.001"| Dep["3a. Shielded note<br/>single / multi"]
+        Swap -->|"< 0.001"| Direct["3b. Direct payout<br/>visible onchain"]
     end
 
     subgraph Gate["🚪 ZK-Gated Pools"]
-        User -->|selfAttest| Reg[VeilAttestationRegistry<br/>permissionless]
-        Reg --> Hook[VeilHook 0x20C4<br/>beforeSwap gate + 30bps fee]
-        Hook -->|fee| Treasury[VeilTreasury<br/>70% burn]
+        User -->|"selfAttest"| Reg["VeilAttestationRegistry<br/>permissionless"]
+        Reg --> Hook["VeilHook 0x20C4<br/>beforeSwap gate + 30bps fee"]
+        Hook -->|"fee"| Treasury["VeilTreasury<br/>70% burn"]
     end
 
-    subgraph Tele[📊 Transparency]
-        Treasury --> BurnPage[/burn live ledger]
-        PoolB --> ContractsPage[/contracts reads chain]
+    subgraph Tele["📊 Transparency"]
+        Treasury --> BurnPage["/burn live ledger"]
+        PoolB --> ContractsPage["/contracts reads chain"]
     end
 ```
 
