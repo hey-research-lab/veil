@@ -22,40 +22,13 @@ const TICKER_INFO = {
 type Ticker = keyof typeof TICKER_INFO;
 const TICKERS = Object.keys(TICKER_INFO) as Ticker[];
 
-const TOKEN_COLORS: Record<
-  Ticker,
-  {
-    color: string;
-    lightBg: string;
-    border: string;
-  }
-> = {
-  NVDA: {
-    color: "#0284C7", // Sky Blue
-    lightBg: "rgba(2, 132, 199, 0.08)",
-    border: "rgba(2, 132, 199, 0.25)",
-  },
-  SPY: {
-    color: "#DC2626", // S&P Crimson
-    lightBg: "rgba(220, 38, 38, 0.08)",
-    border: "rgba(220, 38, 38, 0.25)",
-  },
-  TSLA: {
-    color: "#EA580C", // Tesla Flame Amber
-    lightBg: "rgba(234, 88, 12, 0.08)",
-    border: "rgba(234, 88, 12, 0.25)",
-  },
-  AAPL: {
-    color: "#334155", // Apple Slate
-    lightBg: "rgba(51, 65, 85, 0.08)",
-    border: "rgba(51, 65, 85, 0.25)",
-  },
-  MSFT: {
-    color: "#7C3AED", // Royal Violet
-    lightBg: "rgba(124, 58, 237, 0.08)",
-    border: "rgba(124, 58, 237, 0.25)",
-  },
-};
+const BASKET_TONES = [
+  { bg: "#FF8C00", text: "#FFFFFF" }, // Veil Signature Orange
+  { bg: "#1A1A1A", text: "#FFFFFF" }, // Veil Obsidian Ink
+  { bg: "#786B7E", text: "#FFFFFF" }, // Veil Warm Lilac Slate
+  { bg: "#C26700", text: "#FFFFFF" }, // Veil Warm Roasted Cognac
+  { bg: "#4A404E", text: "#FFFFFF" }, // Veil Dark Charcoal Lilac
+];
 
 const STAGES = [
   { label: "Compose", desc: "Setting allocation weights", log: "PoseidonTree::init() -> Validating asset tokens & weights" },
@@ -448,23 +421,22 @@ export const ComposerDemo: React.FC = () => {
           </span>
         </div>
 
-        {/* High-Contrast Segmented Composition Bar */}
+        {/* Brand-Harmonious Composition Bar */}
         <div
           style={{
-            height: "32px",
+            height: "28px",
             width: "100%",
-            borderRadius: "var(--radius-md)",
+            borderRadius: "var(--radius-sm)",
             overflow: "hidden",
             display: "flex",
             backgroundColor: "rgba(26, 26, 26, 0.06)",
             border: "1px solid var(--color-border-strong)",
-            boxShadow: "inset 0 1px 3px rgba(0, 0, 0, 0.08)",
           }}
         >
           {picked.map((t, idx) => {
             const w = weights[t] ?? 0;
             if (w === 0) return null;
-            const cfg = TOKEN_COLORS[t];
+            const tone = BASKET_TONES[idx % BASKET_TONES.length];
             const isLast = idx === picked.length - 1;
             const showLabel = w >= 12;
 
@@ -473,23 +445,23 @@ export const ComposerDemo: React.FC = () => {
                 key={t}
                 style={{
                   width: `${w}%`,
-                  backgroundColor: cfg.color,
+                  backgroundColor: tone.bg,
                   borderRight: isLast ? "none" : "2px solid #ffffff",
                   transition: "width 0.25s cubic-bezier(0.22, 1, 0.36, 1)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: "#ffffff",
+                  color: tone.text,
                   fontFamily: "var(--font-mono)",
                   fontSize: "11px",
-                  fontWeight: 800,
+                  fontWeight: 700,
                   letterSpacing: "0.02em",
                   overflow: "hidden",
                   whiteSpace: "nowrap",
                   padding: "0 4px",
                   userSelect: "none",
                 }}
-                title={`${t} (${TICKER_INFO[t].name}): ${w}%`}
+                title={`${t}: ${w}%`}
               >
                 {showLabel && (
                   <span>
@@ -501,60 +473,58 @@ export const ComposerDemo: React.FC = () => {
           })}
         </div>
 
-        {/* Structured Token Allocation Breakdown Grid */}
+        {/* Clean Token Allocation Readouts */}
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
-            gap: "8px",
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "10px",
             marginTop: "12px",
+            fontFamily: "var(--font-mono)",
+            fontSize: "12px",
           }}
         >
-          {picked.map((t) => {
+          {picked.map((t, idx) => {
             const w = weights[t] ?? 0;
-            const cfg = TOKEN_COLORS[t];
+            const tone = BASKET_TONES[idx % BASKET_TONES.length];
             const Logo = getStockLogo(t);
             return (
               <div
                 key={t}
                 style={{
-                  display: "flex",
+                  display: "inline-flex",
                   alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "8px 10px",
+                  gap: "7px",
+                  padding: "4px 10px",
                   borderRadius: "var(--radius-sm)",
                   backgroundColor: "#ffffff",
                   border: "1px solid var(--color-border)",
-                  borderLeft: `4px solid ${cfg.color}`,
-                  fontFamily: "var(--font-mono)",
-                  boxSizing: "border-box",
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                  <Logo size={16} />
-                  <span style={{ fontWeight: 800, fontSize: "12px", color: "var(--color-text)" }}>{t}</span>
-                </div>
                 <span
                   style={{
-                    fontWeight: 800,
-                    fontSize: "12px",
-                    color: cfg.color,
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "2px",
+                    backgroundColor: tone.bg,
+                    display: "inline-block",
+                    flexShrink: 0,
                   }}
-                >
-                  {w}%
-                </span>
+                />
+                <Logo size={16} />
+                <span style={{ fontWeight: 800 }}>{t}</span>
+                <span style={{ color: "var(--color-accent)", fontWeight: 700 }}>{w}%</span>
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* Sliders Area with Color-Synchronized Accents */}
+      {/* Sliders Area (Standard Veil Style) */}
       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
         {picked.map((t) => {
           const info = TICKER_INFO[t];
           const val = weights[t] ?? 0;
-          const cfg = TOKEN_COLORS[t];
           const Logo = getStockLogo(t);
           return (
             <div
@@ -568,7 +538,6 @@ export const ComposerDemo: React.FC = () => {
                 borderRadius: "var(--radius-sm)",
                 backgroundColor: "#ffffff",
                 border: "1px solid var(--color-border)",
-                borderLeft: `3px solid ${cfg.color}`,
                 boxShadow: "0 2px 6px rgba(26, 26, 26, 0.02)",
               }}
             >
@@ -596,7 +565,7 @@ export const ComposerDemo: React.FC = () => {
                 style={{
                   width: "100%",
                   cursor: "ew-resize",
-                  accentColor: cfg.color,
+                  accentColor: "var(--color-accent)",
                   minHeight: "36px",
                 }}
               />
@@ -609,9 +578,9 @@ export const ComposerDemo: React.FC = () => {
                   textAlign: "right",
                   padding: "4px 8px",
                   borderRadius: "var(--radius-sm)",
-                  backgroundColor: cfg.lightBg,
-                  border: `1px solid ${cfg.border}`,
-                  color: cfg.color,
+                  backgroundColor: "rgba(26, 26, 26, 0.04)",
+                  border: "1px solid var(--color-border)",
+                  color: "var(--color-text)",
                 }}
               >
                 {val}%
