@@ -322,3 +322,11 @@ extTokenId=3752545, onchain PM live). Root cause unproven; documented, not chase
 - After every push to main: run 'npx vercel ls', check the newest Production deployment age. If older than the push, run 'npx vercel --prod' and re-verify a content marker on https://www.veilpools.tech.
 - Prod freshness is part of 'done', not an afterthought.
 
+
+
+## 28. Supply-Chain Audit: Next RCE Patched, Residuals Accepted (2026-10-14)
+
+- First 'pnpm audit' in project history: 13 vulns (1 CRITICAL Next RCE in next/og + 5 HIGH incl. Next SSRF). next/og unused in app (verified, no route), but the lib ships with the server: patched next 16.3.4 -> 16.3.8.
+- After: 6 vulns left, all transitive and accepted with reasoning: underscore+ws via @0xbow SDK 1.5.0 (client-side utils, overriding deps of audited pinned code is higher risk than the vulns; revisit on SDK upgrade), tmp via solc (build-time only, never shipped).
+- Verified post-patch: tsc 0, vitest 234 PASS, 'pnpm build' exit 0 (13/13 pages).
+
