@@ -330,3 +330,13 @@ extTokenId=3752545, onchain PM live). Root cause unproven; documented, not chase
 - After: 6 vulns left, all transitive and accepted with reasoning: underscore+ws via @0xbow SDK 1.5.0 (client-side utils, overriding deps of audited pinned code is higher risk than the vulns; revisit on SDK upgrade), tmp via solc (build-time only, never shipped).
 - Verified post-patch: tsc 0, vitest 234 PASS, 'pnpm build' exit 0 (13/13 pages).
 
+
+
+## 29. Storefront Audit: Lighthouse + Links (2026-10-14, no sends)
+
+- Lighthouse production /trade: Accessibility 96, Best Practices 100, SEO 100 (Blockscout's own page scored 77 for reference — not ours).
+- Fixed real a11y fail: disabled Shield CTA used muted-on-faint text (fails 4.5:1) -> text-token at 60% opacity (blended contrast passes, disabled cue kept).
+- Added public/llms.txt (fixes agentic-browsing check + genuinely useful sitemap).
+- Doc links: all internal markdown links resolve.
+- Verified: tsc 0, vitest 234 PASS, pnpm build exit 0.
+
