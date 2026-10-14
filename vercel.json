@@ -6,17 +6,12 @@
       "has": [{ "type": "host", "value": "veilpools.tech" }],
       "destination": "https://www.veilpools.tech/$1",
       "permanent": true
+    }
+  ],
   "headers": [
     {
-      // ZK artifacts must arrive byte-identical: some VPN/proxy middleboxes
-      // normalize "text" responses (CRLF -> LF), which silently corrupts the
-      // JSON verification keys and fails the SHA-256 pin (incident
-      // 2026-10-14: 4336-byte vkey arrived as 4208 bytes). Forcing
-      // octet-stream keeps every byte untouched in transit.
       "source": "/shield-artifacts/(.*)",
       "headers": [{ "key": "Content-Type", "value": "application/octet-stream" }]
     }
-  ]
-}
   ]
 }
