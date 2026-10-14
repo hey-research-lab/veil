@@ -8,9 +8,6 @@ import { DecodeText } from "./DecodeText";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Pin progress for each statement. Step k is active in [k/3, (k+1)/3), so these land inside each band.
-const STEP_STOPS = [0, 0.5, 1];
-
 export const ProblemSection: React.FC = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const [activeStep, setActiveStep] = useState(0);
@@ -21,32 +18,31 @@ export const ProblemSection: React.FC = () => {
     const el = sectionRef.current;
     if (!el) return;
 
-    // Step the snap last settled on; each gesture may move at most one step from here.
-    let settledStep = 0;
     let lastStep = 0;
 
     const pin = ScrollTrigger.create({
       id: "problemPin",
       trigger: el,
       start: "top top",
-      end: "+=260%",
+      end: "+=380%",
       pin: true,
-      scrub: true,
+      scrub: 0.6,
       anticipatePin: 1,
       snap: {
         snapTo: (value) => {
-          const from = STEP_STOPS[settledStep];
-          const dir = value > from + 0.02 ? 1 : value < from - 0.02 ? -1 : 0;
-          const next = Math.max(0, Math.min(STEP_STOPS.length - 1, settledStep + dir));
-          return STEP_STOPS[next];
+          // Allow natural, unconstrained exit at the extremes
+          if (value < 0.05) return 0;
+          if (value > 0.93) return 1;
+
+          // Snap to the comfortable center of each statement band
+          if (value < 0.34) return 0.16;
+          if (value < 0.67) return 0.50;
+          return 0.84;
         },
-        duration: { min: 0.25, max: 0.6 },
-        delay: 0.05,
-        ease: "power2.inOut",
+        duration: { min: 0.25, max: 0.45 },
+        delay: 0.2,
+        ease: "power2.out",
         inertia: false,
-        onComplete: (self) => {
-          settledStep = Math.round(self.progress * (STEP_STOPS.length - 1));
-        },
       },
       onUpdate: (self) => {
         const step = Math.min(2, Math.floor(self.progress * 3));
@@ -54,12 +50,6 @@ export const ProblemSection: React.FC = () => {
         lastStep = step;
         setActiveStep(step);
         setHasStepped(true);
-      },
-      onLeave: () => {
-        settledStep = STEP_STOPS.length - 1;
-      },
-      onLeaveBack: () => {
-        settledStep = 0;
       },
     });
 
@@ -98,11 +88,52 @@ export const ProblemSection: React.FC = () => {
           flex: "0 0 auto",
           display: "grid",
           placeItems: "start center",
-          minHeight: "clamp(12rem, 30svh, 16rem)",
+          minHeight: "clamp(13rem, 32svh, 17rem)",
           paddingBottom: "clamp(1.5rem, 6svh, 4rem)",
         }}
       >
         <div style={{ gridArea: "1 / 1", width: "100%", opacity: 1 }}>
+          {/* Step indicator kicker and progress pills */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "8px",
+              marginBottom: "var(--space-3)",
+            }}
+          >
+            <div
+              style={{
+                fontFamily: "ui-monospace, 'SF Mono', monospace",
+                fontSize: "11px",
+                fontWeight: 700,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "rgba(26, 26, 26, 0.5)",
+              }}
+            >
+              <span>{problem.kicker}</span>
+              <span style={{ margin: "0 6px", opacity: 0.35 }}>·</span>
+              <span style={{ color: "var(--color-text)" }}>0{activeStep + 1} / 03</span>
+            </div>
+
+            <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+              {problem.statements.map((_, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    width: activeStep === idx ? "24px" : "6px",
+                    height: "3px",
+                    borderRadius: "2px",
+                    backgroundColor: activeStep === idx ? "#FF8A00" : "rgba(26, 26, 26, 0.15)",
+                    transition: "all 0.35s cubic-bezier(0.16, 1, 0.3, 1)",
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+
           <p
             style={{
               margin: 0,
@@ -121,6 +152,8 @@ export const ProblemSection: React.FC = () => {
             <DecodeText key={statement.head} text={statement.head} autoPlay={hasStepped} />
           </p>
           <p
+            key={`sub-${activeStep}`}
+            className="hero-enter"
             style={{
               margin: "var(--space-3) auto 0",
               fontFamily: "var(--font-body)",
