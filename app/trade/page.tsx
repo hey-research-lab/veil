@@ -501,6 +501,10 @@ export default function SwapToShieldPage() {
   // Form Inputs
   const [inputAmount, setInputAmount] = useState("0.001");
   const [cleanRecipient, setCleanRecipient] = useState("");
+  // ZK Swap direct-payout address: separate state from the Withdraw tab
+  // recipient (shared cleanRecipient leaked across tabs). Empty falls back
+  // to the connected wallet at execute time — never blocked.
+  const [zkPayoutAddress, setZkPayoutAddress] = useState("");
 
   // Note Selection in Shielded Swap & Withdraw
   const [selectedNoteNullifier, setSelectedNoteNullifier] = useState<string>("");
@@ -2598,7 +2602,7 @@ export default function SwapToShieldPage() {
         // Direct-payout path: relay -> swap -> visible payout, no note.
         // Empty payout field falls back to the connected wallet (same address
         // the quote previewed) — never blocked, never surprising.
-        const payoutTo = isAddress(cleanRecipient) ? (cleanRecipient as Address) : connectedAddress;
+        const payoutTo = isAddress(zkPayoutAddress) ? (zkPayoutAddress as Address) : connectedAddress;
         const directFinal = buildDirectFullZkFlowArgs({
           suite: zkSuite,
           withdrawal: zkDirectBundle.withdrawal,
@@ -4451,8 +4455,8 @@ export default function SwapToShieldPage() {
                 onExecute={() => {
                   void handleZkShieldedSwapExecute();
                 }}
-                payoutAddress={cleanRecipient}
-                onPayoutAddressChange={setCleanRecipient}
+                payoutAddress={zkPayoutAddress}
+                onPayoutAddressChange={setZkPayoutAddress}
                 onGoShield={() => switchTab("buy_and_shield")}
                 noteBackedUp={
                   selectedNoteNullifier === null
