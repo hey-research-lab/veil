@@ -84,8 +84,8 @@ export default function DarkEtfPage() {
             style={{
               margin: 0,
               fontFamily: "var(--font-headline)",
-              fontSize: "clamp(2rem, 3.2vw, 2.75rem)",
-              lineHeight: 1.12,
+              fontSize: "clamp(1.75rem, 3.6vw, 2.75rem)",
+              lineHeight: 1.15,
               color: "var(--color-text)",
               letterSpacing: "-0.02em",
               fontWeight: 600,
@@ -109,22 +109,15 @@ export default function DarkEtfPage() {
           </p>
 
           {/* Quick Hero Action CTAs */}
-          <div
-            style={{
-              display: "flex",
-              gap: "10px",
-              flexWrap: "wrap",
-              alignItems: "center",
-              marginTop: "var(--space-4)",
-            }}
-          >
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 mt-4 w-full sm:w-auto">
             <a
               href="#waitlist"
+              className="w-full sm:w-auto justify-center"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "8px",
-                padding: "10px 20px",
+                padding: "11px 22px",
                 borderRadius: "var(--radius-sm)",
                 backgroundColor: "var(--color-accent)",
                 color: "var(--color-accent-contrast)",
@@ -142,10 +135,11 @@ export default function DarkEtfPage() {
 
             <a
               href="#composer"
+              className="w-full sm:w-auto justify-center"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                padding: "10px 18px",
+                padding: "11px 18px",
                 borderRadius: "var(--radius-sm)",
                 backgroundColor: "#ffffff",
                 color: "var(--color-text)",
@@ -162,6 +156,7 @@ export default function DarkEtfPage() {
 
             <a
               href="#how"
+              className="w-full sm:w-auto justify-center"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -181,17 +176,7 @@ export default function DarkEtfPage() {
         </div>
 
         {/* Technical Architecture Specs without random dots */}
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: "var(--space-3)",
-            fontFamily: "var(--font-mono)",
-            fontSize: "12px",
-            color: "var(--color-muted)",
-          }}
-        >
+        <div className="flex items-center flex-wrap gap-2 sm:gap-3 text-xs font-mono text-[var(--color-muted)] mt-1 sm:mt-0">
           <span>Stock Tokens</span>
           <span style={{ opacity: 0.3 }}>/</span>
           <span>Groth16 ZK-SNARK</span>
@@ -318,7 +303,7 @@ export default function DarkEtfPage() {
               </p>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px" }}>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {[
                 {
                   step: "01",
@@ -444,13 +429,7 @@ export default function DarkEtfPage() {
               </p>
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-                gap: "14px",
-              }}
-            >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               {/* Public Explorer Billboard */}
               <div
                 style={{
@@ -484,7 +463,7 @@ export default function DarkEtfPage() {
                     EXPOSED
                   </span>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px", color: "var(--color-text)" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px", color: "var(--color-text)", wordBreak: "break-all" }}>
                   <div>
                     <span style={{ color: "var(--color-muted)" }}>Target Wallet: </span>
                     <span style={{ fontWeight: 600 }}>0x7a29…41c8</span>
@@ -549,7 +528,7 @@ export default function DarkEtfPage() {
                     SHIELDED
                   </span>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px", wordBreak: "break-all" }}>
                   <div>
                     <span style={{ color: "#8c8c8c" }}>Commitment Hash: </span>
                     <span style={{ color: "#ffffff", fontWeight: 600 }}>0x7f3a8c19…9b12fe04</span>

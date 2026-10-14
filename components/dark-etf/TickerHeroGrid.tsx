@@ -74,18 +74,13 @@ export const TickerHeroGrid: React.FC = () => {
     <div style={{ width: "100%", marginTop: "4px" }}>
       {/* Sub-header row without dots or clutter icons */}
       <div
+        className="flex flex-col sm:flex-row justify-between sm:items-center gap-1 sm:gap-2 mb-3"
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
           fontFamily: "var(--font-mono)",
           fontSize: "11px",
           color: "var(--color-muted)",
           letterSpacing: "0.08em",
-          marginBottom: "12px",
           textTransform: "uppercase",
-          flexWrap: "wrap",
-          gap: "8px",
         }}
       >
         <span style={{ fontWeight: 600 }}>
@@ -96,16 +91,9 @@ export const TickerHeroGrid: React.FC = () => {
         </span>
       </div>
 
-      {/* Grid of 5 Stock Tokens */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: "12px",
-          width: "100%",
-        }}
-      >
-        {TICKER_LIST.map((t) => {
+      {/* Grid of 5 Stock Tokens: 2-col on mobile, 3-col on tablet, 5-col on desktop */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 w-full">
+        {TICKER_LIST.map((t, idx) => {
           const isHovered = hoveredTicker === t.symbol;
           const showClear = reducedMotion || isHovered;
           const LogoComponent = getStockLogo(t.symbol);
@@ -125,11 +113,10 @@ export const TickerHeroGrid: React.FC = () => {
                 }
               }}
               title={`Click to add ${t.symbol} to Basket Composer`}
+              className={`relative p-3.5 sm:p-4 rounded-[var(--radius-md)] bg-white flex flex-col justify-between gap-3 box-border overflow-hidden cursor-pointer ${
+                idx === 4 ? "col-span-2 sm:col-span-1" : ""
+              }`}
               style={{
-                position: "relative",
-                padding: "16px",
-                borderRadius: "var(--radius-md)",
-                backgroundColor: "#ffffff",
                 border: isHovered
                   ? "1px solid var(--color-accent)"
                   : "1px solid var(--color-border-strong)",
@@ -140,13 +127,6 @@ export const TickerHeroGrid: React.FC = () => {
                 boxShadow: isHovered
                   ? "0 8px 24px -4px rgba(26, 26, 26, 0.08)"
                   : "0 2px 8px -2px rgba(26, 26, 26, 0.03)",
-                cursor: "pointer",
-                boxSizing: "border-box",
-                overflow: "hidden",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                gap: "14px",
               }}
             >
               {/* Header: Logo, Ticker, Privacy Lock */}
@@ -156,11 +136,11 @@ export const TickerHeroGrid: React.FC = () => {
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    marginBottom: "12px",
+                    marginBottom: "10px",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <LogoComponent size={28} />
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <LogoComponent size={26} />
                     <div>
                       <div
                         style={{

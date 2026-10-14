@@ -233,13 +233,7 @@ export const WaitlistForm: React.FC = () => {
             />
           </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-              gap: "14px",
-            }}
-          >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
               <label htmlFor="wl-x" style={labelStyle}>
                 <span style={{ color: "var(--color-accent)" }}>[02]</span> X / TWITTER HANDLE (OPTIONAL)
@@ -326,6 +320,7 @@ export const WaitlistForm: React.FC = () => {
           <button
             type="submit"
             disabled={busy}
+            className="w-full"
             style={{
               display: "inline-flex",
               alignItems: "center",

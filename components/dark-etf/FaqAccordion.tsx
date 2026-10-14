@@ -62,13 +62,15 @@ export const FaqAccordion: React.FC = () => {
                 textAlign: "left",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", flex: 1 }}>
                 <span
                   style={{
                     fontFamily: "var(--font-mono)",
                     fontSize: "11px",
                     fontWeight: 700,
                     color: isOpen ? "var(--color-accent)" : "var(--color-muted)",
+                    marginTop: "2px",
+                    flexShrink: 0,
                   }}
                 >
                   Q0{idx + 1}
@@ -79,6 +81,7 @@ export const FaqAccordion: React.FC = () => {
                     fontSize: "14px",
                     fontWeight: 600,
                     color: "var(--color-text)",
+                    lineHeight: 1.35,
                   }}
                 >
                   {item.q}
@@ -91,14 +94,15 @@ export const FaqAccordion: React.FC = () => {
                   transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
                   transition: "transform 0.2s ease",
                   flexShrink: 0,
+                  marginTop: "2px",
                 }}
               />
             </button>
 
             {isOpen && (
               <div
+                className="pl-3.5 sm:pl-[34px] pr-3.5 pb-3.5 pt-0"
                 style={{
-                  padding: "0 14px 14px 34px",
                   fontFamily: "var(--font-body)",
                   fontSize: "13px",
                   lineHeight: 1.55,

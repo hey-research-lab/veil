@@ -520,7 +520,7 @@ export const ComposerDemo: React.FC = () => {
         </div>
       </div>
 
-      {/* Sliders Area (Standard Veil Style) */}
+      {/* Sliders Area (Standard Veil Style - Mobile Responsive Stack) */}
       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
         {picked.map((t) => {
           const info = TICKER_INFO[t];
@@ -529,30 +529,31 @@ export const ComposerDemo: React.FC = () => {
           return (
             <div
               key={t}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "140px 1fr 65px",
-                alignItems: "center",
-                gap: "14px",
-                padding: "10px 14px",
-                borderRadius: "var(--radius-sm)",
-                backgroundColor: "#ffffff",
-                border: "1px solid var(--color-border)",
-                boxShadow: "0 2px 6px rgba(26, 26, 26, 0.02)",
-              }}
+              className="flex flex-col sm:grid sm:grid-cols-[140px_1fr_65px] sm:items-center gap-2 sm:gap-3.5 p-3 sm:p-3.5 rounded-[var(--radius-sm)] bg-white border border-[var(--color-border)] shadow-[0_2px_6px_rgba(26,26,26,0.02)]"
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <Logo size={20} />
-                <div>
-                  <div style={{ fontFamily: "var(--font-mono)", fontWeight: 800, fontSize: "14px", lineHeight: 1.1 }}>
-                    {t}
+              {/* Ticker & Category row (mobile shows value badge on right) */}
+              <div className="flex items-center justify-between sm:justify-start gap-2.5">
+                <div className="flex items-center gap-2.5">
+                  <Logo size={20} />
+                  <div>
+                    <div style={{ fontFamily: "var(--font-mono)", fontWeight: 800, fontSize: "14px", lineHeight: 1.1 }}>
+                      {t}
+                    </div>
+                    <div style={{ fontFamily: "var(--font-body)", fontSize: "10px", color: "var(--color-muted)", whiteSpace: "nowrap" }}>
+                      {info.category}
+                    </div>
                   </div>
-                  <div style={{ fontFamily: "var(--font-body)", fontSize: "10px", color: "var(--color-muted)", whiteSpace: "nowrap" }}>
-                    {info.category}
-                  </div>
+                </div>
+
+                {/* Mobile-only value badge */}
+                <div
+                  className="sm:hidden font-mono text-xs font-bold px-2 py-0.5 rounded-[var(--radius-sm)] bg-[rgba(26,26,26,0.04)] border border-[var(--color-border)] text-[var(--color-text)]"
+                >
+                  {val}%
                 </div>
               </div>
 
+              {/* Slider track (Full width on mobile) */}
               <input
                 type="range"
                 min={0}
@@ -570,18 +571,9 @@ export const ComposerDemo: React.FC = () => {
                 }}
               />
 
+              {/* Desktop-only value badge */}
               <div
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "13px",
-                  fontWeight: 800,
-                  textAlign: "right",
-                  padding: "4px 8px",
-                  borderRadius: "var(--radius-sm)",
-                  backgroundColor: "rgba(26, 26, 26, 0.04)",
-                  border: "1px solid var(--color-border)",
-                  color: "var(--color-text)",
-                }}
+                className="hidden sm:block text-right font-mono text-[13px] font-extrabold px-2 py-1 rounded-[var(--radius-sm)] bg-[rgba(26,26,26,0.04)] border border-[var(--color-border)] text-[var(--color-text)]"
               >
                 {val}%
               </div>
@@ -591,16 +583,17 @@ export const ComposerDemo: React.FC = () => {
       </div>
 
       {/* Shield CTA Button */}
-      <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap", marginTop: "4px" }}>
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 mt-1 w-full">
         <button
           type="button"
           onClick={shield}
           disabled={stage >= 0 && stage < 4}
+          className="w-full sm:w-auto justify-center"
           style={{
             display: "inline-flex",
             alignItems: "center",
             gap: "8px",
-            padding: "12px 26px",
+            padding: "12px 24px",
             minHeight: "44px",
             borderRadius: "var(--radius-sm)",
             border: "none",
@@ -622,6 +615,7 @@ export const ComposerDemo: React.FC = () => {
           <button
             type="button"
             onClick={reset}
+            className="w-full sm:w-auto justify-center"
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -677,15 +671,8 @@ export const ComposerDemo: React.FC = () => {
             />
           </div>
 
-          {/* Stage Cards */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
-              gap: "8px",
-              marginBottom: "14px",
-            }}
-          >
+          {/* Stage Cards: 2-col on mobile, 4-col on desktop */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3.5">
             {STAGES.map((s, idx) => {
               const isPast = stage > idx;
               const isCurrent = stage === idx;
@@ -754,12 +741,14 @@ export const ComposerDemo: React.FC = () => {
               fontSize: "11px",
               lineHeight: 1.6,
               border: "1px solid rgba(255, 140, 0, 0.25)",
+              overflowX: "auto",
+              wordBreak: "break-all",
             }}
           >
             <div style={{ color: "var(--color-accent)", fontWeight: 700, marginBottom: "4px" }}>
               ZK PROVER SIMULATION LOG
             </div>
-            {STAGES.slice(0, Math.min(stage + 1, 4)).map((s, i) => (
+            {STAGES.slice(0, Math.min(stage + 1, 4)).map((s) => (
               <div key={s.label} style={{ opacity: 0.9 }}>
                 <span style={{ color: "var(--color-accent)" }}>&gt;</span> {s.log}
               </div>
@@ -772,16 +761,9 @@ export const ComposerDemo: React.FC = () => {
             )}
           </div>
 
-          {/* Outcome Split View */}
+          {/* Outcome Split View: 1-col on mobile, 2-col on md+ */}
           {stage >= 4 && commitment && (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-                gap: "14px",
-                marginTop: "14px",
-              }}
-            >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 mt-3.5">
               {/* Left: User's Private View */}
               <div
                 style={{
@@ -801,11 +783,12 @@ export const ComposerDemo: React.FC = () => {
                     color: "var(--color-accent)",
                     fontWeight: 700,
                     marginBottom: "10px",
+                    gap: "8px",
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                     <Eye size={14} />
-                    <span>YOUR SHIELDED BASKET (CLIENT DECRYPTED)</span>
+                    <span>YOUR SHIELDED BASKET</span>
                   </div>
                   <button
                     type="button"
@@ -822,13 +805,14 @@ export const ComposerDemo: React.FC = () => {
                       fontFamily: "var(--font-mono)",
                       color: "var(--color-text)",
                       cursor: "pointer",
+                      flexShrink: 0,
                     }}
                   >
                     {copied ? <Check size={11} style={{ color: "var(--color-accent)" }} /> : <Copy size={11} />}
                     <span>{copied ? "Copied" : "Copy"}</span>
                   </button>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px", wordBreak: "break-all" }}>
                   <div>
                     <span style={{ color: "var(--color-muted)" }}>Commitment: </span>
                     <span style={{ fontWeight: 600 }}>{commitment.slice(0, 18)}…</span>
@@ -874,7 +858,7 @@ export const ComposerDemo: React.FC = () => {
                   <EyeOff size={14} />
                   <span>WHAT OUTSIDERS / EXPLORERS SEE</span>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px", wordBreak: "break-all" }}>
                   <div>
                     <span style={{ color: "#8c8c8c" }}>Transaction: </span>
                     <span>0x{fakeHex(6).slice(2)}… (Shield Deposit)</span>
