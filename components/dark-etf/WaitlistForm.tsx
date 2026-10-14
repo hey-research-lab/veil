@@ -137,8 +137,8 @@ export const WaitlistForm: React.FC = () => {
           style={{
             padding: "24px",
             borderRadius: "var(--radius-md)",
-            backgroundColor: "rgba(16, 185, 129, 0.06)",
-            border: "1px solid rgba(16, 185, 129, 0.25)",
+            backgroundColor: "rgba(255, 140, 0, 0.08)",
+            border: "1px solid rgba(255, 140, 0, 0.25)",
             textAlign: "center",
             display: "flex",
             flexDirection: "column",
@@ -147,7 +147,7 @@ export const WaitlistForm: React.FC = () => {
             animation: "tabContentEnter 240ms cubic-bezier(0.22, 1, 0.36, 1) forwards",
           }}
         >
-          <CheckCircle2 size={36} style={{ color: "#10B981" }} />
+          <CheckCircle2 size={36} style={{ color: "var(--color-accent)" }} />
           <div
             style={{
               fontFamily: "var(--font-headline)",

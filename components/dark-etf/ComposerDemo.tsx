@@ -3,18 +3,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Shield,
-  Lock,
-  Unlock,
   Eye,
   EyeOff,
   RotateCcw,
   Check,
-  Sparkles,
-  Sliders,
   Copy,
-  Terminal,
-  Activity,
-  Layers,
 } from "lucide-react";
 import { getStockLogo } from "../StockLogos";
 
@@ -279,13 +272,9 @@ export const ComposerDemo: React.FC = () => {
             color: "var(--color-muted)",
             marginBottom: "8px",
             fontWeight: 600,
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
           }}
         >
-          <Sparkles size={12} style={{ color: "var(--color-accent)" }} />
-          <span>Quick Strategy Presets</span>
+          Quick Strategy Presets
         </div>
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
           {PRESETS.map((p) => {
@@ -409,11 +398,8 @@ export const ComposerDemo: React.FC = () => {
             fontWeight: 600,
           }}
         >
-          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-            <Layers size={13} style={{ color: "var(--color-accent)" }} />
-            PROPORTIONAL BASKET DISTRIBUTION
-          </span>
-          <span style={{ color: total === 100 ? "#16a34a" : "var(--color-accent)" }}>
+          <span>PROPORTIONAL BASKET DISTRIBUTION</span>
+          <span style={{ color: "var(--color-accent)", fontWeight: 700 }}>
             {total}% BALANCED
           </span>
         </div>
@@ -421,7 +407,7 @@ export const ComposerDemo: React.FC = () => {
         {/* Stacked Composition Bar */}
         <div
           style={{
-            height: "14px",
+            height: "12px",
             width: "100%",
             borderRadius: "var(--radius-full)",
             overflow: "hidden",
@@ -727,9 +713,8 @@ export const ComposerDemo: React.FC = () => {
               border: "1px solid rgba(255, 140, 0, 0.25)",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--color-accent)", marginBottom: "4px" }}>
-              <Terminal size={12} />
-              <span style={{ fontWeight: 700 }}>ZK PROVER SIMULATION LOG</span>
+            <div style={{ color: "var(--color-accent)", fontWeight: 700, marginBottom: "4px" }}>
+              ZK PROVER SIMULATION LOG
             </div>
             {STAGES.slice(0, Math.min(stage + 1, 4)).map((s, i) => (
               <div key={s.label} style={{ opacity: 0.9 }}>

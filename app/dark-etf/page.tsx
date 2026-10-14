@@ -5,20 +5,7 @@ import { WaitlistForm } from "../../components/dark-etf/WaitlistForm";
 import { TickerHeroGrid } from "../../components/dark-etf/TickerHeroGrid";
 import { FaqAccordion } from "../../components/dark-etf/FaqAccordion";
 import { RobinhoodLogoMark } from "../../components/TokenLogos";
-import {
-  Shield,
-  Sliders,
-  Shuffle,
-  ArrowRight,
-  Lock,
-  EyeOff,
-  AlertTriangle,
-  FileText,
-  Sparkles,
-  Layers,
-  CheckCircle,
-  ExternalLink,
-} from "lucide-react";
+import { Shield, ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Veil Dark ETF — Coming Soon",
@@ -158,7 +145,6 @@ export default function DarkEtfPage() {
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: "8px",
                 padding: "10px 18px",
                 borderRadius: "var(--radius-sm)",
                 backgroundColor: "#ffffff",
@@ -171,7 +157,6 @@ export default function DarkEtfPage() {
                 transition: "all var(--duration-fast) var(--ease-out)",
               }}
             >
-              <Sliders size={14} style={{ color: "var(--color-accent)" }} />
               <span>Try Composer Demo</span>
             </a>
 
@@ -180,7 +165,6 @@ export default function DarkEtfPage() {
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: "6px",
                 padding: "10px 14px",
                 borderRadius: "var(--radius-sm)",
                 backgroundColor: "transparent",
@@ -196,7 +180,7 @@ export default function DarkEtfPage() {
           </div>
         </div>
 
-        {/* Technical Architecture Specs */}
+        {/* Technical Architecture Specs without random dots */}
         <div
           style={{
             display: "inline-flex",
@@ -208,10 +192,7 @@ export default function DarkEtfPage() {
             color: "var(--color-muted)",
           }}
         >
-          <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
-            <span style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "var(--color-accent)" }} />
-            Stock Tokens
-          </span>
+          <span>Stock Tokens</span>
           <span style={{ opacity: 0.3 }}>/</span>
           <span>Groth16 ZK-SNARK</span>
           <span style={{ opacity: 0.3 }}>/</span>
@@ -252,13 +233,9 @@ export default function DarkEtfPage() {
                   color: "var(--color-muted)",
                   marginBottom: "4px",
                   fontWeight: 600,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
                 }}
               >
-                <Sliders size={12} style={{ color: "var(--color-accent)" }} />
-                <span>[01 // INTERACTIVE SIMULATION]</span>
+                [01 // INTERACTIVE SIMULATION]
               </div>
               <h2
                 style={{
@@ -313,13 +290,9 @@ export default function DarkEtfPage() {
                   color: "var(--color-muted)",
                   marginBottom: "4px",
                   fontWeight: 600,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
                 }}
               >
-                <Layers size={12} style={{ color: "var(--color-accent)" }} />
-                <span>[02 // THREE-STAGE ARCHITECTURE]</span>
+                [02 // THREE-STAGE ARCHITECTURE]
               </div>
               <h2
                 style={{
@@ -350,19 +323,16 @@ export default function DarkEtfPage() {
                 {
                   step: "01",
                   title: "Compose",
-                  icon: <Sliders size={18} style={{ color: "var(--color-accent)" }} />,
                   desc: "Pick Stock Tokens and customize your target weights. Fully custom baskets with no fund manager constraints.",
                 },
                 {
                   step: "02",
                   title: "Shield",
-                  icon: <Shield size={18} style={{ color: "var(--color-accent)" }} />,
                   desc: "Your basket is minted as an encrypted note in a Veil pool. The public ledger holds only a Poseidon commitment.",
                 },
                 {
                   step: "03",
                   title: "Rebalance in the Dark",
-                  icon: <Shuffle size={18} style={{ color: "var(--color-accent)" }} />,
                   desc: "Rebalancing trades match peer-to-peer inside an off-chain batch auction. Only the net difference touches Uniswap v4.",
                 },
               ].map((item) => (
@@ -392,7 +362,6 @@ export default function DarkEtfPage() {
                     >
                       STAGE {item.step}
                     </span>
-                    {item.icon}
                   </div>
                   <div
                     style={{
@@ -446,13 +415,9 @@ export default function DarkEtfPage() {
                   color: "var(--color-muted)",
                   marginBottom: "4px",
                   fontWeight: 600,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
                 }}
               >
-                <AlertTriangle size={12} style={{ color: "var(--color-accent)" }} />
-                <span>[03 // SURVEILLANCE VULNERABILITY]</span>
+                [03 // SURVEILLANCE VULNERABILITY]
               </div>
               <h2
                 style={{
@@ -507,10 +472,7 @@ export default function DarkEtfPage() {
                     marginBottom: "10px",
                   }}
                 >
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                    <AlertTriangle size={14} />
-                    PUBLIC MEMPOOL EXPLORER
-                  </span>
+                  <span>PUBLIC MEMPOOL EXPLORER</span>
                   <span
                     style={{
                       fontSize: "10px",
@@ -609,7 +571,7 @@ export default function DarkEtfPage() {
                       • Rebalance Strategy: Off-chain batch
                     </div>
                   </div>
-                  <div style={{ fontSize: "11px", color: "#10B981", marginTop: "2px" }}>
+                  <div style={{ fontSize: "11px", color: "var(--color-accent)", marginTop: "2px" }}>
                     ✓ Zero individual trade leak. Only net touches Uniswap v4.
                   </div>
                 </div>
@@ -646,13 +608,9 @@ export default function DarkEtfPage() {
                   color: "var(--color-muted)",
                   marginBottom: "4px",
                   fontWeight: 600,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
                 }}
               >
-                <Sparkles size={12} style={{ color: "var(--color-accent)" }} />
-                <span>[04 // EARLY ACCESS QUEUE]</span>
+                [04 // EARLY ACCESS QUEUE]
               </div>
               <h2
                 style={{
@@ -710,13 +668,9 @@ export default function DarkEtfPage() {
                   color: "var(--color-muted)",
                   marginBottom: "4px",
                   fontWeight: 600,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
                 }}
               >
-                <FileText size={12} style={{ color: "var(--color-accent)" }} />
-                <span>[05 // PROTOCOL INTEL]</span>
+                [05 // PROTOCOL INTEL]
               </div>
               <h2
                 style={{
@@ -745,9 +699,6 @@ export default function DarkEtfPage() {
           >
             <div
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
                 fontFamily: "var(--font-mono)",
                 fontSize: "11px",
                 fontWeight: 700,
@@ -757,8 +708,7 @@ export default function DarkEtfPage() {
                 marginBottom: "8px",
               }}
             >
-              <FileText size={13} style={{ color: "var(--color-accent)" }} />
-              <span>// REGULATORY &amp; JURISDICTIONAL NOTICE</span>
+              // REGULATORY &amp; JURISDICTIONAL NOTICE
             </div>
             <p
               style={{
