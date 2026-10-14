@@ -37,7 +37,7 @@ function askHidden(q) {
   });
 }
 
-const b64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+const b64 = (s) => new Uint8Array(Buffer.from(String(s).replace(/\s+/g, ""), "base64"));
 const toAB = (u8) => { const ab = new ArrayBuffer(u8.byteLength); new Uint8Array(ab).set(u8); return ab; };
 async function decryptNoteBackup(backup, password) {
   const enc = new TextEncoder();
@@ -50,10 +50,24 @@ async function decryptNoteBackup(backup, password) {
   return new TextDecoder().decode(pt);
 }
 
-const password = await askHidden("Vault backup password: ");
+const password = process.env.VEIL_BACKUP_PASSWORD || await askHidden("Vault backup password: ");
 const backup = JSON.parse(readFileSync(backupPath, "utf8"));
 const decrypted = await decryptNoteBackup(backup, password);
-let parsed = JSON.parse(decrypted);
+function parseBowNoteString(s) {
+  const parts = s.trim().split(":");
+  if (parts.length !== 12 || parts[0] !== "veil-bow-note-v1") throw new Error("Invalid Veil 0xbow note format");
+  return { type: "0xbow", version: "v1.2.1", chainId: Number(parts[1]), asset: parts[2].toLowerCase(), denomination: BigInt(parts[3]), scope: parts[4], label: parts[5], nullifier: parts[6], secret: parts[7], precommitment: parts[8], commitmentHash: parts[9], blockNumber: parts[10], txHash: parts[11], timestamp: Date.now() };
+}
+let parsed;
+try {
+  parsed = JSON.parse(decrypted);
+} catch {
+  parsed = decrypted;
+}
+if (typeof parsed === "string" && parsed.trim().startsWith("veil-bow-note-v1")) {
+  const lines = parsed.trim().split("\n").map((x) => x.trim()).filter(Boolean);
+  parsed = lines.map(parseBowNoteString);
+}
 const bowNote = Array.isArray(parsed) ? parsed[NOTE_INDEX] : parsed;
 if (!bowNote || bowNote.type !== "0xbow") throw new Error("Note is not a 0xbow note.");
 console.log("note asset is VEIL-pool:", true);

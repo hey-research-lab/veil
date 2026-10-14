@@ -2029,7 +2029,20 @@ export default function SwapToShieldPage() {
         newSecret: secretPair.secret,
       });
       zkStage("proving-done: verifying locally");
-      const isValid = await sdk.verifyWithdrawal(withdrawalProof);
+      try {
+        const vkeyBytes = await fetchPinnedBowArtifact("withdraw.vkey");
+        console.log(`[zk-quote] vkey bytes=${vkeyBytes.length} proofSignals=${withdrawalProof.publicSignals.length} pi_a=${withdrawalProof.proof.pi_a.length}`);
+      } catch (e: unknown) {
+        console.log(`[zk-quote] vkey preload failed: ${e instanceof Error ? e.message : String(e)}`);
+      }
+      let isValid = false;
+      try {
+        isValid = await sdk.verifyWithdrawal(withdrawalProof);
+      } catch (e: unknown) {
+        const err = e as { message?: unknown; cause?: unknown; stack?: unknown };
+        console.log(`[zk-quote] verify threw name=${(e as { name?: unknown })?.name} message=${String(err.message ?? e).slice(0, 300)} cause=${String((err as { cause?: unknown }).cause ?? "").slice(0, 300)}`);
+        throw e;
+      }
       if (!isValid) throw new Error("Local verification of Groth16 withdrawal proof failed.");
       zkStage("verify-ok: bracketing swap output");
 
