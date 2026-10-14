@@ -116,23 +116,14 @@ export const TickerHeroGrid: React.FC = () => {
                   marginBottom: "12px",
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <div
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <LogoComponent
+                    size={28}
                     style={{
-                      width: "32px",
-                      height: "32px",
-                      borderRadius: "var(--radius-sm)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      backgroundColor: "rgba(26, 26, 26, 0.04)",
-                      border: "1px solid var(--color-border)",
                       transition: "transform 0.2s ease",
-                      transform: isHovered && !reducedMotion ? "scale(1.08)" : "scale(1)",
+                      transform: isHovered && !reducedMotion ? "scale(1.1)" : "scale(1)",
                     }}
-                  >
-                    <LogoComponent size={22} />
-                  </div>
+                  />
                   <div>
                     <div
                       style={{

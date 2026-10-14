@@ -31,19 +31,17 @@ export const StockTokenLogo: React.FC<{
   return (
     <img
       src={src}
-      alt={`${sym} official logo`}
+      alt={`${sym} logo`}
       width={size}
       height={size}
       className={className}
       style={{
         width: `${size}px`,
         height: `${size}px`,
-        borderRadius: "4px",
         display: "inline-block",
         verticalAlign: "middle",
         flexShrink: 0,
         objectFit: "contain",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
         ...style,
       }}
     />

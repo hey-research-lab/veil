@@ -239,7 +239,7 @@ export const ComposerDemo: React.FC = () => {
                   boxShadow: on ? "0 2px 8px rgba(255, 140, 0, 0.15)" : "none",
                 }}
               >
-                <Logo size={18} />
+                <Logo size={20} />
                 <span style={{ fontWeight: 800 }}>{t}</span>
                 <span style={{ fontSize: "11px", color: "var(--color-muted)", fontWeight: 400 }}>
                   {info.name}
