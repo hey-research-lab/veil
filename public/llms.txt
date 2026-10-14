@@ -21,11 +21,13 @@ Veil brings zero-knowledge privacy directly to Uniswap v4 swaps on Robinhood Cha
 - **AMM Hook**: Uniswap v4 CREATE2 deployed Hook (0x20c4 address flag).
 
 ## Core Pages & Endpoints
-- `/trade` - Shielded trading desk (Shield, Shielded Swap, Withdraw, Vault, Attestation).
-- `/contracts` - Live on-chain deployed contract addresses, verification status, and parameters.
-- `/burn` - Treasury fee ledger and autonomous burn records.
-- `/status` - Live network status and RPC health check.
-- `/docs/asp-policy` - Association Set Provider (ASP) policy and rules.
-- `/docs/decisions` - Binding owner decisions.
-- `/privacy` - Privacy disclosures (zero server-side custody, client-side proof generation).
-- `/terms` - Terms of service.
+- [Trade terminal](https://www.veilpools.tech/trade) - Shielded trading desk (Shield, Shielded Swap, Withdraw, Vault, Attestation).
+- [Contracts registry](https://www.veilpools.tech/contracts) - Live on-chain deployed contract addresses, verification status, and parameters.
+- [Burn ledger](https://www.veilpools.tech/burn) - Treasury fee ledger and autonomous burn records.
+- [Status monitor](https://www.veilpools.tech/status) - Live network status and RPC health check.
+- [ASP policy](https://www.veilpools.tech/docs/asp-policy) - Association Set Provider (ASP) policy and rules.
+- [Owner decisions](https://www.veilpools.tech/docs/decisions) - Binding owner decisions.
+- [Privacy architecture](https://www.veilpools.tech/privacy) - Privacy disclosures (zero server-side custody, client-side proof generation).
+- [Terms of service](https://www.veilpools.tech/terms) - Terms of service.
+- [Dark ETF teaser](https://www.veilpools.tech/dark-etf) - Coming-soon page with waitlist.
+- [Source code](https://github.com/veilpools/veil) - Open repository.

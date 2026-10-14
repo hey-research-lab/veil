@@ -51,7 +51,7 @@ export const TickerHeroGrid: React.FC = () => {
           <Sparkles size={13} style={{ color: "var(--color-accent)" }} />
           Whitelisted Stock Tokens · Robinhood Chain
         </span>
-        <span style={{ color: "var(--color-faint)", fontSize: "10px" }}>
+        <span style={{ color: "var(--color-muted)", fontSize: "10px" }}>
           {reducedMotion ? "Fixed Preview" : "Interactive Preview · Hover to De-Anonymize"}
         </span>
       </div>

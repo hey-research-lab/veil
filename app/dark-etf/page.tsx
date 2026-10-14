@@ -87,7 +87,7 @@ export default function DarkEtfPage() {
               }}
             >
               <RobinhoodLogoMark size={13} />
-              ROBINHOOD MAINNET 46631
+              ROBINHOOD MAINNET 4663
             </span>
             <span>// Confidential Stock Baskets</span>
           </div>
