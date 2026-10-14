@@ -371,7 +371,7 @@ export const ComposerDemo: React.FC = () => {
                 value={val}
                 onChange={(e) => onSlide(t, Number(e.target.value))}
                 aria-label={`${t} weight percent`}
-                aria-valuetext={`${t} ${val} percent`}
+                aria-valuetext={`${t} ${val} persen`}
                 style={{
                   width: "100%",
                   cursor: "ew-resize",
