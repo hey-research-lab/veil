@@ -340,3 +340,12 @@ extTokenId=3752545, onchain PM live). Root cause unproven; documented, not chase
 - Doc links: all internal markdown links resolve.
 - Verified: tsc 0, vitest 234 PASS, pnpm build exit 0.
 
+
+
+## 30. Server Key Least-Privilege Rotation (2026-10-14)
+
+- FINDING: Vercel PRIVATE_KEY was the suite OWNER key (treasury rescue, hook config, entrypoint UUPS upgrade, guardianship). Server only ever calls updateRoot (postman role). Breach = total takeover.
+- ROTATION: fresh key 0xd39F39974Be0949a6C3404080aE967e549778db7 generated+persisted BEFORE any chain op; granted ASP_POSTMAN onchain (0x6e387998...); funded 0.00002; updateRoot sim from fresh key PASS; Vercel PRIVATE_KEY swapped (rm+add, Production); redeployed; endpoint proven live with fresh key as sender (publish 0x9891e47b... block 88254128, 7 labels, from=0xd39F, status success). Operator key off server.
+- COLLATERAL (honest): two orphan postman grants from script iterations (0x4662... empty; 0x5F52... holds 0.00002 locked, key lost before persist-fix — fail-closed guard + persist-first ordering added after). No fund risk (owner can always re-grant); orphans hold ~dust. ASP_POSTMAN_KEY backed in .env.mainnet.local (gitignored) — back up independently.
+- RESIDUAL: upstream RPC 429s under burst fan-out (retries succeed); consider staggered chunks if publishes start failing regularly.
+
