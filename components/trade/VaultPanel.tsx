@@ -1,28 +1,41 @@
 "use client";
 
-import React, { useState } from "react";
-import { Copy, Download, FileText, Check } from "lucide-react";
-import { isBowNote, type AnyShieldedNote } from "../../lib/note";
+import React, { useState, useRef } from "react";
+import { Copy, Download, FileText, Check, Upload } from "lucide-react";
+import { isBowNote, serializeAnyNote, deserializeAnyNote, type AnyShieldedNote } from "../../lib/note";
 import { formatNoteAmount, getNoteAssetSymbol } from "../../lib/note-format";
 import { TokenIcon } from "../TokenLogos";
 
 export interface VaultPanelProps {
   notes: AnyShieldedNote[];
-  onBackup: () => void;
+  onBackup?: () => void;
   onBackupNote: (nullifier: string) => void;
   onWithdrawNote: (nullifier: string) => void;
   onRemoveNote: (nullifier: string) => void;
   // Optional way out of the zero-notes dead end.
   onGoShield?: () => void;
+  onImportNotes?: (importedNotes: AnyShieldedNote[]) => number | void;
 }
 
 /** Vault tab: local encrypted-note list with copy + withdraw shortcuts. */
-export const VaultPanel: React.FC<VaultPanelProps> = ({ notes, onBackup, onBackupNote, onWithdrawNote, onRemoveNote, onGoShield }) => {
+export const VaultPanel: React.FC<VaultPanelProps> = ({
+  notes,
+  onBackup,
+  onBackupNote,
+  onWithdrawNote,
+  onRemoveNote,
+  onGoShield,
+  onImportNotes,
+}) => {
   const [copiedCommitment, setCopiedCommitment] = useState<string | null>(null);
   const [copiedReceiptIndex, setCopiedReceiptIndex] = useState<number | null>(null);
   // Confirm-remove modal target. Removing only drops the LOCAL entry
   // (onchain funds are untouched) — used for spent/duplicate notes.
   const [confirmRemove, setConfirmRemove] = useState<AnyShieldedNote | null>(null);
+  const [exported, setExported] = useState(false);
+  const [importStatus, setImportStatus] = useState<string | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   function handleCopyCommitment(text: string) {
     navigator.clipboard.writeText(text);
@@ -30,35 +43,216 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({ notes, onBackup, onBacku
     setTimeout(() => setCopiedCommitment(null), 2000);
   }
 
+  function handleExportAll() {
+    if (notes.length === 0) return;
+    try {
+      const exportPayload = {
+        protocol: "Veil Protocol",
+        app: "Veil Shielded Vault",
+        version: "v1.2.1",
+        exportedAt: new Date().toISOString(),
+        notesCount: notes.length,
+        rawNotes: notes.map(serializeAnyNote),
+        notes: notes.map((n) => {
+          const bow = isBowNote(n);
+          return {
+            type: bow ? n.type : "legacy",
+            version: bow ? n.version : "v1",
+            chainId: bow ? n.chainId : 4663,
+            asset: n.asset,
+            denomination: n.denomination.toString(),
+            formattedAmount: formatNoteAmount(n.denomination, n.asset),
+            commitment: bow ? n.commitmentHash : n.commitment,
+            nullifier: n.nullifier,
+            secret: n.secret,
+            precommitment: bow ? n.precommitment : undefined,
+            label: bow ? n.label : undefined,
+            scope: bow ? n.scope : undefined,
+            txHash: bow ? n.txHash : undefined,
+            blockNumber: bow ? n.blockNumber : undefined,
+            timestamp: n.timestamp,
+          };
+        }),
+      };
+
+      const jsonStr = JSON.stringify(exportPayload, null, 2);
+      const blob = new Blob([jsonStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `veil-vault-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      setExported(true);
+      setTimeout(() => setExported(false), 2500);
+    } catch (err) {
+      console.error("Export all notes failed:", err);
+    }
+  }
+
+  function handleFileImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const text = event.target?.result as string;
+        if (!text) throw new Error("Empty file content");
+        const parsed = JSON.parse(text);
+
+        let parsedNotes: AnyShieldedNote[] = [];
+
+        if (Array.isArray(parsed)) {
+          parsedNotes = parsed.map((item) => (typeof item === "string" ? deserializeAnyNote(item) : item));
+        } else if (parsed.rawNotes && Array.isArray(parsed.rawNotes)) {
+          parsedNotes = parsed.rawNotes.map((str: string) => deserializeAnyNote(str));
+        } else if (parsed.raw && Array.isArray(parsed.raw)) {
+          parsedNotes = parsed.raw.map((str: string) => deserializeAnyNote(str));
+        } else if (typeof parsed === "string") {
+          parsedNotes = [deserializeAnyNote(parsed)];
+        } else if (parsed.version === 1 && parsed.ciphertext) {
+          setImportError("This file is a password-encrypted single note backup. Use note restore instead.");
+          setTimeout(() => setImportError(null), 4000);
+          return;
+        }
+
+        if (parsedNotes.length === 0) {
+          throw new Error("No valid notes found in JSON file");
+        }
+
+        if (onImportNotes) {
+          const added = onImportNotes(parsedNotes);
+          setImportStatus(`Successfully imported ${added ?? parsedNotes.length} note(s)!`);
+          setTimeout(() => setImportStatus(null), 3000);
+        }
+      } catch (err) {
+        setImportError("Failed to parse JSON file. Ensure it is a valid Veil notes backup.");
+        setTimeout(() => setImportError(null), 3500);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+      {/* Hidden file input for importing notes */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileImport}
+        accept=".json,application/json"
+        style={{ display: "none" }}
+      />
+
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
         <span style={{ fontSize: "var(--text-caption)", fontWeight: 600, color: "var(--color-faint)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
           Active Encrypted Notes ({notes.length})
         </span>
-        <button
-          onClick={onBackup}
-          type="button"
+
+        <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+          {onImportNotes && (
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              type="button"
+              title="Import notes from JSON backup file"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "6px 12px",
+                minHeight: "28px",
+                borderRadius: "var(--radius-sm)",
+                backgroundColor: "rgba(26, 26, 26, 0.04)",
+                border: "1px solid var(--color-border)",
+                color: "var(--color-text)",
+                fontSize: "var(--text-caption)",
+                cursor: "pointer",
+                fontWeight: 600,
+                transition: "all var(--duration-fast)",
+              }}
+            >
+              <Upload className="w-3.5 h-3.5 text-[#FF8C00]" aria-hidden="true" />
+              <span>Import JSON</span>
+            </button>
+          )}
+
+          <button
+            onClick={handleExportAll}
+            type="button"
+            disabled={notes.length === 0}
+            title={notes.length === 0 ? "No active notes to export" : "Export all encrypted notes as JSON file"}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "6px 12px",
+              minHeight: "28px",
+              borderRadius: "var(--radius-sm)",
+              backgroundColor: notes.length === 0 ? "rgba(26, 26, 26, 0.03)" : "rgba(255, 140, 0, 0.08)",
+              border: notes.length === 0 ? "1px solid var(--color-border)" : "1px solid rgba(255, 140, 0, 0.3)",
+              color: notes.length === 0 ? "var(--color-muted)" : "var(--color-accent-ink)",
+              fontSize: "var(--text-caption)",
+              cursor: notes.length === 0 ? "not-allowed" : "pointer",
+              fontWeight: 600,
+              opacity: notes.length === 0 ? 0.6 : 1,
+              transition: "all var(--duration-fast)",
+            }}
+          >
+            {exported ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-[#FF8C00]" aria-hidden="true" />
+                <span>Exported!</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-3.5 h-3.5 text-[#FF8C00]" aria-hidden="true" />
+                <span>Export All JSON</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {importStatus && (
+        <div
           style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
-            padding: "6px 12px",
-            minHeight: "28px",
+            padding: "8px 12px",
             borderRadius: "var(--radius-sm)",
             backgroundColor: "rgba(255, 140, 0, 0.08)",
             border: "1px solid rgba(255, 140, 0, 0.3)",
             color: "var(--color-accent-ink)",
-            fontSize: "var(--text-caption)",
-            cursor: "pointer",
-            fontWeight: 600,
-            transition: "all var(--duration-fast)",
+            fontSize: "12px",
+            fontFamily: "var(--font-mono)",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
           }}
         >
-          <Download className="w-3.5 h-3.5 text-[#FF8C00]" aria-hidden="true" />
-          <span>Export All JSON</span>
-        </button>
-      </div>
+          <Check size={14} style={{ color: "var(--color-accent)" }} />
+          <span>{importStatus}</span>
+        </div>
+      )}
+
+      {importError && (
+        <div
+          style={{
+            padding: "8px 12px",
+            borderRadius: "var(--radius-sm)",
+            backgroundColor: "rgba(180, 83, 9, 0.08)",
+            border: "1px solid rgba(180, 83, 9, 0.3)",
+            color: "#b45309",
+            fontSize: "12px",
+            fontFamily: "var(--font-mono)",
+          }}
+        >
+          {importError}
+        </div>
+      )}
 
       {notes.length === 0 ? (
         <div
@@ -73,18 +267,18 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({ notes, onBackup, onBacku
           }}
         >
           No active shielded notes. Use Shield to create your first encrypted commitment.
-          {onGoShield && (
-            <div style={{ marginTop: "10px" }}>
+          <div style={{ marginTop: "12px", display: "flex", justifyContent: "center", gap: "8px", flexWrap: "wrap" }}>
+            {onGoShield && (
               <button
                 type="button"
                 onClick={onGoShield}
                 style={{
-                  padding: "6px 12px",
-                  minHeight: "28px",
+                  padding: "6px 14px",
+                  minHeight: "30px",
                   borderRadius: "var(--radius-sm)",
-                  backgroundColor: "transparent",
-                  border: "1px solid var(--color-border-strong)",
-                  color: "var(--color-text)",
+                  backgroundColor: "var(--color-text)",
+                  border: "none",
+                  color: "#ffffff",
                   fontSize: "12px",
                   fontWeight: 600,
                   cursor: "pointer",
@@ -92,8 +286,31 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({ notes, onBackup, onBacku
               >
                 Go to Shield →
               </button>
-            </div>
-          )}
+            )}
+            {onImportNotes && (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  padding: "6px 14px",
+                  minHeight: "30px",
+                  borderRadius: "var(--radius-sm)",
+                  backgroundColor: "transparent",
+                  border: "1px solid var(--color-border-strong)",
+                  color: "var(--color-text)",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                <Upload size={13} style={{ color: "var(--color-accent)" }} />
+                <span>Import JSON Backup</span>
+              </button>
+            )}
+          </div>
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
@@ -250,9 +467,9 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({ notes, onBackup, onBacku
                       padding: "5px 10px",
                       minHeight: "28px",
                       borderRadius: "var(--radius-sm)",
-                      backgroundColor: copiedReceiptIndex === index ? "rgba(0, 194, 45, 0.1)" : "transparent",
-                      border: copiedReceiptIndex === index ? "1px solid rgba(0, 194, 45, 0.4)" : "1px solid var(--color-border)",
-                      color: copiedReceiptIndex === index ? "#00c22d" : "var(--color-muted)",
+                      backgroundColor: copiedReceiptIndex === index ? "rgba(255, 140, 0, 0.1)" : "transparent",
+                      border: copiedReceiptIndex === index ? "1px solid rgba(255, 140, 0, 0.4)" : "1px solid var(--color-border)",
+                      color: copiedReceiptIndex === index ? "var(--color-accent-ink)" : "var(--color-muted)",
                       fontSize: "12px",
                       fontWeight: 600,
                       cursor: "pointer",
@@ -261,7 +478,7 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({ notes, onBackup, onBacku
                   >
                     {copiedReceiptIndex === index ? (
                       <>
-                        <Check className="w-3 h-3 text-[#00c22d]" />
+                        <Check className="w-3 h-3 text-[#FF8C00]" />
                         <span>Copied</span>
                       </>
                     ) : (

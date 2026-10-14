@@ -4564,6 +4564,18 @@ export default function SwapToShieldPage() {
                 }
               }}
               onGoShield={() => switchTab("buy_and_shield")}
+              onImportNotes={(importedNotes) => {
+                const existingNullifiers = new Set(notes.map((n) => n.nullifier));
+                const toAdd = importedNotes.filter((n) => !existingNullifiers.has(n.nullifier));
+                if (toAdd.length === 0) return 0;
+                const merged = [...toAdd, ...notes];
+                setNotes(merged);
+                setSelectedNoteNullifier(toAdd[0].nullifier);
+                if (typeof window !== "undefined") {
+                  localStorage.setItem(LOCAL_STORAGE_KEY, serializeNotesList(merged));
+                }
+                return toAdd.length;
+              }}
             />
           )}
           {/* Vault tab lives in components/trade/VaultPanel.tsx */}
