@@ -1832,6 +1832,7 @@ export default function SwapToShieldPage() {
       depositValue = resolveZkShieldedSwapDeposit({
         withdrawAsset: bound.withdrawAsset,
         veilMinimum,
+        veilToken: zkSuite.veilToken,
       });
     } catch (e: unknown) {
       setFlowError(e instanceof Error ? e.message : "The live deposit amount is still loading. Nothing was simulated.");

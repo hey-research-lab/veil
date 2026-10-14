@@ -187,10 +187,11 @@ export function resolveZkShieldedSwapDeposit(args: {
   withdrawAsset: string;
   ethDenomination?: bigint;
   veilMinimum?: bigint | null;
+  veilToken?: Address;
 }): bigint {
   const withdraw = args.withdrawAsset.toLowerCase();
   const ethZero = (ZK_ETH_ZERO_ADDRESS as string).toLowerCase();
-  const veil = TESTNET_BOW_V3_VEIL_TOKEN.toLowerCase();
+  const veil = (args.veilToken ?? TESTNET_BOW_V3_VEIL_TOKEN).toLowerCase();
   if (withdraw === veil) {
     return args.ethDenomination ?? TESTNET_BOW_V3_ETH_DENOMINATION;
   }
@@ -200,7 +201,7 @@ export function resolveZkShieldedSwapDeposit(args: {
     return TESTNET_BOW_V3_VEIL_DENOMINATION;
   }
   throw new Error(
-    "Unsupported shielded-swap source asset: only 0xbow ETH notes and VEIL notes can be swapped. No transaction was sent."
+    `Unsupported shielded-swap deposit asset (${args.withdrawAsset}): only 0xbow ETH notes and this chain's VEIL notes (${args.veilToken ?? TESTNET_BOW_V3_VEIL_TOKEN}) can be swapped. No transaction was sent.`
   );
 }
 
