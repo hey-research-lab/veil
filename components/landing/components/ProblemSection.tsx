@@ -88,52 +88,11 @@ export const ProblemSection: React.FC = () => {
           flex: "0 0 auto",
           display: "grid",
           placeItems: "start center",
-          minHeight: "clamp(13rem, 32svh, 17rem)",
+          minHeight: "clamp(12rem, 30svh, 16rem)",
           paddingBottom: "clamp(1.5rem, 6svh, 4rem)",
         }}
       >
         <div style={{ gridArea: "1 / 1", width: "100%", opacity: 1 }}>
-          {/* Step indicator kicker and progress pills */}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "8px",
-              marginBottom: "var(--space-3)",
-            }}
-          >
-            <div
-              style={{
-                fontFamily: "ui-monospace, 'SF Mono', monospace",
-                fontSize: "11px",
-                fontWeight: 700,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                color: "rgba(26, 26, 26, 0.5)",
-              }}
-            >
-              <span>{problem.kicker}</span>
-              <span style={{ margin: "0 6px", opacity: 0.35 }}>·</span>
-              <span style={{ color: "var(--color-text)" }}>0{activeStep + 1} / 03</span>
-            </div>
-
-            <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-              {problem.statements.map((_, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    width: activeStep === idx ? "24px" : "6px",
-                    height: "3px",
-                    borderRadius: "2px",
-                    backgroundColor: activeStep === idx ? "#FF8A00" : "rgba(26, 26, 26, 0.15)",
-                    transition: "all 0.35s cubic-bezier(0.16, 1, 0.3, 1)",
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-
           <p
             style={{
               margin: 0,
@@ -152,8 +111,6 @@ export const ProblemSection: React.FC = () => {
             <DecodeText key={statement.head} text={statement.head} autoPlay={hasStepped} />
           </p>
           <p
-            key={`sub-${activeStep}`}
-            className="hero-enter"
             style={{
               margin: "var(--space-3) auto 0",
               fontFamily: "var(--font-body)",
