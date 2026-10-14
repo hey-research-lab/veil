@@ -3,7 +3,7 @@
 **Zero-Knowledge privacy layer for Uniswap v4 on Robinhood Chain (EVM mainnet 4663)**
 
 - **Web Application:** https://www.veilpools.tech (apex `veilpools.tech` → 308 redirect)
-- **Trade Terminal:** https://www.veilpools.tech/trade (Shield · ZK Swap · Withdraw · Trade/Gated Pool · Vault)
+- **Trade Terminal:** https://www.veilpools.tech/trade (Shield · ZK Swap · Withdraw · Gated Pool · Vault)
 - **Treasury & Burn Ledger:** https://www.veilpools.tech/burn
 - **Verified Contracts Registry:** https://www.veilpools.tech/contracts
 - **Chain & Pool Health:** https://www.veilpools.tech/status
@@ -119,9 +119,9 @@ All contracts are live on mainnet 4663, Sourcify-verified 10/10, with Uniswap v4
 - **AMM Framework:** Uniswap V4 Core (`1.0.2`) + Uniswap V4 Periphery (`1.0.3`)
 - **Blockchain Network:** Robinhood Chain Mainnet (`Chain ID: 4663`)
 - **RPC & Web3 SDK:** `viem 2.57.3` (EVM)
-- **Frontend Framework:** Next.js `16.3.4` (App Router), React `19.2.8`, TypeScript `5.x`
+- **Frontend Framework:** Next.js `16.3.8` (App Router), React `19.2.8`, TypeScript `5.x`
 - **ZK Stack:** 0xbow Privacy Pools core v1.2.1 (audited) — Groth16 + Poseidon + LeanIMT, snarkjs WASM proving in-browser, pinned artifacts hash-checked
-- **Testing Framework:** Vitest (39 files, 232 tests, all green) + `tsc --noEmit` clean
+- **Testing Framework:** Vitest (39 files, 239 tests, all green) + `tsc --noEmit` clean
 - **Hosting:** Vercel production (`www.veilpools.tech`, apex 308 redirect), 24 env keys
 
 ---
@@ -139,7 +139,7 @@ All contracts are live on mainnet 4663, Sourcify-verified 10/10, with Uniswap v4
 | **VeilTreasury (70% burn)** | `0xb68c3d25e5e9902363e8e10d5c0a471e65be8152` | `0x2166a1ef7803003347277a98f864bd81a8cf028425f19208d46b231642fe2106` | 86334474 |
 | **VeilShieldRouter (fixed R1)** | `0x3db4ae3429f1507aa0cd31c740a0fd276e22a55c` | `0x877e3c8d3089c2bb62d45d34ac021da52cb1c2fb9cddc1eb5d3f0c570ad748ed` | 86334766 |
 | **MainnetLiquidityHelper v2** | `0xb4194deb8a51b69118e5d5414d7d08326a2e9b0b` | `0xf42074984647e1f0173f406020ec53f1535042505babf79647d50fbad26176a8` | 87186428 |
-| **MainnetSwapHelper** | `0x08b11d4d5fc78789e305e8437c45c52488a19a58` | `0x6dce7d20cd022adf8f1cc1bcd780973f61f81149c683e93c9156f846c3cb17d1` | gated-seed era |
+| **MainnetSwapHelper** | `0x08b11d4d5fc78789e305e8437c45c52488a19a58` | `0x6dce7d20cd022adf8f1cc1bcd780973f61f81149c683e93c9156f846c3cb17d1` | 86863742 |
 | **Temp VEIL Token (pre-Pons)** | `0xe0e11ec0d62eda12de796d025d6334fadfe5ab2a` | (migrated) | — |
 | **Legacy pools (exit-only)** | `0x15f7e3…`, `0x493f64…`, `0x3783db…` | (migrated) | — |
 
