@@ -171,7 +171,7 @@ export function resolveZkShieldedSwapAssets(args: {
     };
   }
   throw new Error(
-    "Unsupported shielded-swap source asset: only 0xbow ETH notes and VEIL notes can be swapped. No transaction was sent."
+    `Unsupported shielded-swap source asset (${args.sourceAsset}): only 0xbow ETH notes and this chain's VEIL notes (${args.veilToken ?? TESTNET_BOW_V3_VEIL_TOKEN}) can be swapped. A note from another chain cannot be used here — shield fresh on this chain. No transaction was sent.`
   );
 }
 
