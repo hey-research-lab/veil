@@ -314,3 +314,11 @@ extTokenId=3752545, onchain PM live). Root cause unproven; documented, not chase
 - Contained: restored complete 6-label root via fixed-window publish (0x71e2...), after catching my own relative-window drift (headNow-1000000 now misses dust era; fixed 86330000 used).
 - Fixed in code (commit e4e8ede): fetchAspInputs takes chainId -> resolveBowStartBlock (mainnet 86334089 covers dust 86370415); empty-set guard refuses to publish zero labels over a non-genesis root. Verified live on prod: labelCount 6, depositCount 6, up-to-date, no publish. Vitest 232 PASS.
 
+
+
+## 27. Deploy SOP: Verify Auto-Build After Every Push (2026-10-14)
+
+- Vercel skipped auto-build TWICE on main pushes (fix commits live in repo but production served stale builds). Never assume push = deployed.
+- After every push to main: run 'npx vercel ls', check the newest Production deployment age. If older than the push, run 'npx vercel --prod' and re-verify a content marker on https://www.veilpools.tech.
+- Prod freshness is part of 'done', not an afterthought.
+
