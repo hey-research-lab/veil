@@ -86,6 +86,30 @@ export const Header: React.FC = () => {
         >
           FAQ
         </a>
+        <a
+          href="/dark-etf"
+          className="lp-link inline-flex items-center gap-1.5"
+          style={{
+            color: "var(--color-muted)",
+            textDecoration: "none",
+            transition: "opacity var(--duration-fast)",
+          }}
+        >
+          <span>Dark ETF</span>
+          <span
+            style={{
+              fontSize: "9px",
+              fontFamily: "monospace",
+              padding: "1px 5px",
+              borderRadius: "4px",
+              backgroundColor: "rgba(255, 140, 0, 0.15)",
+              color: "var(--color-accent)",
+              fontWeight: 700,
+            }}
+          >
+            Soon
+          </span>
+        </a>
         <div style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
           <a
             href="https://x.com/veilpools"

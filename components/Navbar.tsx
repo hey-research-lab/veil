@@ -162,6 +162,26 @@ export function Navbar() {
             />
 
             <VeilLogo href="/" size="md" />
+            {pathname === "/dark-etf" && (
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: "2px 8px",
+                  borderRadius: "var(--radius-sm)",
+                  backgroundColor: "rgba(255, 140, 0, 0.12)",
+                  border: "1px solid rgba(255, 140, 0, 0.3)",
+                  color: "var(--color-accent)",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  letterSpacing: "0.04em",
+                  textTransform: "uppercase",
+                }}
+              >
+                Coming soon
+              </span>
+            )}
           </div>
 
           {/* Right: Network Indicator & Multi-Wallet Connect */}
@@ -177,6 +197,44 @@ export function Navbar() {
             >
               <RobinhoodLogo height={24} style={{ opacity: 0.92 }} />
             </div>
+
+            <Link
+              href="/dark-etf"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "0 12px",
+                minHeight: "2.25rem",
+                height: "2.25rem",
+                borderRadius: "var(--radius-md)",
+                backgroundColor: pathname === "/dark-etf" ? "rgba(255, 140, 0, 0.1)" : "rgba(26, 26, 26, 0.04)",
+                border: pathname === "/dark-etf" ? "1px solid var(--color-accent)" : "1px solid var(--color-border)",
+                color: "var(--color-text)",
+                textDecoration: "none",
+                fontFamily: "var(--font-body)",
+                fontSize: "var(--text-body-sm)",
+                fontWeight: 600,
+                transition: "all var(--duration-fast) var(--ease-out)",
+                boxSizing: "border-box",
+              }}
+              className="hidden sm:inline-flex hover:border-[#FF8C00]"
+            >
+              <span>Dark ETF</span>
+              <span
+                style={{
+                  fontSize: "9px",
+                  fontFamily: "monospace",
+                  padding: "1px 5px",
+                  borderRadius: "4px",
+                  backgroundColor: "rgba(255, 140, 0, 0.15)",
+                  color: "var(--color-accent)",
+                  fontWeight: 700,
+                }}
+              >
+                Soon
+              </span>
+            </Link>
 
             <a
               href="https://x.com/veilpools"
