@@ -402,5 +402,51 @@ describe("zk router flow wiring (full-ZK UI)", () => {
       expect(mainId).toMatch(/^0x[0-9a-f]{64}$/);
       expect(mainId).not.toBe(testId);
     });
+
+    it("builds multi-note args for mainnet assets without InvalidSwapLeg", async () => {
+      const mod = await import("../lib/zk-router");
+      const suite = { ...(mod.TESTNET_ZK_SUITE as object), ...MAINNET_SUITE } as never;
+      const ep = (suite as { entrypoint: `0x${string}` }).entrypoint;
+      const wd = {
+        processooor: ep,
+        data: "0x1234" as `0x${string}`,
+      };
+      const args = mod.buildMultiFullZkFlowArgs({
+        withdrawals: [wd, wd],
+        proofs: [PROOF, PROOF],
+        scopes: [123n, 123n],
+        withdrawAsset: ETH_ZERO,
+        depositAsset: "0xe0e11ec0d62eda12de796d025d6334fadfe5ab2a" as `0x${string}`,
+        depositValue: parseEther("0.001"),
+        precommitment: 999n,
+        zeroForOne: true,
+        quotedSwapOut: parseEther("1.8"),
+        slippagePercent: 0.5,
+        suite,
+        recipient: (suite as { multi: `0x${string}` }).multi,
+      });
+      expect(args.swapLeg.key.currency1.toLowerCase()).toBe("0xe0e11ec0d62eda12de796d025d6334fadfe5ab2a");
+    });
+
+    it("builds direct-payout args for mainnet assets without InvalidSwapLeg", async () => {
+      const mod = await import("../lib/zk-router");
+      const suite = { ...(mod.TESTNET_ZK_SUITE as object), ...MAINNET_SUITE } as never;
+      const ep = (suite as { entrypoint: `0x${string}` }).entrypoint;
+      const args = mod.buildDirectFullZkFlowArgs({
+        withdrawal: { processooor: ep, data: "0x1234" as `0x${string}` },
+        proof: PROOF,
+        scope: 123n,
+        withdrawAsset: "0xe0e11ec0d62eda12de796d025d6334fadfe5ab2a" as `0x${string}`,
+        outputRecipient: ACCOUNT,
+        zeroForOne: false,
+        quotedSwapOut: parseEther("0.000001"),
+        slippagePercent: 0.5,
+        suite,
+        recipient: (suite as { router: `0x${string}` }).router,
+      });
+      expect(args.swapLeg.zeroForOne).toBe(false);
+      expect(args.swapLeg.key.currency1.toLowerCase()).toBe("0xe0e11ec0d62eda12de796d025d6334fadfe5ab2a");
+      expect(args.outputAsset.toLowerCase()).toBe("0x0000000000000000000000000000000000000000");
+    });
   });
 });
