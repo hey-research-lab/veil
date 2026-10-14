@@ -41,13 +41,25 @@ export async function fetchPinnedBowArtifact(
   if (!Object.prototype.hasOwnProperty.call(BOW_ARTIFACT_HASHES, name)) {
     throw new Error("bow_artifact_unknown");
   }
-  const response = await fetcher(`${baseUrl.replace(/\/$/, "")}/${name}`, {
-    cache: "force-cache",
-  });
-  if (!response.ok) throw new Error("bow_artifact_fetch_failed");
-  const bytes = new Uint8Array(await response.arrayBuffer());
-  if (!(await verifyBowArtifact(bytes, BOW_ARTIFACT_HASHES[name as BowArtifactName]))) {
+  const url = `${baseUrl.replace(/\/$/, "")}/${name}`;
+  // First try the HTTP cache (large zkey burns bandwidth); a poisoned cache
+  // entry fails the hash below and falls through to a cache-busting reload.
+  try {
+    const cached = await fetcher(url, { cache: "force-cache" });
+    if (cached.ok) {
+      const bytes = new Uint8Array(await cached.arrayBuffer());
+      if (await verifyBowArtifact(bytes, BOW_ARTIFACT_HASHES[name as BowArtifactName])) {
+        return bytes;
+      }
+    }
+  } catch {
+    // Fall through to the uncached reload below.
+  }
+  const fresh = await fetcher(url, { cache: "reload" });
+  if (!fresh.ok) throw new Error("bow_artifact_fetch_failed");
+  const freshBytes = new Uint8Array(await fresh.arrayBuffer());
+  if (!(await verifyBowArtifact(freshBytes, BOW_ARTIFACT_HASHES[name as BowArtifactName]))) {
     throw new Error("bow_artifact_integrity_failed");
   }
-  return bytes;
+  return freshBytes;
 }
