@@ -307,17 +307,9 @@ export default function DecisionsDocPage() {
       </div>
 
       {/* Main 2-Column Workstation Grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(min(320px, 100%), 1fr))",
-          gap: "var(--space-6)",
-          alignItems: "start",
-          width: "100%",
-        }}
-      >
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start w-full">
         {/* Column 1: Sidebar Navigation & Filters */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+        <div className="flex flex-col gap-4 col-span-1">
           <div
             className="veil-card-white"
             style={{
@@ -402,14 +394,7 @@ export default function DecisionsDocPage() {
         </div>
 
         {/* Column 2: Search Bar & Decisions List */}
-        <div
-          style={{
-            gridColumn: "span 2",
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--space-4)",
-          }}
-        >
+        <div className="flex flex-col gap-4 col-span-1 lg:col-span-2">
           {/* Search Box */}
           <div
             style={{

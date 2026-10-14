@@ -88,7 +88,7 @@ export const Header: React.FC = () => {
         </a>
         <a
           href="/dark-etf"
-          className="lp-link inline-flex items-center gap-1.5"
+          className="lp-link hidden sm:inline-flex items-center gap-1.5"
           style={{
             color: "var(--color-muted)",
             textDecoration: "none",
@@ -117,9 +117,8 @@ export const Header: React.FC = () => {
             rel="noopener noreferrer"
             aria-label="Official X (Twitter) Account @veilpools"
             title="Official X: @veilpools"
-            className="lp-btn lp-btn--filled"
+            className="lp-btn lp-btn--filled hidden sm:inline-flex"
             style={{
-              display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
               width: "2.25rem",

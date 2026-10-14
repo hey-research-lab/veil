@@ -391,7 +391,7 @@ export default function StatusPage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(240px, 100%), 1fr))",
               gap: "var(--space-4)",
             }}
           >
@@ -542,7 +542,7 @@ export default function StatusPage() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fit, minmax(min(280px, 100%), 1fr))",
                 gap: "var(--space-3)",
                 marginTop: "var(--space-2)",
               }}
@@ -867,9 +867,9 @@ export default function StatusPage() {
                           </a>
                         )}
                       </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#ffffff", padding: "6px 10px", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)" }}>
-                        <span style={{ color: "var(--color-muted)", fontSize: "11px" }}>Commitment:</span>
-                        <span style={{ color: "var(--color-text)", fontWeight: 500, overflowWrap: "anywhere" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#ffffff", padding: "6px 10px", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)", flexWrap: "wrap", gap: "6px" }}>
+                        <span style={{ color: "var(--color-muted)", fontSize: "11px", flexShrink: 0 }}>Commitment:</span>
+                        <span style={{ color: "var(--color-text)", fontWeight: 500, overflowWrap: "anywhere", wordBreak: "break-all", minWidth: 0, flex: 1 }}>
                           {d.commitment}
                         </span>
                         <button
@@ -944,9 +944,9 @@ export default function StatusPage() {
                           </a>
                         )}
                       </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#ffffff", padding: "6px 10px", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)" }}>
-                        <span style={{ color: "var(--color-muted)", fontSize: "11px" }}>Nullifier:</span>
-                        <span style={{ color: "var(--color-text)", fontWeight: 500, overflowWrap: "anywhere" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#ffffff", padding: "6px 10px", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)", flexWrap: "wrap", gap: "6px" }}>
+                        <span style={{ color: "var(--color-muted)", fontSize: "11px", flexShrink: 0 }}>Nullifier:</span>
+                        <span style={{ color: "var(--color-text)", fontWeight: 500, overflowWrap: "anywhere", wordBreak: "break-all", minWidth: 0, flex: 1 }}>
                           {w.nullifierHash}
                         </span>
                         <button

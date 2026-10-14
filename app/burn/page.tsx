@@ -277,7 +277,7 @@ export default function BurnPage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(280px, 100%), 1fr))",
               gap: "var(--space-4)",
             }}
           >
@@ -599,7 +599,7 @@ export default function BurnPage() {
                       fontSize: "12px",
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap" }}>
                       <span
                         style={{
                           padding: "2px 6px",

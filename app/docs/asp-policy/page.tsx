@@ -116,17 +116,9 @@ export default function AspPolicyDocPage() {
       </div>
 
       {/* Main 2-Column Workstation Grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(min(320px, 100%), 1fr))",
-          gap: "var(--space-6)",
-          alignItems: "start",
-          width: "100%",
-        }}
-      >
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start w-full">
         {/* Column 1: Policy Invariants & Navigation Sidebar */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+        <div className="flex flex-col gap-4 col-span-1">
           <div
             className="veil-card-white"
             style={{
@@ -186,14 +178,7 @@ export default function AspPolicyDocPage() {
         </div>
 
         {/* Column 2: ASP Policy Content */}
-        <div
-          style={{
-            gridColumn: "span 2",
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--space-4)",
-          }}
-        >
+        <div className="flex flex-col gap-4 col-span-1 lg:col-span-2">
           {/* Section 1: The Rule */}
           <div
             className="veil-card-white"

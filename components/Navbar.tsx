@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeft, LogOut, Copy, Check, ChevronDown, Menu, X as CloseIcon, Shield, FileText, Flame, ExternalLink, Activity, BookOpen, Sparkles } from "lucide-react";
+import { ArrowLeft, LogOut, Copy, Check, ChevronDown, Menu, X as CloseIcon, Shield, FileText, Flame, ExternalLink, Activity, BookOpen } from "lucide-react";
 import { WalletModal } from "./WalletModal";
 import { VeilLogo } from "./VeilLogo";
 import { RobinhoodLogo, XLogo } from "./TokenLogos";
@@ -164,8 +164,8 @@ export function Navbar() {
             <VeilLogo href="/" size="md" />
             {pathname === "/dark-etf" && (
               <span
+                className="hidden sm:inline-flex"
                 style={{
-                  display: "inline-flex",
                   alignItems: "center",
                   padding: "2px 8px",
                   borderRadius: "var(--radius-sm)",
@@ -242,9 +242,8 @@ export function Navbar() {
               rel="noopener noreferrer"
               aria-label="Official X (Twitter) Account"
               title="Official X: @veilpools"
-              className="lp-btn lp-btn--filled"
+              className="lp-btn lp-btn--filled hidden sm:inline-flex"
               style={{
-                display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
                 width: "2.25rem",
@@ -283,7 +282,7 @@ export function Navbar() {
                   transition: "all var(--duration-fast) var(--ease-out)",
                   boxSizing: "border-box",
                 }}
-                className="hover:opacity-90 active:scale-95"
+                className="hidden sm:inline-flex hover:opacity-90 active:scale-95"
               >
                 <span>Trade</span>
                 <span aria-hidden="true">→</span>
@@ -597,7 +596,7 @@ export function Navbar() {
               <nav style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "18px" }}>
                 {[
                   { href: "/trade", label: "Trade Terminal", icon: Shield, active: pathname === "/trade" },
-                  { href: "/dark-etf", label: "Dark ETF", icon: Sparkles, active: pathname === "/dark-etf", badge: "Soon" },
+                  { href: "/dark-etf", label: "Dark ETF", icon: Shield, active: pathname === "/dark-etf", badge: "Soon" },
                   { href: "/status", label: "Protocol Status & Proofs", icon: Activity, active: pathname === "/status" },
                   { href: "/contracts", label: "Verified Contracts", icon: FileText, active: pathname === "/contracts" },
                   { href: "/burn", label: "Burn & Buyback Flywheel", icon: Flame, active: pathname === "/burn" },
