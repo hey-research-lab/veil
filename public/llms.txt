@@ -12,3 +12,20 @@ Veil brings zero-knowledge privacy directly to Uniswap v4 swaps on Robinhood Cha
 - **ZK-Gated Pools**: Uniswap v4 hook restricts swaps to addresses with valid ZK attestations during launch windows.
 - **Protocol Fee Hook**: 30 bps per swap routed to VeilTreasury — 70% funds autonomous on-chain buyback & burns of the Veil token.
 - **Unblockable exits**: withdrawals can never be paused or blocked; fixed 0.001 notes.
+
+## Key Technical Specifications
+- **ZK Proof System**: Groth16 SNARKs with Poseidon hash function.
+- **Privacy Architecture**: 0xbow v1.2.1 cryptographic primitives with LeanIMT Merkle tree (depth 20).
+- **Fixed Denomination**: Uniform 0.001 ETH and 0.001 VEIL deposit notes for mathematical unlinkability.
+- **Execution Environment**: Robinhood Chain Mainnet (EVM Cancun, Chain ID 4663).
+- **AMM Hook**: Uniswap v4 CREATE2 deployed Hook (0x20c4 address flag).
+
+## Core Pages & Endpoints
+- `/trade` - Shielded trading desk (Shield, Shielded Swap, Withdraw, Vault, Attestation).
+- `/contracts` - Live on-chain deployed contract addresses, verification status, and parameters.
+- `/burn` - Treasury fee ledger and autonomous burn records.
+- `/status` - Live network status and RPC health check.
+- `/docs/asp-policy` - Association Set Provider (ASP) policy and rules.
+- `/docs/decisions` - Binding owner decisions.
+- `/privacy` - Privacy disclosures (zero server-side custody, client-side proof generation).
+- `/terms` - Terms of service.
