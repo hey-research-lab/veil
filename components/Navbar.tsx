@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeft, LogOut, Copy, Check, ChevronDown, Menu, X as CloseIcon, Shield, FileText, Flame, ExternalLink, Activity, BookOpen } from "lucide-react";
+import { ArrowLeft, LogOut, Copy, Check, ChevronDown, Menu, X as CloseIcon, Shield, FileText, Flame, ExternalLink, Activity, BookOpen, Sparkles } from "lucide-react";
 import { WalletModal } from "./WalletModal";
 import { VeilLogo } from "./VeilLogo";
 import { RobinhoodLogo, XLogo } from "./TokenLogos";
@@ -539,6 +539,7 @@ export function Navbar() {
               <nav style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "18px" }}>
                 {[
                   { href: "/trade", label: "Trade Terminal", icon: Shield, active: pathname === "/trade" },
+                  { href: "/dark-etf", label: "Dark ETF", icon: Sparkles, active: pathname === "/dark-etf", badge: "Soon" },
                   { href: "/status", label: "Protocol Status & Proofs", icon: Activity, active: pathname === "/status" },
                   { href: "/contracts", label: "Verified Contracts", icon: FileText, active: pathname === "/contracts" },
                   { href: "/burn", label: "Burn & Buyback Flywheel", icon: Flame, active: pathname === "/burn" },
@@ -571,6 +572,21 @@ export function Navbar() {
                     >
                       <Icon size={16} style={{ color: item.active ? "var(--color-accent-ink)" : "var(--color-muted)" }} />
                       <span>{item.label}</span>
+                      {"badge" in item && typeof (item as { badge?: string }).badge === "string" && (
+                        <span
+                          style={{
+                            fontSize: "10px",
+                            fontWeight: 700,
+                            padding: "1px 6px",
+                            borderRadius: "var(--radius-sm)",
+                            backgroundColor: "rgba(255,140,0,0.12)",
+                            color: "var(--color-accent-ink)",
+                            marginLeft: "auto",
+                          }}
+                        >
+                          {(item as { badge?: string }).badge}
+                        </span>
+                      )}
                     </Link>
                   );
                 })}
