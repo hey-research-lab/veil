@@ -355,26 +355,53 @@ export async function fetchBowPoolEvents(
   const currentBlock = await client.getBlockNumber();
   const depositLogs = [];
   const withdrawLogs = [];
-  const CHUNK_SIZE = 40000n;
-
-  for (let start = fromBlock; start <= currentBlock; start += CHUNK_SIZE) {
-    const end = start + CHUNK_SIZE - 1n < currentBlock ? start + CHUNK_SIZE - 1n : currentBlock;
+  // Wide-range first: the upstream serves multi-million-block ranges in one
+  // call (~300ms proven on mainnet 4663). The 40k chunk loop below is only a
+  // fallback — dozens of chunk calls burst the /api/rpc rate limiter (429s)
+  // and blow the serverless timeout on the ASP route (500s).
+  let wideOk = false;
+  try {
     const [deps, withs] = await Promise.all([
       client.getLogs({
         address: poolAddress,
         event: BOW_DEPOSITED_EVENT,
-        fromBlock: start,
-        toBlock: end,
+        fromBlock,
+        toBlock: currentBlock,
       }),
       client.getLogs({
         address: poolAddress,
         event: BOW_WITHDRAWN_EVENT,
-        fromBlock: start,
-        toBlock: end,
+        fromBlock,
+        toBlock: currentBlock,
       }),
     ]);
     depositLogs.push(...deps);
     withdrawLogs.push(...withs);
+    wideOk = true;
+  } catch {
+    wideOk = false;
+  }
+  if (!wideOk) {
+    const CHUNK_SIZE = 40000n;
+    for (let start = fromBlock; start <= currentBlock; start += CHUNK_SIZE) {
+      const end = start + CHUNK_SIZE - 1n < currentBlock ? start + CHUNK_SIZE - 1n : currentBlock;
+      const [deps, withs] = await Promise.all([
+        client.getLogs({
+          address: poolAddress,
+          event: BOW_DEPOSITED_EVENT,
+          fromBlock: start,
+          toBlock: end,
+        }),
+        client.getLogs({
+          address: poolAddress,
+          event: BOW_WITHDRAWN_EVENT,
+          fromBlock: start,
+          toBlock: end,
+        }),
+      ]);
+      depositLogs.push(...deps);
+      withdrawLogs.push(...withs);
+    }
   }
 
   const orderedCommitments: bigint[] = [
