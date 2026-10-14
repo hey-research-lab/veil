@@ -132,6 +132,7 @@ import {
   fetchBowPoolEvents,
   proveBowWithdrawal,
   assertVeilAllowanceForBowDeposit,
+  resolveBowStartBlock,
   BOW_V3_NATIVE_DEPOSIT_ABI,
   BOW_V3_ERC20_DEPOSIT_ABI,
   BOW_V3_VEIL_APPROVE_ABI,
@@ -245,6 +246,19 @@ const BOW_POOL_SCOPE_ABI = parseAbi([
 const BOW_POOL_STATE_ABI = parseAbi([
   "function currentRoot() view returns (uint256)",
 ]);
+
+// Event-scan start block, chain-aware. fetchBowPoolEvents defaults to the
+// TESTNET deployment block, which sits above mainnet's tip — on 4663 the
+// scan loop never runs and returns zero events, so every note reads as
+// "not found" and every ASP set comes back sentinel-only. Always resolve
+// per chain; unknown chains fail closed before any simulation or send.
+function bowScanStartBlock(chainId: number | null): bigint {
+  const start = resolveBowStartBlock(chainId);
+  if (start === null) {
+    throw new Error("Unsupported chain for event scan. Switch to a supported chain. No transaction was sent.");
+  }
+  return start;
+}
 
 // Audit-round-3 F-03: shared fail-fast integrity check for the ZK quote
 // paths. Same pattern and messages as the withdraw path: the saved secrets
@@ -1358,7 +1372,7 @@ export default function SwapToShieldPage() {
       // Fail fast on corrupted vault notes before minutes of proving (F-03).
       await assertBowNoteIntegrity(testnetClient, sourcePool, bowNote);
 
-      let { orderedCommitments, labels } = await fetchBowPoolEvents(testnetClient, sourcePool);
+      let { orderedCommitments, labels } = await fetchBowPoolEvents(testnetClient, sourcePool, bowScanStartBlock(connectedChainId));
       if (!orderedCommitments.includes(commitmentHash)) {
         throw new Error(
           "Deposit commitment not found in onchain state tree. Please ensure your deposit transaction was confirmed."
@@ -1378,7 +1392,7 @@ export default function SwapToShieldPage() {
       }
       // ASP is entrypoint-global: union labels across BOTH pools, or the set
       // permanently mismatches once a second pool holds deposits.
-      labels = await fetchBowAspLabelsAllPools(testnetClient, [zkSuite.ethPool, zkSuite.veilPool]);
+      labels = await fetchBowAspLabelsAllPools(testnetClient, [zkSuite.ethPool, zkSuite.veilPool], bowScanStartBlock(connectedChainId));
       let aspSet = buildBowAssociationSet(labels);
       if (!aspSet.labels.includes(label)) {
         throw new Error("Deposit label not found in Association Set. Try syncing ASP.");
@@ -1405,9 +1419,9 @@ export default function SwapToShieldPage() {
         } catch (e: unknown) {
           if (e instanceof Error && /throttl|retry/i.test(e.message)) throw e;
         }
-        const refreshed = await fetchBowPoolEvents(testnetClient, sourcePool);
+        const refreshed = await fetchBowPoolEvents(testnetClient, sourcePool, bowScanStartBlock(connectedChainId));
         orderedCommitments = refreshed.orderedCommitments;
-        labels = await fetchBowAspLabelsAllPools(testnetClient, [zkSuite.ethPool, zkSuite.veilPool]);
+        labels = await fetchBowAspLabelsAllPools(testnetClient, [zkSuite.ethPool, zkSuite.veilPool], bowScanStartBlock(connectedChainId));
         if (!orderedCommitments.includes(commitmentHash)) {
           throw new Error("Deposit commitment not found in onchain state tree after ASP re-sync.");
         }
@@ -1936,7 +1950,7 @@ export default function SwapToShieldPage() {
       // Fail fast on corrupted vault notes before minutes of proving (F-03).
       await assertBowNoteIntegrity(testnetClient, sourcePool, bowNote);
 
-      let { orderedCommitments, labels } = await fetchBowPoolEvents(testnetClient, sourcePool);
+      let { orderedCommitments, labels } = await fetchBowPoolEvents(testnetClient, sourcePool, bowScanStartBlock(connectedChainId));
       if (!orderedCommitments.includes(commitmentHash)) {
         throw new Error(
           "Deposit commitment not found in onchain state tree. Please ensure your deposit transaction was confirmed."
@@ -1954,7 +1968,7 @@ export default function SwapToShieldPage() {
           "Onchain state changed while preparing (new deposit landed). Retry — no transaction was sent."
         );
       }
-      labels = await fetchBowAspLabelsAllPools(testnetClient, [zkSuite.ethPool, zkSuite.veilPool]);
+      labels = await fetchBowAspLabelsAllPools(testnetClient, [zkSuite.ethPool, zkSuite.veilPool], bowScanStartBlock(connectedChainId));
       let aspSet = buildBowAssociationSet(labels);
       if (!aspSet.labels.includes(label)) {
         throw new Error("Deposit label not found in Association Set. Try syncing ASP.");
@@ -3375,9 +3389,10 @@ export default function SwapToShieldPage() {
         // State stays per-pool; ASP is entrypoint-global (union both pools).
         let { orderedCommitments } = await fetchBowPoolEvents(
           testnetClient,
-          bowRelayContext.pool
+          bowRelayContext.pool,
+          bowScanStartBlock(noteChainId)
         );
-        let labels = await fetchBowAspLabelsAllPools(testnetClient, [zkSuite.ethPool, zkSuite.veilPool]);
+        let labels = await fetchBowAspLabelsAllPools(testnetClient, [zkSuite.ethPool, zkSuite.veilPool], bowScanStartBlock(noteChainId));
 
         if (!orderedCommitments.includes(commitmentHash)) {
           throw new Error(
@@ -3432,9 +3447,9 @@ export default function SwapToShieldPage() {
           } catch (e: unknown) {
             if (e instanceof Error && /throttl|retry/i.test(e.message)) throw e;
           }
-          const refreshed = await fetchBowPoolEvents(testnetClient, bowRelayContext.pool);
+          const refreshed = await fetchBowPoolEvents(testnetClient, bowRelayContext.pool, bowScanStartBlock(noteChainId));
           orderedCommitments = refreshed.orderedCommitments;
-      labels = await fetchBowAspLabelsAllPools(testnetClient, [zkSuite.ethPool, zkSuite.veilPool]);
+      labels = await fetchBowAspLabelsAllPools(testnetClient, [zkSuite.ethPool, zkSuite.veilPool], bowScanStartBlock(noteChainId));
           if (!orderedCommitments.includes(commitmentHash)) {
             throw new Error(
               "Deposit commitment not found in onchain state tree after ASP re-sync."
