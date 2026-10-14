@@ -58,7 +58,7 @@ const PRESETS = [
   },
 ];
 
-function normalizeWeights(picked: Ticker[], changed: Ticker, value: number): Record<Ticker, number> {
+export function normalizeWeights(picked: Ticker[], changed: Ticker, value: number): Record<Ticker, number> {
   const v = Math.max(0, Math.min(100, Math.round(value)));
   const others = picked.filter((t) => t !== changed);
   const out = {} as Record<Ticker, number>;
