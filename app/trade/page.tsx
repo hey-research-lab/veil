@@ -2048,6 +2048,23 @@ export default function SwapToShieldPage() {
         throw e;
       }
       if (!isValid) throw new Error("Local verification of Groth16 withdrawal proof failed.");
+      zkStage("verify-ok: spent check");
+      // Zombie-note gate: a note spent by an earlier flow (stale vault entry
+      // resurrected after reload) proves fine but reverts every simulation
+      // with NullifierAlreadySpent (0xb115d857). Fail here with directions
+      // instead of minutes of bracketing against a dead note.
+      const quoteSpentNullifier = BigInt(withdrawalProof.publicSignals[1]);
+      const quoteSpentOnchain = await testnetClient.readContract({
+        address: sourcePool,
+        abi: parseAbi(["function nullifierHashes(uint256) view returns (bool)"]),
+        functionName: "nullifierHashes",
+        args: [quoteSpentNullifier],
+      });
+      if (quoteSpentOnchain) {
+        throw new Error(
+          "This note was already spent onchain (nullifier spent). Remove it from the vault — retrying will revert every time. No transaction was sent."
+        );
+      }
       zkStage("verify-ok: bracketing swap output");
 
       setProverSteps((prev) => [
@@ -2672,6 +2689,17 @@ export default function SwapToShieldPage() {
           (n) => (isBowNote(n) ? BigInt(n.nullifier).toString() !== zkDirectBundle.nullifier.toString() : true)
         );
         setNotes(directRemaining);
+        if (typeof window !== "undefined") {
+          // Vault persistence (resurrection bug 2026-10-14): every other
+          // removal path persists, this one didn't — spent notes came back
+          // after reload and reverted every re-quote with
+          // NullifierAlreadySpent. Persist the removal like the rest.
+          try {
+            localStorage.setItem(LOCAL_STORAGE_KEY, serializeNotesList(directRemaining));
+          } catch (e: unknown) {
+            console.error("Vault removal write failed:", e);
+          }
+        }
         setSelectedNoteNullifier(directRemaining[0]?.nullifier ?? "");
         setZkBundle(null);
         setZkMultiBundle(null);

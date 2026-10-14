@@ -738,6 +738,8 @@ export function mapZkRouterError(error: unknown, slippagePercent?: number): stri
     return "Full-ZK flow reverted: too many source notes in one batch (TooManyWithdrawals, max 8). Split into smaller batches. No transaction was sent.";
   if (name === "ArrayLengthMismatch" || /ArrayLengthMismatch/i.test(msg))
     return "Full-ZK flow reverted: withdrawal, proof and scope counts must match (ArrayLengthMismatch). Rebuild the flow and try again.";
+  if (name === "NullifierAlreadySpent" || /NullifierAlreadySpent/i.test(msg) || /0xb115d857/i.test(msg))
+    return "This note was already spent onchain (NullifierAlreadySpent). Remove it from the vault — retrying will revert every time. No transaction was sent.";
   if (/insufficient funds for gas/i.test(msg)) {
     const funds = /have (\d+) want (\d+)/i.exec(msg);
     const toEth = (w: string): string => {
