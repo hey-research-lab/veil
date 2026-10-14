@@ -22,6 +22,41 @@ const TICKER_INFO = {
 type Ticker = keyof typeof TICKER_INFO;
 const TICKERS = Object.keys(TICKER_INFO) as Ticker[];
 
+const TOKEN_COLORS: Record<
+  Ticker,
+  {
+    color: string;
+    lightBg: string;
+    border: string;
+  }
+> = {
+  NVDA: {
+    color: "#0284C7", // Sky Blue
+    lightBg: "rgba(2, 132, 199, 0.08)",
+    border: "rgba(2, 132, 199, 0.25)",
+  },
+  SPY: {
+    color: "#DC2626", // S&P Crimson
+    lightBg: "rgba(220, 38, 38, 0.08)",
+    border: "rgba(220, 38, 38, 0.25)",
+  },
+  TSLA: {
+    color: "#EA580C", // Tesla Flame Amber
+    lightBg: "rgba(234, 88, 12, 0.08)",
+    border: "rgba(234, 88, 12, 0.25)",
+  },
+  AAPL: {
+    color: "#334155", // Apple Slate
+    lightBg: "rgba(51, 65, 85, 0.08)",
+    border: "rgba(51, 65, 85, 0.25)",
+  },
+  MSFT: {
+    color: "#7C3AED", // Royal Violet
+    lightBg: "rgba(124, 58, 237, 0.08)",
+    border: "rgba(124, 58, 237, 0.25)",
+  },
+};
+
 const STAGES = [
   { label: "Compose", desc: "Setting allocation weights", log: "PoseidonTree::init() -> Validating asset tokens & weights" },
   { label: "Commit", desc: "Generating Poseidon hash", log: "Poseidon::hash(nullifier, secret) -> Merkle leaf computed" },
@@ -394,95 +429,132 @@ export const ComposerDemo: React.FC = () => {
             fontSize: "11px",
             fontFamily: "var(--font-mono)",
             color: "var(--color-muted)",
-            marginBottom: "10px",
+            marginBottom: "12px",
             fontWeight: 600,
+            letterSpacing: "0.06em",
           }}
         >
           <span>PROPORTIONAL BASKET DISTRIBUTION</span>
-          <span style={{ color: "var(--color-accent)", fontWeight: 700 }}>
-            {total}% BALANCED
+          <span
+            style={{
+              padding: "2px 8px",
+              borderRadius: "var(--radius-sm)",
+              backgroundColor: total === 100 ? "rgba(255, 140, 0, 0.1)" : "rgba(239, 68, 68, 0.1)",
+              color: total === 100 ? "var(--color-accent)" : "#EF4444",
+              fontWeight: 700,
+            }}
+          >
+            {total}% ALLOCATED
           </span>
         </div>
 
-        {/* Stacked Composition Bar */}
+        {/* High-Contrast Segmented Composition Bar */}
         <div
           style={{
-            height: "12px",
+            height: "32px",
             width: "100%",
-            borderRadius: "var(--radius-full)",
+            borderRadius: "var(--radius-md)",
             overflow: "hidden",
             display: "flex",
-            backgroundColor: "rgba(26, 26, 26, 0.08)",
+            backgroundColor: "rgba(26, 26, 26, 0.06)",
+            border: "1px solid var(--color-border-strong)",
+            boxShadow: "inset 0 1px 3px rgba(0, 0, 0, 0.08)",
           }}
         >
           {picked.map((t, idx) => {
             const w = weights[t] ?? 0;
             if (w === 0) return null;
-            // Distinct elegant brand shades
-            const bg =
-              idx === 0
-                ? "var(--color-accent)"
-                : idx === 1
-                ? "#1A1A1A"
-                : idx === 2
-                ? "#525252"
-                : idx === 3
-                ? "#8C8C8C"
-                : "#B0B0B0";
+            const cfg = TOKEN_COLORS[t];
+            const isLast = idx === picked.length - 1;
+            const showLabel = w >= 12;
+
             return (
               <div
                 key={t}
                 style={{
                   width: `${w}%`,
-                  backgroundColor: bg,
+                  backgroundColor: cfg.color,
+                  borderRight: isLast ? "none" : "2px solid #ffffff",
                   transition: "width 0.25s cubic-bezier(0.22, 1, 0.36, 1)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#ffffff",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "11px",
+                  fontWeight: 800,
+                  letterSpacing: "0.02em",
+                  overflow: "hidden",
+                  whiteSpace: "nowrap",
+                  padding: "0 4px",
+                  userSelect: "none",
                 }}
-                title={`${t}: ${w}%`}
-              />
+                title={`${t} (${TICKER_INFO[t].name}): ${w}%`}
+              >
+                {showLabel && (
+                  <span>
+                    {t} {w}%
+                  </span>
+                )}
+              </div>
             );
           })}
         </div>
 
-        {/* Token allocation readouts */}
+        {/* Structured Token Allocation Breakdown Grid */}
         <div
           style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "14px",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+            gap: "8px",
             marginTop: "12px",
-            fontFamily: "var(--font-mono)",
-            fontSize: "12px",
           }}
         >
           {picked.map((t) => {
+            const w = weights[t] ?? 0;
+            const cfg = TOKEN_COLORS[t];
             const Logo = getStockLogo(t);
             return (
               <div
                 key={t}
                 style={{
-                  display: "inline-flex",
+                  display: "flex",
                   alignItems: "center",
-                  gap: "6px",
-                  padding: "3px 8px",
+                  justifyContent: "space-between",
+                  padding: "8px 10px",
                   borderRadius: "var(--radius-sm)",
                   backgroundColor: "#ffffff",
                   border: "1px solid var(--color-border)",
+                  borderLeft: `4px solid ${cfg.color}`,
+                  fontFamily: "var(--font-mono)",
+                  boxSizing: "border-box",
                 }}
               >
-                <Logo size={16} />
-                <span style={{ fontWeight: 800 }}>{t}</span>
-                <span style={{ color: "var(--color-accent)", fontWeight: 700 }}>{weights[t] ?? 0}%</span>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <Logo size={16} />
+                  <span style={{ fontWeight: 800, fontSize: "12px", color: "var(--color-text)" }}>{t}</span>
+                </div>
+                <span
+                  style={{
+                    fontWeight: 800,
+                    fontSize: "12px",
+                    color: cfg.color,
+                  }}
+                >
+                  {w}%
+                </span>
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* Sliders Area */}
+      {/* Sliders Area with Color-Synchronized Accents */}
       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
         {picked.map((t) => {
           const info = TICKER_INFO[t];
           const val = weights[t] ?? 0;
+          const cfg = TOKEN_COLORS[t];
           const Logo = getStockLogo(t);
           return (
             <div
@@ -496,6 +568,7 @@ export const ComposerDemo: React.FC = () => {
                 borderRadius: "var(--radius-sm)",
                 backgroundColor: "#ffffff",
                 border: "1px solid var(--color-border)",
+                borderLeft: `3px solid ${cfg.color}`,
                 boxShadow: "0 2px 6px rgba(26, 26, 26, 0.02)",
               }}
             >
@@ -523,7 +596,7 @@ export const ComposerDemo: React.FC = () => {
                 style={{
                   width: "100%",
                   cursor: "ew-resize",
-                  accentColor: "var(--color-accent)",
+                  accentColor: cfg.color,
                   minHeight: "36px",
                 }}
               />
@@ -536,8 +609,9 @@ export const ComposerDemo: React.FC = () => {
                   textAlign: "right",
                   padding: "4px 8px",
                   borderRadius: "var(--radius-sm)",
-                  backgroundColor: "rgba(26, 26, 26, 0.04)",
-                  color: "var(--color-text)",
+                  backgroundColor: cfg.lightBg,
+                  border: `1px solid ${cfg.border}`,
+                  color: cfg.color,
                 }}
               >
                 {val}%
