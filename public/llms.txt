@@ -1,15 +1,14 @@
 # Veil Protocol
 
-Zero-knowledge privacy layer for Uniswap v4 on Robinhood Chain (EVM mainnet 4663).
+> Zero-Knowledge Privacy Layer for Uniswap v4 on Robinhood Chain (Chain ID: 4663)
+> Website: https://www.veilpools.tech
+> App: https://www.veilpools.tech/trade
+> Source code: https://github.com/veilpools/veil
 
-- Trade terminal (Shield, ZK Swap, Withdraw, gated Trade, Vault): https://www.veilpools.tech/trade
-- Treasury and burn ledger: https://www.veilpools.tech/burn
-- Verified contracts registry: https://www.veilpools.tech/contracts
-- Chain and pool health: https://www.veilpools.tech/status
-- Association Set policy: https://www.veilpools.tech/docs/asp-policy
-- Owner decisions: https://www.veilpools.tech/docs/decisions
-- Privacy architecture: https://www.veilpools.tech/privacy
-- Terms of service: https://www.veilpools.tech/terms
-- Source code: https://github.com/veilpools/veil
-
-Privacy notes are fixed-denomination (0.001). Withdrawals can never be paused or blocked. Fees: 30 bps hook fee, 70% buyback and burn.
+## Overview
+Veil brings zero-knowledge privacy directly to Uniswap v4 swaps on Robinhood Chain:
+- **Swap-to-Shield**: Swap any token on Uniswap v4 and enter the shielded pool in a single atomic transaction. Router maintains a strict invariant of 0 held balance.
+- **Shielded Swap**: Exchange between shielded token pools without leaving any public wallet trace on-chain (single-note, multi-note up to 8 notes, or direct-payout mode).
+- **ZK-Gated Pools**: Uniswap v4 hook restricts swaps to addresses with valid ZK attestations during launch windows.
+- **Protocol Fee Hook**: 30 bps per swap routed to VeilTreasury — 70% funds autonomous on-chain buyback & burns of the Veil token.
+- **Unblockable exits**: withdrawals can never be paused or blocked; fixed 0.001 notes.
