@@ -22,10 +22,9 @@ export default function DarkEtfOg() {
         <div style={{ fontSize: 28, letterSpacing: 4, color: "#ff8c00", fontWeight: 700 }}>
           VEIL DARK ETF · COMING SOON
         </div>
-        <div style={{ fontSize: 84, fontWeight: 800, lineHeight: 1.05, marginTop: 16 }}>
-          Your own ETF.
-          <br />
-          Nobody sees what&apos;s inside.
+        <div style={{ fontSize: 84, fontWeight: 800, lineHeight: 1.05, marginTop: 16, display: "flex", flexDirection: "column" }}>
+          <span>Your own ETF.</span>
+          <span>Nobody sees what&apos;s inside.</span>
         </div>
         <div style={{ fontSize: 30, color: "#b8b0a1", marginTop: 20 }}>
           Private baskets of Stock Tokens on Robinhood Chain · veilpools.tech

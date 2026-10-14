@@ -1,14 +1,15 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Shield, Lock, Eye, EyeOff, RotateCcw, Check, Sparkles, Sliders, Layers } from "lucide-react";
+import { Shield, Lock, Eye, EyeOff, RotateCcw, Check, Sparkles, Sliders, ArrowRight, CheckCircle2 } from "lucide-react";
+import { getStockLogo } from "../StockLogos";
 
 const TICKER_INFO = {
-  NVDA: { name: "Nvidia Corp", category: "AI & Semi", color: "#10B981" },
-  SPY: { name: "S&P 500 Index", category: "Index ETF", color: "#3B82F6" },
-  TSLA: { name: "Tesla Inc", category: "EV & Auto", color: "#F43F5E" },
-  AAPL: { name: "Apple Inc", category: "Hardware", color: "#A855F7" },
-  MSFT: { name: "Microsoft Corp", category: "Cloud & AI", color: "#F59E0B" },
+  NVDA: { name: "NVIDIA Corp", category: "AI & Semi", shareWeight: 40 },
+  SPY: { name: "SPDR S&P 500", category: "Index Trust", shareWeight: 30 },
+  TSLA: { name: "Tesla Inc", category: "EV & Tech", shareWeight: 30 },
+  AAPL: { name: "Apple Inc", category: "Hardware", shareWeight: 0 },
+  MSFT: { name: "Microsoft Corp", category: "Enterprise Cloud", shareWeight: 0 },
 } as const;
 
 type Ticker = keyof typeof TICKER_INFO;
@@ -16,9 +17,9 @@ const TICKERS = Object.keys(TICKER_INFO) as Ticker[];
 
 const STAGES = [
   { label: "Compose", desc: "Setting allocation weights" },
-  { label: "Commit", desc: "Hashing Poseidon commitment" },
-  { label: "Shield", desc: "Minting encrypted note to LeanIMT" },
-  { label: "Hidden", desc: "Basket live · Zero public footprint" },
+  { label: "Commit", desc: "Generating Poseidon hash" },
+  { label: "Shield", desc: "Minting note to LeanIMT pool" },
+  { label: "Hidden", desc: "Shielded · Zero mempool footprint" },
 ] as const;
 
 function normalizeWeights(picked: Ticker[], changed: Ticker, value: number): Record<Ticker, number> {
@@ -53,10 +54,6 @@ function fakeHex(bytes: number): string {
   return "0x" + Array.from(arr, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-/**
- * Interactive basket-composer SIMULATION (no wallet, no chain, no prices).
- * Fully aligned with Veil design tokens and Developer Brief specifications.
- */
 export const ComposerDemo: React.FC = () => {
   const [picked, setPicked] = useState<Ticker[]>(["NVDA", "SPY", "TSLA"]);
   const [weights, setWeights] = useState<Record<Ticker, number>>({
@@ -64,7 +61,7 @@ export const ComposerDemo: React.FC = () => {
     SPY: 30,
     TSLA: 30,
   } as Record<Ticker, number>);
-  const [stage, setStage] = useState<number>(-1); // -1 idle, 0..3 stages, 4 done
+  const [stage, setStage] = useState<number>(-1);
   const [commitment, setCommitment] = useState<string | null>(null);
   const [noteLeaf, setNoteLeaf] = useState<number | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -134,7 +131,7 @@ export const ComposerDemo: React.FC = () => {
             setCommitment(fake);
             setNoteLeaf(leaf);
           }
-        }, 800 * (i + 1))
+        }, 750 * (i + 1))
       );
     });
   }
@@ -147,8 +144,8 @@ export const ComposerDemo: React.FC = () => {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-      {/* Simulation Header Badge */}
+    <div style={{ display: "flex", flexDirection: "column", gap: "20px", width: "100%" }}>
+      {/* Simulation Banner Notice */}
       <div
         style={{
           display: "flex",
@@ -161,20 +158,12 @@ export const ComposerDemo: React.FC = () => {
         }}
       >
         <div style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
-          <span
-            style={{
-              display: "inline-block",
-              width: "7px",
-              height: "7px",
-              borderRadius: "50%",
-              backgroundColor: "var(--color-accent)",
-            }}
-          />
+          <Sparkles size={14} style={{ color: "var(--color-accent)" }} />
           <span
             style={{
               fontFamily: "var(--font-mono)",
               fontSize: "11px",
-              letterSpacing: "0.08em",
+              letterSpacing: "0.06em",
               textTransform: "uppercase",
               color: "var(--color-muted)",
               fontWeight: 600,
@@ -187,19 +176,19 @@ export const ComposerDemo: React.FC = () => {
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: "11px",
-            color: total === 100 ? "var(--color-accent)" : "var(--color-muted)",
+            color: "var(--color-text)",
             fontWeight: 700,
-            padding: "2px 8px",
+            padding: "3px 10px",
             borderRadius: "var(--radius-sm)",
-            backgroundColor: "rgba(255, 140, 0, 0.08)",
-            border: "1px solid rgba(255, 140, 0, 0.2)",
+            backgroundColor: "rgba(255, 140, 0, 0.1)",
+            border: "1px solid rgba(255, 140, 0, 0.25)",
           }}
         >
-          ALLOCATION TOTAL: {total}% / 100%
+          ALLOCATION TOTAL: {total}%
         </div>
       </div>
 
-      {/* Asset Selection Chips */}
+      {/* Ticker Selector Chips with Official Logos */}
       <div>
         <div
           style={{
@@ -207,14 +196,15 @@ export const ComposerDemo: React.FC = () => {
             fontFamily: "var(--font-mono)",
             letterSpacing: "0.06em",
             textTransform: "uppercase",
-            color: "var(--color-faint)",
-            marginBottom: "8px",
+            color: "var(--color-muted)",
+            marginBottom: "10px",
             display: "flex",
             justifyContent: "space-between",
+            fontWeight: 600,
           }}
         >
           <span>Select 2 to 5 Stock Tokens</span>
-          <span>{picked.length} of 5 selected</span>
+          <span>{picked.length}/5 Selected</span>
         </div>
         <div
           style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}
@@ -224,6 +214,7 @@ export const ComposerDemo: React.FC = () => {
           {TICKERS.map((t) => {
             const on = picked.includes(t);
             const info = TICKER_INFO[t];
+            const Logo = getStockLogo(t);
             return (
               <button
                 key={t}
@@ -234,43 +225,37 @@ export const ComposerDemo: React.FC = () => {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "8px",
-                  padding: "8px 14px",
-                  minHeight: "44px",
-                  borderRadius: "var(--radius-sm)",
-                  border: on ? "1px solid var(--color-accent)" : "1px solid var(--color-border)",
-                  backgroundColor: on ? "rgba(255, 140, 0, 0.08)" : "rgba(26, 26, 26, 0.03)",
+                  padding: "7px 14px",
+                  minHeight: "42px",
+                  borderRadius: "var(--radius-md)",
+                  border: on ? "1px solid var(--color-accent)" : "1px solid var(--color-border-strong)",
+                  backgroundColor: on ? "rgba(255, 140, 0, 0.08)" : "#ffffff",
                   color: "var(--color-text)",
                   fontFamily: "var(--font-mono)",
                   fontSize: "13px",
                   fontWeight: 600,
                   cursor: "pointer",
                   transition: "all var(--duration-fast) var(--ease-out)",
+                  boxShadow: on ? "0 2px 8px rgba(255, 140, 0, 0.15)" : "none",
                 }}
               >
-                <span
-                  style={{
-                    width: "8px",
-                    height: "8px",
-                    borderRadius: "50%",
-                    backgroundColor: info.color,
-                  }}
-                />
-                <span style={{ fontWeight: 700 }}>{t}</span>
+                <Logo size={18} />
+                <span style={{ fontWeight: 800 }}>{t}</span>
                 <span style={{ fontSize: "11px", color: "var(--color-muted)", fontWeight: 400 }}>
                   {info.name}
                 </span>
-                {on && <Check size={14} style={{ color: "var(--color-accent)", marginLeft: "2px" }} />}
+                {on && <Check size={14} style={{ color: "var(--color-accent)", marginLeft: "4px" }} />}
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Real-time Stacked Composition Bar */}
+      {/* Real-Time Clean Composition Visualizer */}
       <div
         style={{
-          padding: "14px",
-          borderRadius: "var(--radius-sm)",
+          padding: "16px",
+          borderRadius: "var(--radius-md)",
           backgroundColor: "rgba(26, 26, 26, 0.02)",
           border: "1px solid var(--color-border)",
         }}
@@ -283,97 +268,101 @@ export const ComposerDemo: React.FC = () => {
             fontSize: "11px",
             fontFamily: "var(--font-mono)",
             color: "var(--color-muted)",
-            marginBottom: "8px",
+            marginBottom: "10px",
+            fontWeight: 600,
           }}
         >
-          <span>BASKET COMPOSITION VISUALIZER</span>
-          <span>100% PROPORTIONAL POOL</span>
+          <span>PROPORTIONAL BASKET DISTRIBUTION</span>
+          <span>100% BALANCED</span>
         </div>
+
+        {/* Stacked Composition Bar */}
         <div
           style={{
-            height: "14px",
+            height: "12px",
             width: "100%",
-            borderRadius: "var(--radius-sm)",
+            borderRadius: "var(--radius-full)",
             overflow: "hidden",
             display: "flex",
             backgroundColor: "rgba(26, 26, 26, 0.08)",
           }}
         >
-          {picked.map((t) => {
+          {picked.map((t, idx) => {
             const w = weights[t] ?? 0;
             if (w === 0) return null;
+            // Alternating elegant brand shades
+            const bg = idx === 0 ? "var(--color-accent)" : idx === 1 ? "#1A1A1A" : idx === 2 ? "#525252" : idx === 3 ? "#8C8C8C" : "#A3A3A3";
             return (
               <div
                 key={t}
                 style={{
                   width: `${w}%`,
-                  backgroundColor: TICKER_INFO[t].color,
-                  transition: "width 0.2s ease-out",
+                  backgroundColor: bg,
+                  transition: "width 0.25s cubic-bezier(0.22, 1, 0.36, 1)",
                 }}
                 title={`${t}: ${w}%`}
               />
             );
           })}
         </div>
+
+        {/* Token allocation readouts */}
         <div
           style={{
             display: "flex",
             flexWrap: "wrap",
-            gap: "14px",
-            marginTop: "10px",
+            gap: "16px",
+            marginTop: "12px",
             fontFamily: "var(--font-mono)",
-            fontSize: "11px",
+            fontSize: "12px",
           }}
         >
-          {picked.map((t) => (
-            <div key={t} style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-              <span
-                style={{
-                  width: "8px",
-                  height: "8px",
-                  borderRadius: "2px",
-                  backgroundColor: TICKER_INFO[t].color,
-                }}
-              />
-              <span style={{ fontWeight: 600 }}>{t}:</span>
-              <span style={{ color: "var(--color-text)" }}>{weights[t] ?? 0}%</span>
-            </div>
-          ))}
+          {picked.map((t) => {
+            const Logo = getStockLogo(t);
+            return (
+              <div key={t} style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                <Logo size={14} />
+                <span style={{ fontWeight: 700 }}>{t}:</span>
+                <span style={{ color: "var(--color-text)" }}>{weights[t] ?? 0}%</span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
       {/* Sliders Area */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
         {picked.map((t) => {
           const info = TICKER_INFO[t];
           const val = weights[t] ?? 0;
+          const Logo = getStockLogo(t);
           return (
             <div
               key={t}
               style={{
                 display: "grid",
-                gridTemplateColumns: "110px 1fr 65px",
+                gridTemplateColumns: "140px 1fr 65px",
                 alignItems: "center",
-                gap: "12px",
-                padding: "8px 12px",
+                gap: "14px",
+                padding: "10px 14px",
                 borderRadius: "var(--radius-sm)",
                 backgroundColor: "#ffffff",
                 border: "1px solid var(--color-border)",
+                boxShadow: "0 2px 6px rgba(26, 26, 26, 0.02)",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span
-                  style={{
-                    width: "8px",
-                    height: "8px",
-                    borderRadius: "50%",
-                    backgroundColor: info.color,
-                  }}
-                />
-                <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: "14px" }}>
-                  {t}
-                </span>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <Logo size={20} />
+                <div>
+                  <div style={{ fontFamily: "var(--font-mono)", fontWeight: 800, fontSize: "14px", lineHeight: 1.1 }}>
+                    {t}
+                  </div>
+                  <div style={{ fontFamily: "var(--font-body)", fontSize: "10px", color: "var(--color-muted)", whiteSpace: "nowrap" }}>
+                    {info.category}
+                  </div>
+                </div>
               </div>
+
               <input
                 type="range"
                 min={0}
@@ -390,15 +379,17 @@ export const ComposerDemo: React.FC = () => {
                   minHeight: "36px",
                 }}
               />
+
               <div
                 style={{
                   fontFamily: "var(--font-mono)",
                   fontSize: "13px",
-                  fontWeight: 700,
+                  fontWeight: 800,
                   textAlign: "right",
                   padding: "4px 8px",
                   borderRadius: "var(--radius-sm)",
                   backgroundColor: "rgba(26, 26, 26, 0.04)",
+                  color: "var(--color-text)",
                 }}
               >
                 {val}%
@@ -408,8 +399,8 @@ export const ComposerDemo: React.FC = () => {
         })}
       </div>
 
-      {/* Action CTA */}
-      <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+      {/* Shield CTA Button */}
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap", marginTop: "4px" }}>
         <button
           type="button"
           onClick={shield}
@@ -418,7 +409,7 @@ export const ComposerDemo: React.FC = () => {
             display: "inline-flex",
             alignItems: "center",
             gap: "8px",
-            padding: "12px 24px",
+            padding: "12px 26px",
             minHeight: "44px",
             borderRadius: "var(--radius-sm)",
             border: "none",
@@ -429,10 +420,11 @@ export const ComposerDemo: React.FC = () => {
             fontWeight: 700,
             cursor: stage >= 0 && stage < 4 ? "wait" : "pointer",
             transition: "all var(--duration-fast) var(--ease-out)",
+            boxShadow: "0 4px 14px rgba(255, 140, 0, 0.3)",
           }}
         >
           <Shield size={16} />
-          {stage >= 0 && stage < 4 ? "Shielding in progress…" : "Shield basket"}
+          {stage >= 0 && stage < 4 ? "Generating ZK Proof…" : "Shield basket"}
         </button>
 
         {stage >= 4 && (
@@ -446,7 +438,7 @@ export const ComposerDemo: React.FC = () => {
               padding: "10px 16px",
               minHeight: "44px",
               borderRadius: "var(--radius-sm)",
-              border: "1px solid var(--color-border)",
+              border: "1px solid var(--color-border-strong)",
               backgroundColor: "#ffffff",
               color: "var(--color-text)",
               fontFamily: "var(--font-mono)",
@@ -461,21 +453,22 @@ export const ComposerDemo: React.FC = () => {
         )}
       </div>
 
-      {/* 4-Stage Animation Pipeline */}
+      {/* 4-Stage Motion Pipeline Display */}
       {stage >= 0 && (
         <div
           role="status"
           style={{
-            padding: "16px",
+            padding: "18px",
             borderRadius: "var(--radius-md)",
-            backgroundColor: "rgba(26, 26, 26, 0.03)",
+            backgroundColor: "rgba(26, 26, 26, 0.02)",
             border: "1px solid var(--color-border)",
+            animation: "tabContentEnter 240ms cubic-bezier(0.22, 1, 0.36, 1) forwards",
           }}
         >
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
               gap: "8px",
               marginBottom: "16px",
             }}
@@ -487,7 +480,7 @@ export const ComposerDemo: React.FC = () => {
                 <div
                   key={s.label}
                   style={{
-                    padding: "10px",
+                    padding: "10px 12px",
                     borderRadius: "var(--radius-sm)",
                     backgroundColor: isCurrent
                       ? "rgba(255, 140, 0, 0.12)"
@@ -497,7 +490,7 @@ export const ComposerDemo: React.FC = () => {
                     border: isCurrent
                       ? "1px solid var(--color-accent)"
                       : isPast
-                      ? "1px solid var(--color-border)"
+                      ? "1px solid var(--color-border-strong)"
                       : "1px dashed var(--color-border)",
                     transition: "all 0.3s ease",
                   }}
@@ -542,7 +535,7 @@ export const ComposerDemo: React.FC = () => {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
                 gap: "14px",
                 marginTop: "12px",
               }}
@@ -553,7 +546,7 @@ export const ComposerDemo: React.FC = () => {
                   padding: "16px",
                   borderRadius: "var(--radius-sm)",
                   backgroundColor: "#ffffff",
-                  border: "1px solid var(--color-border)",
+                  border: "1px solid var(--color-border-strong)",
                   fontFamily: "var(--font-mono)",
                   fontSize: "12px",
                 }}

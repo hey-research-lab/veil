@@ -1,22 +1,23 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Lock, Unlock, Eye, Sparkles } from "lucide-react";
+import { Lock, Unlock, Eye, ShieldCheck, Sparkles } from "lucide-react";
+import { getStockLogo } from "../StockLogos";
 
 interface TickerMeta {
   symbol: string;
   name: string;
-  category: string;
+  assetClass: string;
   simulatedWeight: string;
-  color: string;
+  underlying: string;
 }
 
 const TICKER_LIST: TickerMeta[] = [
-  { symbol: "NVDA", name: "Nvidia Corp", category: "AI Compute", simulatedWeight: "35.0%", color: "#10B981" },
-  { symbol: "SPY", name: "S&P 500 ETF", category: "Index Trust", simulatedWeight: "25.0%", color: "#3B82F6" },
-  { symbol: "TSLA", name: "Tesla Inc", category: "EV & Robot", simulatedWeight: "20.0%", color: "#F43F5E" },
-  { symbol: "AAPL", name: "Apple Inc", category: "Consumer Hardware", simulatedWeight: "10.0%", color: "#A855F7" },
-  { symbol: "MSFT", name: "Microsoft Corp", category: "Enterprise Cloud", simulatedWeight: "10.0%", color: "#F59E0B" },
+  { symbol: "NVDA", name: "NVIDIA Corporation", assetClass: "AI & Semiconductors", simulatedWeight: "35.0%", underlying: "Stock Token" },
+  { symbol: "SPY", name: "SPDR S&P 500 ETF", assetClass: "Broad Market Index", simulatedWeight: "25.0%", underlying: "Stock Token" },
+  { symbol: "TSLA", name: "Tesla, Inc.", assetClass: "EV & Autonomous Tech", simulatedWeight: "20.0%", underlying: "Stock Token" },
+  { symbol: "AAPL", name: "Apple Inc.", assetClass: "Consumer Technology", simulatedWeight: "10.0%", underlying: "Stock Token" },
+  { symbol: "MSFT", name: "Microsoft Corporation", assetClass: "Cloud & AI Enterprise", simulatedWeight: "10.0%", underlying: "Stock Token" },
 ];
 
 export const TickerHeroGrid: React.FC = () => {
@@ -32,7 +33,7 @@ export const TickerHeroGrid: React.FC = () => {
   }, []);
 
   return (
-    <div style={{ marginTop: "28px" }}>
+    <div style={{ width: "100%", marginTop: "12px" }}>
       <div
         style={{
           display: "flex",
@@ -41,30 +42,32 @@ export const TickerHeroGrid: React.FC = () => {
           fontFamily: "var(--font-mono)",
           fontSize: "11px",
           color: "var(--color-muted)",
-          letterSpacing: "0.06em",
-          marginBottom: "10px",
+          letterSpacing: "0.08em",
+          marginBottom: "12px",
           textTransform: "uppercase",
         }}
       >
-        <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-          <Sparkles size={12} style={{ color: "var(--color-accent)" }} />
-          Shielded Basket Grid (Stock Tokens)
+        <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontWeight: 600 }}>
+          <Sparkles size={13} style={{ color: "var(--color-accent)" }} />
+          Whitelisted Stock Tokens · Robinhood Chain
         </span>
-        <span style={{ color: "var(--color-faint)" }}>
-          {reducedMotion ? "Static View" : "[Hover card to unveil note preview]"}
+        <span style={{ color: "var(--color-faint)", fontSize: "10px" }}>
+          {reducedMotion ? "Fixed Preview" : "Interactive Preview · Hover to De-Anonymize"}
         </span>
       </div>
 
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
-          gap: "10px",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: "12px",
+          width: "100%",
         }}
       >
         {TICKER_LIST.map((t) => {
           const isHovered = hoveredTicker === t.symbol;
           const showClear = reducedMotion || isHovered;
+          const LogoComponent = getStockLogo(t.symbol);
 
           return (
             <div
@@ -73,86 +76,140 @@ export const TickerHeroGrid: React.FC = () => {
               onMouseLeave={() => setHoveredTicker(null)}
               style={{
                 position: "relative",
-                padding: "16px 14px",
+                padding: "18px 16px",
                 borderRadius: "var(--radius-md)",
-                backgroundColor: "#141210",
-                color: "#ffffff",
+                backgroundColor: "#ffffff",
                 border: isHovered
                   ? "1px solid var(--color-accent)"
-                  : "1px solid rgba(255, 255, 255, 0.1)",
-                transition: reducedMotion ? "none" : "all 0.25s cubic-bezier(0.22, 1, 0.36, 1)",
-                transform: isHovered && !reducedMotion ? "translateY(-2px)" : "translateY(0)",
+                  : "1px solid var(--color-border-strong)",
+                transition: reducedMotion
+                  ? "none"
+                  : "all 0.28s cubic-bezier(0.22, 1, 0.36, 1)",
+                transform: isHovered && !reducedMotion ? "translateY(-3px)" : "translateY(0)",
                 boxShadow: isHovered
-                  ? "0 8px 24px rgba(255, 140, 0, 0.15)"
-                  : "0 2px 10px rgba(0, 0, 0, 0.15)",
+                  ? "0 12px 28px -6px rgba(255, 140, 0, 0.2)"
+                  : "0 4px 16px -2px rgba(26, 26, 26, 0.05)",
                 cursor: "pointer",
+                boxSizing: "border-box",
                 overflow: "hidden",
               }}
             >
-              {/* Subtle top color bar */}
+              {/* Top Accent Line */}
               <div
                 style={{
                   position: "absolute",
                   top: 0,
                   left: 0,
                   right: 0,
-                  height: "2px",
-                  backgroundColor: t.color,
-                  opacity: isHovered ? 1 : 0.6,
+                  height: "3px",
+                  backgroundColor: isHovered ? "var(--color-accent)" : "transparent",
+                  transition: "background-color 0.2s ease",
                 }}
               />
 
-              {/* Ticker Symbol & Status Icon */}
+              {/* Logo + Ticker Header */}
               <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  marginBottom: "8px",
+                  marginBottom: "12px",
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                  <span
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div
                     style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "15px",
-                      fontWeight: 800,
-                      letterSpacing: "0.02em",
-                      color: isHovered ? "var(--color-accent)" : "#ffffff",
+                      width: "32px",
+                      height: "32px",
+                      borderRadius: "var(--radius-sm)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: "rgba(26, 26, 26, 0.04)",
+                      border: "1px solid var(--color-border)",
+                      transition: "transform 0.2s ease",
+                      transform: isHovered && !reducedMotion ? "scale(1.08)" : "scale(1)",
                     }}
                   >
-                    {t.symbol}
-                  </span>
+                    <LogoComponent size={22} />
+                  </div>
+                  <div>
+                    <div
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "16px",
+                        fontWeight: 800,
+                        color: "var(--color-text)",
+                        letterSpacing: "-0.01em",
+                        lineHeight: 1.1,
+                      }}
+                    >
+                      {t.symbol}
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "9px",
+                        color: "var(--color-muted)",
+                        letterSpacing: "0.04em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {t.underlying}
+                    </div>
+                  </div>
                 </div>
-                {showClear ? (
-                  <Unlock size={13} style={{ color: "var(--color-accent)" }} />
-                ) : (
-                  <Lock size={13} style={{ color: "#737373" }} />
-                )}
+
+                <div
+                  style={{
+                    padding: "4px 6px",
+                    borderRadius: "var(--radius-sm)",
+                    backgroundColor: showClear ? "rgba(255, 140, 0, 0.1)" : "rgba(26, 26, 26, 0.05)",
+                    color: showClear ? "var(--color-accent)" : "var(--color-muted)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  title={showClear ? "Decrypted Note Preview" : "Shielded In Pool"}
+                >
+                  {showClear ? <Unlock size={14} /> : <Lock size={14} />}
+                </div>
               </div>
 
-              {/* Company / Asset label */}
+              {/* Company Full Name */}
               <div
                 style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "10px",
-                  color: "#a3a3a3",
-                  textOverflow: "ellipsis",
-                  overflow: "hidden",
+                  fontFamily: "var(--font-body)",
+                  fontSize: "12px",
+                  fontWeight: 500,
+                  color: "var(--color-text)",
                   whiteSpace: "nowrap",
-                  marginBottom: "12px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  marginBottom: "4px",
                 }}
               >
                 {t.name}
               </div>
 
-              {/* Blurred vs Revealed Weight Allocation */}
               <div
                 style={{
-                  padding: "6px 8px",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "10px",
+                  color: "var(--color-muted)",
+                  marginBottom: "14px",
+                }}
+              >
+                {t.assetClass}
+              </div>
+
+              {/* Blurred vs Revealed Allocation */}
+              <div
+                style={{
+                  padding: "8px 12px",
                   borderRadius: "var(--radius-sm)",
-                  backgroundColor: "rgba(255, 255, 255, 0.05)",
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  backgroundColor: "rgba(26, 26, 26, 0.03)",
+                  border: "1px solid var(--color-border)",
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
@@ -160,43 +217,20 @@ export const TickerHeroGrid: React.FC = () => {
                   fontSize: "12px",
                 }}
               >
-                <span style={{ fontSize: "10px", color: "#737373" }}>WEIGHT</span>
+                <span style={{ fontSize: "11px", color: "var(--color-muted)", fontWeight: 600 }}>
+                  ALLOCATION
+                </span>
                 <span
                   style={{
                     fontWeight: 700,
-                    color: showClear ? "#ffffff" : "#737373",
-                    filter: showClear ? "none" : "blur(3px)",
-                    transition: reducedMotion ? "none" : "filter 0.2s ease",
+                    color: showClear ? "var(--color-accent)" : "var(--color-muted)",
+                    filter: showClear ? "none" : "blur(4px)",
+                    transition: reducedMotion ? "none" : "filter 0.25s ease",
                     userSelect: "none",
                   }}
                 >
                   {showClear ? t.simulatedWeight : "??.?%"}
                 </span>
-              </div>
-
-              {/* Bottom tag indicator */}
-              <div
-                style={{
-                  marginTop: "8px",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "9px",
-                  color: isHovered ? "var(--color-accent)" : "#525252",
-                  letterSpacing: "0.04em",
-                  textTransform: "uppercase",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                }}
-              >
-                <span
-                  style={{
-                    width: "4px",
-                    height: "4px",
-                    borderRadius: "50%",
-                    backgroundColor: isHovered ? "var(--color-accent)" : "#525252",
-                  }}
-                />
-                {isHovered ? "Note Unveiled" : "Shielded Note"}
               </div>
             </div>
           );
