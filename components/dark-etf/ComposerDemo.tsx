@@ -1,7 +1,21 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Shield, Lock, Eye, EyeOff, RotateCcw, Check, Sparkles, Sliders, ArrowRight, CheckCircle2 } from "lucide-react";
+import {
+  Shield,
+  Lock,
+  Unlock,
+  Eye,
+  EyeOff,
+  RotateCcw,
+  Check,
+  Sparkles,
+  Sliders,
+  Copy,
+  Terminal,
+  Activity,
+  Layers,
+} from "lucide-react";
 import { getStockLogo } from "../StockLogos";
 
 const TICKER_INFO = {
@@ -16,11 +30,32 @@ type Ticker = keyof typeof TICKER_INFO;
 const TICKERS = Object.keys(TICKER_INFO) as Ticker[];
 
 const STAGES = [
-  { label: "Compose", desc: "Setting allocation weights" },
-  { label: "Commit", desc: "Generating Poseidon hash" },
-  { label: "Shield", desc: "Minting note to LeanIMT pool" },
-  { label: "Hidden", desc: "Shielded · Zero mempool footprint" },
+  { label: "Compose", desc: "Setting allocation weights", log: "PoseidonTree::init() -> Validating asset tokens & weights" },
+  { label: "Commit", desc: "Generating Poseidon hash", log: "Poseidon::hash(nullifier, secret) -> Merkle leaf computed" },
+  { label: "Shield", desc: "Minting note to LeanIMT pool", log: "Groth16::witness() -> 24,812 R1CS constraints verified" },
+  { label: "Hidden", desc: "Shielded · Zero mempool footprint", log: "BatchAuction::match() -> Off-chain P2P netting settled" },
 ] as const;
+
+const PRESETS = [
+  {
+    name: "AI & Cloud Leaders",
+    desc: "NVDA 40% · MSFT 30% · AAPL 30%",
+    tickers: ["NVDA", "MSFT", "AAPL"] as Ticker[],
+    weights: { NVDA: 40, MSFT: 30, AAPL: 30 } as Record<Ticker, number>,
+  },
+  {
+    name: "Core Index & Tech",
+    desc: "SPY 50% · NVDA 25% · TSLA 25%",
+    tickers: ["SPY", "NVDA", "TSLA"] as Ticker[],
+    weights: { SPY: 50, NVDA: 25, TSLA: 25 } as Record<Ticker, number>,
+  },
+  {
+    name: "Balanced Mega 5",
+    desc: "20% Equal Allocation Across All 5",
+    tickers: ["NVDA", "SPY", "TSLA", "AAPL", "MSFT"] as Ticker[],
+    weights: { NVDA: 20, SPY: 20, TSLA: 20, AAPL: 20, MSFT: 20 } as Record<Ticker, number>,
+  },
+];
 
 function normalizeWeights(picked: Ticker[], changed: Ticker, value: number): Record<Ticker, number> {
   const v = Math.max(0, Math.min(100, Math.round(value)));
@@ -64,6 +99,7 @@ export const ComposerDemo: React.FC = () => {
   const [stage, setStage] = useState<number>(-1);
   const [commitment, setCommitment] = useState<string | null>(null);
   const [noteLeaf, setNoteLeaf] = useState<number | null>(null);
+  const [copied, setCopied] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const timers = useRef<number[]>([]);
 
@@ -72,8 +108,27 @@ export const ComposerDemo: React.FC = () => {
     setReducedMotion(mq.matches);
     const onChange = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
     mq.addEventListener("change", onChange);
+
+    const onSelectTicker = (e: Event) => {
+      const customEvent = e as CustomEvent<{ symbol: string }>;
+      const sym = customEvent.detail?.symbol as Ticker;
+      if (sym && TICKERS.includes(sym)) {
+        setPicked((prev) => {
+          if (prev.includes(sym)) return prev;
+          if (prev.length >= 5) return prev;
+          const next = [...prev, sym];
+          setWeights((w) => normalizeWeights(next, sym, Math.floor(100 / next.length)));
+          setStage(-1);
+          setCommitment(null);
+          return next;
+        });
+      }
+    };
+    window.addEventListener("veil:select_ticker", onSelectTicker);
+
     return () => {
       mq.removeEventListener("change", onChange);
+      window.removeEventListener("veil:select_ticker", onSelectTicker);
       timers.current.forEach((t) => window.clearTimeout(t));
     };
   }, []);
@@ -98,6 +153,13 @@ export const ComposerDemo: React.FC = () => {
       setPicked(next);
       setWeights(normalizeWeights(next, t, Math.floor(100 / next.length)));
     }
+    setStage(-1);
+    setCommitment(null);
+  }
+
+  function applyPreset(preset: typeof PRESETS[0]) {
+    setPicked(preset.tickers);
+    setWeights({ ...preset.weights });
     setStage(-1);
     setCommitment(null);
   }
@@ -131,7 +193,7 @@ export const ComposerDemo: React.FC = () => {
             setCommitment(fake);
             setNoteLeaf(leaf);
           }
-        }, 750 * (i + 1))
+        }, 650 * (i + 1))
       );
     });
   }
@@ -141,6 +203,13 @@ export const ComposerDemo: React.FC = () => {
     setCommitment(null);
     setNoteLeaf(null);
     timers.current.forEach((t) => window.clearTimeout(t));
+  }
+
+  function copyCommitment() {
+    if (!commitment) return;
+    navigator.clipboard?.writeText(commitment);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   return (
@@ -158,33 +227,101 @@ export const ComposerDemo: React.FC = () => {
         }}
       >
         <div style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
-          <Sparkles size={14} style={{ color: "var(--color-accent)" }} />
           <span
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "11px",
+              fontSize: "10px",
+              padding: "2px 8px",
+              borderRadius: "var(--radius-sm)",
+              backgroundColor: "rgba(255, 140, 0, 0.12)",
+              color: "var(--color-accent)",
+              fontWeight: 700,
               letterSpacing: "0.06em",
               textTransform: "uppercase",
-              color: "var(--color-muted)",
-              fontWeight: 600,
             }}
           >
-            Illustrative preview — not live · No wallet, no prices, no chain
+            Illustrative Preview · Not Live
+          </span>
+          <span style={{ fontSize: "12px", color: "var(--color-muted)", fontFamily: "var(--font-mono)" }}>
+            No wallet connection or gas required
           </span>
         </div>
         <div
           style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
             fontFamily: "var(--font-mono)",
-            fontSize: "11px",
-            color: "var(--color-text)",
-            fontWeight: 700,
-            padding: "3px 10px",
-            borderRadius: "var(--radius-sm)",
-            backgroundColor: "rgba(255, 140, 0, 0.1)",
-            border: "1px solid rgba(255, 140, 0, 0.25)",
+            fontSize: "12px",
+            color: "var(--color-muted)",
           }}
         >
-          ALLOCATION TOTAL: {total}%
+          <span>BASKET SUM:</span>
+          <span
+            style={{
+              fontWeight: 800,
+              color: total === 100 ? "var(--color-accent)" : "var(--color-text)",
+            }}
+          >
+            {total}%
+          </span>
+        </div>
+      </div>
+
+      {/* Preset Strategy Fast Pickers */}
+      <div>
+        <div
+          style={{
+            fontSize: "11px",
+            fontFamily: "var(--font-mono)",
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            color: "var(--color-muted)",
+            marginBottom: "8px",
+            fontWeight: 600,
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+          }}
+        >
+          <Sparkles size={12} style={{ color: "var(--color-accent)" }} />
+          <span>Quick Strategy Presets</span>
+        </div>
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          {PRESETS.map((p) => {
+            const isMatch =
+              p.tickers.length === picked.length &&
+              p.tickers.every((t) => picked.includes(t)) &&
+              p.tickers.every((t) => weights[t] === p.weights[t]);
+
+            return (
+              <button
+                key={p.name}
+                type="button"
+                onClick={() => applyPreset(p)}
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: "var(--radius-sm)",
+                  border: isMatch ? "1px solid var(--color-accent)" : "1px solid var(--color-border)",
+                  backgroundColor: isMatch ? "rgba(255, 140, 0, 0.08)" : "#ffffff",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  color: isMatch ? "var(--color-accent)" : "var(--color-text)",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                <span>{p.name}</span>
+                <span style={{ fontSize: "10px", color: "var(--color-muted)", fontWeight: 400 }}>
+                  ({p.tickers.join("/")})
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -272,14 +409,19 @@ export const ComposerDemo: React.FC = () => {
             fontWeight: 600,
           }}
         >
-          <span>PROPORTIONAL BASKET DISTRIBUTION</span>
-          <span>100% BALANCED</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <Layers size={13} style={{ color: "var(--color-accent)" }} />
+            PROPORTIONAL BASKET DISTRIBUTION
+          </span>
+          <span style={{ color: total === 100 ? "#16a34a" : "var(--color-accent)" }}>
+            {total}% BALANCED
+          </span>
         </div>
 
         {/* Stacked Composition Bar */}
         <div
           style={{
-            height: "12px",
+            height: "14px",
             width: "100%",
             borderRadius: "var(--radius-full)",
             overflow: "hidden",
@@ -290,8 +432,17 @@ export const ComposerDemo: React.FC = () => {
           {picked.map((t, idx) => {
             const w = weights[t] ?? 0;
             if (w === 0) return null;
-            // Alternating elegant brand shades
-            const bg = idx === 0 ? "var(--color-accent)" : idx === 1 ? "#1A1A1A" : idx === 2 ? "#525252" : idx === 3 ? "#8C8C8C" : "#A3A3A3";
+            // Distinct elegant brand shades
+            const bg =
+              idx === 0
+                ? "var(--color-accent)"
+                : idx === 1
+                ? "#1A1A1A"
+                : idx === 2
+                ? "#525252"
+                : idx === 3
+                ? "#8C8C8C"
+                : "#B0B0B0";
             return (
               <div
                 key={t}
@@ -311,7 +462,7 @@ export const ComposerDemo: React.FC = () => {
           style={{
             display: "flex",
             flexWrap: "wrap",
-            gap: "16px",
+            gap: "14px",
             marginTop: "12px",
             fontFamily: "var(--font-mono)",
             fontSize: "12px",
@@ -320,10 +471,21 @@ export const ComposerDemo: React.FC = () => {
           {picked.map((t) => {
             const Logo = getStockLogo(t);
             return (
-              <div key={t} style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                <Logo size={14} />
-                <span style={{ fontWeight: 700 }}>{t}:</span>
-                <span style={{ color: "var(--color-text)" }}>{weights[t] ?? 0}%</span>
+              <div
+                key={t}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "3px 8px",
+                  borderRadius: "var(--radius-sm)",
+                  backgroundColor: "#ffffff",
+                  border: "1px solid var(--color-border)",
+                }}
+              >
+                <Logo size={16} />
+                <span style={{ fontWeight: 800 }}>{t}</span>
+                <span style={{ color: "var(--color-accent)", fontWeight: 700 }}>{weights[t] ?? 0}%</span>
               </div>
             );
           })}
@@ -424,7 +586,7 @@ export const ComposerDemo: React.FC = () => {
           }}
         >
           <Shield size={16} />
-          {stage >= 0 && stage < 4 ? "Generating ZK Proof…" : "Shield basket"}
+          {stage >= 0 && stage < 4 ? "Synthesizing ZK Note…" : "Shield basket"}
         </button>
 
         {stage >= 4 && (
@@ -453,7 +615,7 @@ export const ComposerDemo: React.FC = () => {
         )}
       </div>
 
-      {/* 4-Stage Motion Pipeline Display */}
+      {/* 4-Stage Motion Pipeline Display & Cryptographic Terminal Log */}
       {stage >= 0 && (
         <div
           role="status"
@@ -465,12 +627,34 @@ export const ComposerDemo: React.FC = () => {
             animation: "tabContentEnter 240ms cubic-bezier(0.22, 1, 0.36, 1) forwards",
           }}
         >
+          {/* Progress Bar */}
+          <div
+            style={{
+              width: "100%",
+              height: "4px",
+              borderRadius: "2px",
+              backgroundColor: "rgba(26, 26, 26, 0.08)",
+              overflow: "hidden",
+              marginBottom: "14px",
+            }}
+          >
+            <div
+              style={{
+                width: `${stage === 0 ? 25 : stage === 1 ? 50 : stage === 2 ? 75 : 100}%`,
+                height: "100%",
+                backgroundColor: "var(--color-accent)",
+                transition: "width 0.4s ease",
+              }}
+            />
+          </div>
+
+          {/* Stage Cards */}
           <div
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
               gap: "8px",
-              marginBottom: "16px",
+              marginBottom: "14px",
             }}
           >
             {STAGES.map((s, idx) => {
@@ -530,6 +714,36 @@ export const ComposerDemo: React.FC = () => {
             })}
           </div>
 
+          {/* Cryptographic Execution Log */}
+          <div
+            style={{
+              padding: "10px 14px",
+              borderRadius: "var(--radius-sm)",
+              backgroundColor: "#141210",
+              color: "#e5e5e5",
+              fontFamily: "var(--font-mono)",
+              fontSize: "11px",
+              lineHeight: 1.6,
+              border: "1px solid rgba(255, 140, 0, 0.25)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--color-accent)", marginBottom: "4px" }}>
+              <Terminal size={12} />
+              <span style={{ fontWeight: 700 }}>ZK PROVER SIMULATION LOG</span>
+            </div>
+            {STAGES.slice(0, Math.min(stage + 1, 4)).map((s, i) => (
+              <div key={s.label} style={{ opacity: 0.9 }}>
+                <span style={{ color: "var(--color-accent)" }}>&gt;</span> {s.log}
+              </div>
+            ))}
+            {stage < 4 && (
+              <div style={{ color: "var(--color-accent)", display: "flex", alignItems: "center", gap: "4px" }}>
+                <span>&gt; Computing Groth16 proof</span>
+                <span className="zk-shield-breathe">…</span>
+              </div>
+            )}
+          </div>
+
           {/* Outcome Split View */}
           {stage >= 4 && commitment && (
             <div
@@ -537,7 +751,7 @@ export const ComposerDemo: React.FC = () => {
                 display: "grid",
                 gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
                 gap: "14px",
-                marginTop: "12px",
+                marginTop: "14px",
               }}
             >
               {/* Left: User's Private View */}
@@ -555,14 +769,36 @@ export const ComposerDemo: React.FC = () => {
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: "6px",
+                    justifyContent: "space-between",
                     color: "var(--color-accent)",
                     fontWeight: 700,
                     marginBottom: "10px",
                   }}
                 >
-                  <Eye size={14} />
-                  <span>YOUR SHIELDED BASKET (CLIENT DECRYPTION)</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <Eye size={14} />
+                    <span>YOUR SHIELDED BASKET (CLIENT DECRYPTED)</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={copyCommitment}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      padding: "2px 8px",
+                      borderRadius: "var(--radius-sm)",
+                      border: "1px solid var(--color-border)",
+                      backgroundColor: "rgba(26, 26, 26, 0.04)",
+                      fontSize: "11px",
+                      fontFamily: "var(--font-mono)",
+                      color: "var(--color-text)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {copied ? <Check size={11} style={{ color: "var(--color-accent)" }} /> : <Copy size={11} />}
+                    <span>{copied ? "Copied" : "Copy"}</span>
+                  </button>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                   <div>

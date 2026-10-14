@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { CheckCircle2, AlertCircle, ArrowRight, ShieldCheck, Loader2 } from "lucide-react";
+import { CheckCircle2, AlertCircle, ArrowRight, ShieldCheck, Loader2, Share2 } from "lucide-react";
 
 /** Waitlist form: posts to /api/dark-etf/waitlist, handles ?confirm= links. */
 export const WaitlistForm: React.FC = () => {
@@ -73,6 +73,13 @@ export const WaitlistForm: React.FC = () => {
     }
   }
 
+  const shareOnX = () => {
+    const text = encodeURIComponent(
+      "Just joined the @veilpools Dark ETF waitlist — confidential Stock Token baskets with zero public mempool leakage on Robinhood Chain! 🔒\n\nJoin here: https://www.veilpools.tech/dark-etf"
+    );
+    window.open(`https://twitter.com/intent/tweet?text=${text}`, "_blank", "noopener,noreferrer");
+  };
+
   const inputStyle: React.CSSProperties = {
     width: "100%",
     padding: "12px 14px",
@@ -136,10 +143,11 @@ export const WaitlistForm: React.FC = () => {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: "10px",
+            gap: "12px",
+            animation: "tabContentEnter 240ms cubic-bezier(0.22, 1, 0.36, 1) forwards",
           }}
         >
-          <CheckCircle2 size={32} style={{ color: "#10B981" }} />
+          <CheckCircle2 size={36} style={{ color: "#10B981" }} />
           <div
             style={{
               fontFamily: "var(--font-headline)",
@@ -153,7 +161,7 @@ export const WaitlistForm: React.FC = () => {
           <p
             style={{
               fontFamily: "var(--font-body)",
-              fontSize: "14px",
+              fontSize: "13px",
               color: "var(--color-muted)",
               maxWidth: "460px",
               margin: 0,
@@ -162,27 +170,52 @@ export const WaitlistForm: React.FC = () => {
           >
             {note || "Check your inbox for confirmation. We will notify you when early access opens."}
           </p>
-          <button
-            type="button"
-            onClick={() => setIsSuccess(false)}
-            style={{
-              marginTop: "8px",
-              fontFamily: "var(--font-mono)",
-              fontSize: "12px",
-              color: "var(--color-accent)",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              textDecoration: "underline",
-            }}
-          >
-            Register another address
-          </button>
+
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", justifyContent: "center", marginTop: "6px" }}>
+            <button
+              type="button"
+              onClick={shareOnX}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "8px 16px",
+                borderRadius: "var(--radius-sm)",
+                backgroundColor: "#000000",
+                color: "#ffffff",
+                fontFamily: "var(--font-mono)",
+                fontSize: "12px",
+                fontWeight: 600,
+                border: "none",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+              }}
+            >
+              <Share2 size={13} />
+              <span>Share on X</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsSuccess(false)}
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "12px",
+                color: "var(--color-muted)",
+                background: "none",
+                border: "1px solid var(--color-border)",
+                padding: "8px 14px",
+                borderRadius: "var(--radius-sm)",
+                cursor: "pointer",
+              }}
+            >
+              Register another address
+            </button>
+          </div>
         </div>
       ) : (
         <form
           onSubmit={submit}
-          style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "14px" }}
+          style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "4px" }}
         >
           <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
             <label htmlFor="wl-email" style={labelStyle}>
@@ -203,7 +236,7 @@ export const WaitlistForm: React.FC = () => {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
               gap: "14px",
             }}
           >
@@ -224,7 +257,7 @@ export const WaitlistForm: React.FC = () => {
 
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
               <label htmlFor="wl-wallet" style={labelStyle}>
-                <span style={{ color: "var(--color-accent)" }}>[03]</span> EVM WALLET ADDRESS (OPTIONAL, NO SIGNATURE)
+                <span style={{ color: "var(--color-accent)" }}>[03]</span> EVM WALLET ADDRESS (OPTIONAL)
               </label>
               <input
                 id="wl-wallet"
@@ -311,6 +344,7 @@ export const WaitlistForm: React.FC = () => {
               cursor: busy ? "not-allowed" : "pointer",
               opacity: busy ? 0.7 : 1,
               transition: "all var(--duration-fast) var(--ease-out)",
+              boxShadow: "0 4px 14px rgba(255, 140, 0, 0.3)",
             }}
           >
             {busy ? (

@@ -9,14 +9,15 @@ import {
   Shield,
   Sliders,
   Shuffle,
-  ArrowDown,
+  ArrowRight,
   Lock,
   EyeOff,
   AlertTriangle,
   FileText,
   Sparkles,
   Layers,
-  ArrowRight,
+  CheckCircle,
+  ExternalLink,
 } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -91,6 +92,7 @@ export default function DarkEtfPage() {
             </span>
             <span>// Confidential Stock Baskets</span>
           </div>
+
           <h1
             style={{
               margin: 0,
@@ -104,6 +106,7 @@ export default function DarkEtfPage() {
           >
             Your own ETF. Nobody sees what&apos;s inside.
           </h1>
+
           <p
             style={{
               margin: "var(--space-2) 0 0 0",
@@ -117,8 +120,83 @@ export default function DarkEtfPage() {
             Build a private basket of Stock Tokens on Robinhood Chain. Hold it shielded, rebalance it in the dark.
             Atomic settlement with Uniswap v4 batching.
           </p>
+
+          {/* Quick Hero Action CTAs */}
+          <div
+            style={{
+              display: "flex",
+              gap: "10px",
+              flexWrap: "wrap",
+              alignItems: "center",
+              marginTop: "var(--space-4)",
+            }}
+          >
+            <a
+              href="#waitlist"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "10px 20px",
+                borderRadius: "var(--radius-sm)",
+                backgroundColor: "var(--color-accent)",
+                color: "var(--color-accent-contrast)",
+                fontFamily: "var(--font-mono)",
+                fontSize: "13px",
+                fontWeight: 700,
+                textDecoration: "none",
+                boxShadow: "0 4px 14px rgba(255, 140, 0, 0.25)",
+                transition: "all var(--duration-fast) var(--ease-out)",
+              }}
+            >
+              <span>Join the Waitlist</span>
+              <ArrowRight size={14} />
+            </a>
+
+            <a
+              href="#composer"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "10px 18px",
+                borderRadius: "var(--radius-sm)",
+                backgroundColor: "#ffffff",
+                color: "var(--color-text)",
+                fontFamily: "var(--font-mono)",
+                fontSize: "13px",
+                fontWeight: 600,
+                textDecoration: "none",
+                border: "1px solid var(--color-border-strong)",
+                transition: "all var(--duration-fast) var(--ease-out)",
+              }}
+            >
+              <Sliders size={14} style={{ color: "var(--color-accent)" }} />
+              <span>Try Composer Demo</span>
+            </a>
+
+            <a
+              href="#how"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "10px 14px",
+                borderRadius: "var(--radius-sm)",
+                backgroundColor: "transparent",
+                color: "var(--color-muted)",
+                fontFamily: "var(--font-mono)",
+                fontSize: "13px",
+                fontWeight: 500,
+                textDecoration: "none",
+              }}
+            >
+              <span>How it Works</span>
+            </a>
+          </div>
         </div>
 
+        {/* Technical Architecture Specs */}
         <div
           style={{
             display: "inline-flex",
@@ -130,7 +208,10 @@ export default function DarkEtfPage() {
             color: "var(--color-muted)",
           }}
         >
-          <span>Stock Tokens</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+            <span style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "var(--color-accent)" }} />
+            Stock Tokens
+          </span>
           <span style={{ opacity: 0.3 }}>/</span>
           <span>Groth16 ZK-SNARK</span>
           <span style={{ opacity: 0.3 }}>/</span>
@@ -147,6 +228,7 @@ export default function DarkEtfPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }} className="lg:col-span-7">
           {/* Card A: Interactive Basket Composer Simulation */}
           <div
+            id="composer"
             className="veil-card-white p-4 sm:p-6"
             style={{
               display: "flex",
@@ -170,9 +252,13 @@ export default function DarkEtfPage() {
                   color: "var(--color-muted)",
                   marginBottom: "4px",
                   fontWeight: 600,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
                 }}
               >
-                [01 // INTERACTIVE SIMULATION]
+                <Sliders size={12} style={{ color: "var(--color-accent)" }} />
+                <span>[01 // INTERACTIVE SIMULATION]</span>
               </div>
               <h2
                 style={{
@@ -227,9 +313,13 @@ export default function DarkEtfPage() {
                   color: "var(--color-muted)",
                   marginBottom: "4px",
                   fontWeight: 600,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
                 }}
               >
-                [02 // THREE-STAGE ARCHITECTURE]
+                <Layers size={12} style={{ color: "var(--color-accent)" }} />
+                <span>[02 // THREE-STAGE ARCHITECTURE]</span>
               </div>
               <h2
                 style={{
@@ -332,6 +422,7 @@ export default function DarkEtfPage() {
 
           {/* Card C: The Surveillance Problem */}
           <div
+            id="surveillance"
             className="veil-card-white p-4 sm:p-6"
             style={{
               display: "flex",
@@ -355,9 +446,13 @@ export default function DarkEtfPage() {
                   color: "var(--color-muted)",
                   marginBottom: "4px",
                   fontWeight: 600,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
                 }}
               >
-                [03 // SURVEILLANCE VULNERABILITY]
+                <AlertTriangle size={12} style={{ color: "var(--color-accent)" }} />
+                <span>[03 // SURVEILLANCE VULNERABILITY]</span>
               </div>
               <h2
                 style={{
@@ -551,9 +646,13 @@ export default function DarkEtfPage() {
                   color: "var(--color-muted)",
                   marginBottom: "4px",
                   fontWeight: 600,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
                 }}
               >
-                [04 // EARLY ACCESS QUEUE]
+                <Sparkles size={12} style={{ color: "var(--color-accent)" }} />
+                <span>[04 // EARLY ACCESS QUEUE]</span>
               </div>
               <h2
                 style={{
@@ -587,6 +686,7 @@ export default function DarkEtfPage() {
 
           {/* Card 2: Frequently Asked Questions Accordion */}
           <div
+            id="faq"
             className="veil-card-white p-4 sm:p-6"
             style={{
               display: "flex",
@@ -610,9 +710,13 @@ export default function DarkEtfPage() {
                   color: "var(--color-muted)",
                   marginBottom: "4px",
                   fontWeight: 600,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
                 }}
               >
-                [05 // PROTOCOL INTEL]
+                <FileText size={12} style={{ color: "var(--color-accent)" }} />
+                <span>[05 // PROTOCOL INTEL]</span>
               </div>
               <h2
                 style={{
