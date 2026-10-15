@@ -23,6 +23,8 @@ export interface ZkProverStep {
   status: "pending" | "running" | "completed";
 }
 
+export type ZkProverFlowType = "deposit" | "withdraw" | "swap" | "quote";
+
 interface ZkProverModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -34,6 +36,9 @@ interface ZkProverModalProps {
   // "Leaf Inserted" renders only when the caller confirms onchain insertion.
   committed?: boolean;
   onDownloadBackup?: () => void;
+  flowType?: ZkProverFlowType;
+  completedTitle?: string;
+  completedSubtitle?: string;
 }
 
 export const ZkProverModal: React.FC<ZkProverModalProps> = ({
@@ -45,6 +50,9 @@ export const ZkProverModal: React.FC<ZkProverModalProps> = ({
   commitment,
   committed = false,
   onDownloadBackup,
+  flowType,
+  completedTitle,
+  completedSubtitle,
 }) => {
   const [copiedCommitment, setCopiedCommitment] = useState(false);
   const [copiedTx, setCopiedTx] = useState(false);
@@ -55,6 +63,54 @@ export const ZkProverModal: React.FC<ZkProverModalProps> = ({
   const isAllCompleted = steps.length > 0 && steps.every((s) => s.status === "completed");
   const completedCount = steps.filter((s) => s.status === "completed").length;
   const progressPercent = steps.length > 0 ? Math.round((completedCount / steps.length) * 100) : 0;
+
+  // Dynamically resolve completed modal title & subtitle according to flow type or operation title
+  const resolveCompletedHeader = () => {
+    if (completedTitle) {
+      return {
+        title: completedTitle,
+        subtitle: completedSubtitle ?? "0xbow Shield Verified · Cancun EVM",
+      };
+    }
+
+    const tLower = title.toLowerCase();
+
+    // 1. Shielded Withdrawal flow
+    if (flowType === "withdraw" || tLower.includes("withdraw")) {
+      return {
+        title: "Shielded Withdrawal Completed",
+        subtitle: completedSubtitle ?? "0xbow Proof Verified · Relayed Onchain",
+      };
+    }
+
+    // 2. Shielded Swap Quote flow
+    if (flowType === "quote" || (tLower.includes("quote") && !tLower.includes("execute"))) {
+      return {
+        title: "Shielded Swap Quote Locked",
+        subtitle: completedSubtitle ?? "Zero-Knowledge Route & Merkle Constraints Verified",
+      };
+    }
+
+    // 3. Shielded Swap Execute flow
+    if (flowType === "swap" || tLower.includes("swap")) {
+      return {
+        title: "Shielded Swap Completed",
+        subtitle: completedSubtitle ?? "Uniswap v4 Netting Settled · Note Shielded",
+      };
+    }
+
+    // 4. Default: Shielded Deposit flow
+    return {
+      title: "Shielded Deposit Completed",
+      subtitle: completedSubtitle ?? "0xbow Shield Verified · Note Sealed",
+    };
+  };
+
+  const completedHeader = resolveCompletedHeader();
+  const currentTitle = isAllCompleted ? completedHeader.title : title;
+  const currentSubtitle = isAllCompleted
+    ? completedHeader.subtitle
+    : "Client-Side Prover · Cancun EVM";
 
   const handleCopyCommitment = () => {
     if (!commitment) return;
@@ -77,7 +133,7 @@ export const ZkProverModal: React.FC<ZkProverModalProps> = ({
       "             VEIL PROTOCOL · SETTLEMENT RECEIPT",
       "             0xbow Privacy Pool (v1.2.1 · Cancun EVM)",
       "================================================================",
-      `Event:          ${title}`,
+      `Event:          ${currentTitle}`,
       `Status:         ${isAllCompleted ? "SETTLED & CONFIRMED" : "IN FLIGHT"}`,
       `Network:        Robinhood Chain (Chain ID: 4663)`,
       `Timestamp:      ${time}`,
@@ -121,7 +177,7 @@ export const ZkProverModal: React.FC<ZkProverModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       maxWidth="580px"
-      ariaLabel={title}
+      ariaLabel={currentTitle}
       closeOnBackdropClick={isAllCompleted}
       closeOnEsc={isAllCompleted}
       contentStyle={{
@@ -181,7 +237,7 @@ export const ZkProverModal: React.FC<ZkProverModalProps> = ({
                 lineHeight: 1.25,
               }}
             >
-              {isAllCompleted ? "Shielded Deposit Completed" : title}
+              {currentTitle}
             </h2>
             <p
               style={{
@@ -191,9 +247,7 @@ export const ZkProverModal: React.FC<ZkProverModalProps> = ({
                 color: isAllCompleted ? "#00c22d" : "var(--color-muted)",
               }}
             >
-              {isAllCompleted
-                ? "0xbow Shield Verified · Note Sealed"
-                : "Client-Side Prover · Cancun EVM"}
+              {currentSubtitle}
             </p>
           </div>
         </div>
@@ -676,7 +730,12 @@ export const ZkProverModal: React.FC<ZkProverModalProps> = ({
 
       {/* Action Buttons / Proving Notice */}
       <div style={{ display: "flex", gap: "var(--space-2)", paddingTop: "var(--space-1)" }}>
-        {onDownloadBackup && isAllCompleted && (
+        {onDownloadBackup &&
+          isAllCompleted &&
+          flowType !== "withdraw" &&
+          flowType !== "quote" &&
+          !title.toLowerCase().includes("withdraw") &&
+          !title.toLowerCase().includes("quote") && (
           <button
             onClick={onDownloadBackup}
             type="button"

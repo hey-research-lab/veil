@@ -45,7 +45,7 @@ import { TokenSelectModal, SUPPORTED_TOKENS, type TokenItem } from "../../compon
 import { SlippageSettingsModal } from "../../components/SlippageSettingsModal";
 import { RobinhoodLogoMark } from "../../components/TokenLogos";
 import { RouteInspector } from "../../components/RouteInspector";
-import { ZkProverModal, type ZkProverStep } from "../../components/ZkProverModal";
+import { ZkProverModal, type ZkProverStep, type ZkProverFlowType } from "../../components/ZkProverModal";
 import { WalletModal } from "../../components/WalletModal";
 import {
   formatEther,
@@ -516,6 +516,7 @@ export default function SwapToShieldPage() {
   // Prover Modal States
   const [isProverOpen, setIsProverOpen] = useState(false);
   const [isGuaranteesExpanded, setIsGuaranteesExpanded] = useState(false);
+  const [proverFlowType, setProverFlowType] = useState<ZkProverFlowType>("deposit");
   const [proverTitle, setProverTitle] = useState("Executing Shielded Deposit");
   const [proverSteps, setProverSteps] = useState<ZkProverStep[]>([]);
   const [proverTxHash, setProverTxHash] = useState<string | null>(null);
@@ -1392,6 +1393,7 @@ export default function SwapToShieldPage() {
     if (txInFlight.current > 0) return;
     setIsExecuting(true);
     setIsZkQuoting(true);
+    setProverFlowType("quote");
     setProverTitle(`Full-ZK Swap to Shield (${netLabel})`);
     setProverTxHash(null);
     setZkTxHash(null);
@@ -1689,6 +1691,7 @@ export default function SwapToShieldPage() {
 
     if (txInFlight.current > 0) return;
     setIsExecuting(true);
+    setProverFlowType("swap");
     setProverTitle(`Full-ZK Swap to Shield (${netLabel})`);
     setProverSteps([
       { ...zkProverSteps()[0], status: "completed" },
@@ -1965,6 +1968,7 @@ export default function SwapToShieldPage() {
     setIsExecuting(true);
     setIsZkQuoting(true);
     zkCancelRef.current = false;
+    setProverFlowType("quote");
     setProverTitle(`Shielded Swap Quote (${netLabel})`);
     setProverTxHash(null);
     setZkTxHash(null);
@@ -2519,6 +2523,7 @@ export default function SwapToShieldPage() {
 
     if (txInFlight.current > 0) return;
     setIsExecuting(true);
+    setProverFlowType("swap");
     setProverTitle(`Shielded Swap Execute (${netLabel})`);
     setProverSteps([
       { ...zkProverSteps()[0], status: "completed" },
@@ -2987,6 +2992,7 @@ export default function SwapToShieldPage() {
     const depositValue = parsedBowDeposit;
 
     setIsExecuting(true);
+    setProverFlowType("deposit");
     setProverTitle(
       isBowEthDeposit
         ? `Executing 0xbow Shielded Deposit (ETH, ${netLabel})`
@@ -3318,6 +3324,7 @@ export default function SwapToShieldPage() {
     if (useTestnetBow) {
       const netLabel = noteChainId === MAINNET_CHAIN_ID ? "Mainnet" : "Testnet";
       setIsExecuting(true);
+      setProverFlowType("withdraw");
       setProverTitle(`Generating 0xbow Groth16 Shielded Withdrawal (${netLabel})`);
       setProverTxHash(null);
       setProverCommitment(null);
@@ -3801,6 +3808,7 @@ export default function SwapToShieldPage() {
     }
 
     setIsExecuting(true);
+    setProverFlowType("withdraw");
     setProverTitle("Preparing Shielded Withdrawal");
     setProverTxHash(null);
     setProverCommitment(null);
@@ -4887,6 +4895,7 @@ export default function SwapToShieldPage() {
           zkCancelRef.current = true;
           setIsProverOpen(false);
         }}
+        flowType={proverFlowType}
         title={proverTitle}
         steps={proverSteps}
         txHash={proverTxHash}
