@@ -298,6 +298,25 @@ html.lp-on body {
   transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), color 0.18s ease;
 }
 
+.dash-pill {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid var(--color-border) !important;
+  background: rgba(26, 26, 26, 0.04) !important;
+  cursor: pointer;
+}
+
+.dash-pill:hover {
+  border-color: #FF8C00 !important;
+  color: #FF8C00 !important;
+  background: rgba(255, 140, 0, 0.08) !important;
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 12px rgba(255, 140, 0, 0.15) !important;
+}
+
+.dash-pill:active {
+  transform: scale(0.96) !important;
+}
+
 .ds-btn:focus-visible, .lp-btn:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;

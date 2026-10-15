@@ -119,19 +119,17 @@ export const VaultSidebarWidget: React.FC<VaultSidebarWidgetProps> = ({
         <button
           type="button"
           onClick={onViewFullVault}
+          className="lp-btn lp-btn--outline"
           style={{
             display: "inline-flex",
             alignItems: "center",
             gap: "4px",
-            background: "none",
-            border: "1px solid var(--color-border)",
-            borderRadius: "var(--radius-sm)",
             padding: "4px 8px",
             fontSize: "11px",
             fontWeight: 600,
             color: "var(--color-muted)",
             cursor: "pointer",
-            backgroundColor: "#ffffff",
+            borderRadius: "var(--radius-sm)",
           }}
           title="Open full Note Vault tab"
         >
@@ -223,18 +221,16 @@ export const VaultSidebarWidget: React.FC<VaultSidebarWidgetProps> = ({
           <button
             type="button"
             onClick={onGoToShield}
+            className="lp-btn lp-btn--filled"
             style={{
               display: "inline-flex",
               alignItems: "center",
               gap: "4px",
               padding: "6px 12px",
               borderRadius: "var(--radius-sm)",
-              backgroundColor: "var(--color-text)",
-              color: "#ffffff",
               fontSize: "11px",
               fontWeight: 600,
               cursor: "pointer",
-              border: "none",
             }}
           >
             <Shield size={12} />
@@ -395,6 +391,7 @@ export const VaultSidebarWidget: React.FC<VaultSidebarWidgetProps> = ({
                     <button
                       type="button"
                       onClick={() => onSelectForSwap(note.nullifier)}
+                      className="lp-btn lp-btn--outline"
                       style={{
                         flex: 1,
                         display: "inline-flex",
@@ -403,14 +400,11 @@ export const VaultSidebarWidget: React.FC<VaultSidebarWidgetProps> = ({
                         gap: "4px",
                         padding: "4px 8px",
                         borderRadius: "var(--radius-sm)",
-                        backgroundColor: "rgba(26, 26, 26, 0.04)",
-                        border: "1px solid var(--color-border)",
                         color: "var(--color-text)",
                         fontSize: "10px",
                         fontWeight: 600,
                         cursor: "pointer",
                         fontFamily: "var(--font-mono)",
-                        transition: "all var(--duration-fast)",
                       }}
                       title="Use this note in shielded swap"
                     >
@@ -421,6 +415,7 @@ export const VaultSidebarWidget: React.FC<VaultSidebarWidgetProps> = ({
                     <button
                       type="button"
                       onClick={() => onSelectForWithdraw(note.nullifier)}
+                      className="lp-btn lp-btn--outline"
                       style={{
                         flex: 1,
                         display: "inline-flex",
@@ -429,14 +424,11 @@ export const VaultSidebarWidget: React.FC<VaultSidebarWidgetProps> = ({
                         gap: "4px",
                         padding: "4px 8px",
                         borderRadius: "var(--radius-sm)",
-                        backgroundColor: "rgba(26, 26, 26, 0.04)",
-                        border: "1px solid var(--color-border)",
                         color: "var(--color-text)",
                         fontSize: "10px",
                         fontWeight: 600,
                         cursor: "pointer",
                         fontFamily: "var(--font-mono)",
-                        transition: "all var(--duration-fast)",
                       }}
                       title="Withdraw this note to a fresh address"
                     >

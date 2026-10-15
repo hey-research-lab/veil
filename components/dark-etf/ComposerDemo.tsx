@@ -296,24 +296,21 @@ export const ComposerDemo: React.FC = () => {
                 key={p.name}
                 type="button"
                 onClick={() => applyPreset(p)}
+                className={isMatch ? "lp-btn lp-btn--accent" : "lp-btn lp-btn--outline"}
                 style={{
                   padding: "6px 12px",
                   borderRadius: "var(--radius-sm)",
-                  border: isMatch ? "1px solid var(--color-accent)" : "1px solid var(--color-border)",
-                  backgroundColor: isMatch ? "rgba(255, 140, 0, 0.08)" : "#ffffff",
                   fontFamily: "var(--font-mono)",
                   fontSize: "12px",
                   fontWeight: 600,
-                  color: isMatch ? "var(--color-accent)" : "var(--color-text)",
                   cursor: "pointer",
-                  transition: "all 0.2s ease",
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "6px",
                 }}
               >
                 <span>{p.name}</span>
-                <span style={{ fontSize: "10px", color: "var(--color-muted)", fontWeight: 400 }}>
+                <span style={{ fontSize: "10px", color: isMatch ? "var(--color-bg)" : "var(--color-muted)", fontWeight: 400 }}>
                   ({p.tickers.join("/")})
                 </span>
               </button>
@@ -355,6 +352,7 @@ export const ComposerDemo: React.FC = () => {
                 type="button"
                 onClick={() => toggle(t)}
                 aria-pressed={on}
+                className={on ? "lp-btn lp-btn--accent" : "lp-btn lp-btn--outline"}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -362,23 +360,18 @@ export const ComposerDemo: React.FC = () => {
                   padding: "7px 14px",
                   minHeight: "42px",
                   borderRadius: "var(--radius-md)",
-                  border: on ? "1px solid var(--color-accent)" : "1px solid var(--color-border-strong)",
-                  backgroundColor: on ? "rgba(255, 140, 0, 0.08)" : "#ffffff",
-                  color: "var(--color-text)",
                   fontFamily: "var(--font-mono)",
                   fontSize: "13px",
                   fontWeight: 600,
                   cursor: "pointer",
-                  transition: "all var(--duration-fast) var(--ease-out)",
-                  boxShadow: on ? "0 2px 8px rgba(255, 140, 0, 0.15)" : "none",
                 }}
               >
                 <Logo size={20} />
                 <span style={{ fontWeight: 800 }}>{t}</span>
-                <span style={{ fontSize: "11px", color: "var(--color-muted)", fontWeight: 400 }}>
+                <span style={{ fontSize: "11px", color: on ? "var(--color-bg)" : "var(--color-muted)", fontWeight: 400 }}>
                   {info.name}
                 </span>
-                {on && <Check size={14} style={{ color: "var(--color-accent)", marginLeft: "4px" }} />}
+                {on && <Check size={14} style={{ marginLeft: "4px" }} />}
               </button>
             );
           })}
@@ -588,7 +581,7 @@ export const ComposerDemo: React.FC = () => {
           type="button"
           onClick={shield}
           disabled={stage >= 0 && stage < 4}
-          className="w-full sm:w-auto justify-center"
+          className="w-full sm:w-auto justify-center lp-btn lp-btn--accent"
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -596,15 +589,10 @@ export const ComposerDemo: React.FC = () => {
             padding: "12px 24px",
             minHeight: "44px",
             borderRadius: "var(--radius-sm)",
-            border: "none",
-            backgroundColor: "var(--color-accent)",
-            color: "var(--color-accent-contrast)",
             fontFamily: "var(--font-mono)",
             fontSize: "14px",
             fontWeight: 700,
             cursor: stage >= 0 && stage < 4 ? "wait" : "pointer",
-            transition: "all var(--duration-fast) var(--ease-out)",
-            boxShadow: "0 4px 14px rgba(255, 140, 0, 0.3)",
           }}
         >
           <Shield size={16} />
@@ -615,7 +603,7 @@ export const ComposerDemo: React.FC = () => {
           <button
             type="button"
             onClick={reset}
-            className="w-full sm:w-auto justify-center"
+            className="w-full sm:w-auto justify-center lp-btn lp-btn--outline"
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -623,8 +611,6 @@ export const ComposerDemo: React.FC = () => {
               padding: "10px 16px",
               minHeight: "44px",
               borderRadius: "var(--radius-sm)",
-              border: "1px solid var(--color-border-strong)",
-              backgroundColor: "#ffffff",
               color: "var(--color-text)",
               fontFamily: "var(--font-mono)",
               fontSize: "13px",
@@ -793,14 +779,13 @@ export const ComposerDemo: React.FC = () => {
                   <button
                     type="button"
                     onClick={copyCommitment}
+                    className="lp-btn lp-btn--outline"
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
                       gap: "4px",
                       padding: "2px 8px",
                       borderRadius: "var(--radius-sm)",
-                      border: "1px solid var(--color-border)",
-                      backgroundColor: "rgba(26, 26, 26, 0.04)",
                       fontSize: "11px",
                       fontFamily: "var(--font-mono)",
                       color: "var(--color-text)",

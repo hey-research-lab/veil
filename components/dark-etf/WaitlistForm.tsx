@@ -175,20 +175,11 @@ export const WaitlistForm: React.FC = () => {
             <button
               type="button"
               onClick={shareOnX}
+              className="lp-btn lp-btn--filled"
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
                 padding: "8px 16px",
-                borderRadius: "var(--radius-sm)",
-                backgroundColor: "#000000",
-                color: "#ffffff",
                 fontFamily: "var(--font-mono)",
                 fontSize: "12px",
-                fontWeight: 600,
-                border: "none",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
               }}
             >
               <Share2 size={13} />
@@ -197,15 +188,11 @@ export const WaitlistForm: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsSuccess(false)}
+              className="lp-btn lp-btn--outline"
               style={{
                 fontFamily: "var(--font-mono)",
                 fontSize: "12px",
-                color: "var(--color-muted)",
-                background: "none",
-                border: "1px solid var(--color-border)",
                 padding: "8px 14px",
-                borderRadius: "var(--radius-sm)",
-                cursor: "pointer",
               }}
             >
               Register another address
@@ -320,26 +307,16 @@ export const WaitlistForm: React.FC = () => {
           <button
             type="submit"
             disabled={busy}
-            className="w-full"
+            className="w-full lp-btn lp-btn--accent"
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "8px",
               padding: "14px 24px",
               minHeight: "46px",
               borderRadius: "var(--radius-sm)",
-              border: "none",
-              backgroundColor: "var(--color-accent)",
-              color: "var(--color-accent-contrast)",
               fontFamily: "var(--font-mono)",
-              fontWeight: 700,
               fontSize: "14px",
               letterSpacing: "0.02em",
               cursor: busy ? "not-allowed" : "pointer",
               opacity: busy ? 0.7 : 1,
-              transition: "all var(--duration-fast) var(--ease-out)",
-              boxShadow: "0 4px 14px rgba(255, 140, 0, 0.3)",
             }}
           >
             {busy ? (

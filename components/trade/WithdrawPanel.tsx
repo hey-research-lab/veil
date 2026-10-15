@@ -124,12 +124,11 @@ export const WithdrawPanel: React.FC<WithdrawPanelProps> = ({
               <button
                 type="button"
                 onClick={onGoShield}
+                className="lp-btn lp-btn--outline"
                 style={{
                   padding: "6px 12px",
                   minHeight: "28px",
                   borderRadius: "var(--radius-sm)",
-                  backgroundColor: "transparent",
-                  border: "1px solid var(--color-border-strong)",
                   color: "var(--color-text)",
                   fontSize: "12px",
                   fontWeight: 600,
@@ -306,12 +305,10 @@ export const WithdrawPanel: React.FC<WithdrawPanelProps> = ({
                         key={n.nullifier}
                         type="button"
                         onClick={() => onSelectNote(n.nullifier)}
+                        className={isCurrent ? "lp-btn lp-btn--filled" : "lp-btn lp-btn--outline"}
                         style={{
                           padding: "5px 10px",
                           borderRadius: "var(--radius-sm)",
-                          border: isCurrent ? "1px solid var(--color-accent)" : "1px solid var(--color-border)",
-                          backgroundColor: isCurrent ? "rgba(255, 140, 0, 0.08)" : "#ffffff",
-                          color: isCurrent ? "var(--color-accent-ink)" : "var(--color-text)",
                           fontSize: "11.5px",
                           fontFamily: "var(--font-mono)",
                           fontWeight: isCurrent ? 700 : 500,
@@ -320,7 +317,6 @@ export const WithdrawPanel: React.FC<WithdrawPanelProps> = ({
                           alignItems: "center",
                           gap: "5px",
                           whiteSpace: "nowrap",
-                          transition: "all var(--duration-fast)",
                           flexShrink: 0,
                         }}
                       >
@@ -380,14 +376,13 @@ export const WithdrawPanel: React.FC<WithdrawPanelProps> = ({
             <button
               type="button"
               onClick={handlePasteRecipient}
+              className="lp-btn lp-btn--outline"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "4px",
                 padding: "3px 8px",
                 borderRadius: "var(--radius-sm)",
-                backgroundColor: "rgba(26, 26, 26, 0.04)",
-                border: "1px solid var(--color-border)",
                 fontSize: "11px",
                 color: "var(--color-accent-ink)",
                 fontWeight: 600,
@@ -488,12 +483,11 @@ export const WithdrawPanel: React.FC<WithdrawPanelProps> = ({
             <button
               type="button"
               onClick={onBackupNow}
+              className="lp-btn lp-btn--outline"
               style={{
                 padding: "6px 12px",
                 minHeight: "28px",
                 borderRadius: "var(--radius-sm)",
-                backgroundColor: "transparent",
-                border: "1px solid var(--color-border-strong)",
                 color: "var(--color-text)",
                 fontSize: "12px",
                 fontWeight: 600,

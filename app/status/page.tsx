@@ -567,10 +567,10 @@ export default function StatusPage() {
                     <button
                       type="button"
                       onClick={() => copyToClipboard(latestRoot, "root")}
+                      className="hover:text-[#FF8C00] transition-colors p-1 rounded hover:bg-orange-50/50"
                       style={{
                         background: "none",
                         border: "none",
-                        padding: 0,
                         cursor: "pointer",
                         display: "inline-flex",
                         alignItems: "center",
@@ -610,10 +610,10 @@ export default function StatusPage() {
                     <button
                       type="button"
                       onClick={() => copyToClipboard(guardian, "guardian")}
+                      className="hover:text-[#FF8C00] transition-colors p-1 rounded hover:bg-orange-50/50"
                       style={{
                         background: "none",
                         border: "none",
-                        padding: 0,
                         cursor: "pointer",
                         display: "inline-flex",
                         alignItems: "center",
@@ -739,16 +739,13 @@ export default function StatusPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("all")}
+                  className={activeTab === "all" ? "lp-btn lp-btn--filled" : "lp-btn lp-btn--outline"}
                   style={{
                     padding: "4px 12px",
                     borderRadius: "var(--radius-sm)",
-                    border: "none",
-                    background: activeTab === "all" ? "#ffffff" : "transparent",
-                    color: activeTab === "all" ? "var(--color-text)" : "var(--color-muted)",
                     fontWeight: 600,
                     fontSize: "12px",
                     cursor: "pointer",
-                    boxShadow: activeTab === "all" ? "0 1px 3px rgba(0,0,0,0.06)" : "none",
                   }}
                 >
                   All Events ({deposits.length + withdrawals.length})
@@ -756,16 +753,13 @@ export default function StatusPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("deposits")}
+                  className={activeTab === "deposits" ? "lp-btn lp-btn--filled" : "lp-btn lp-btn--outline"}
                   style={{
                     padding: "4px 12px",
                     borderRadius: "var(--radius-sm)",
-                    border: "none",
-                    background: activeTab === "deposits" ? "#ffffff" : "transparent",
-                    color: activeTab === "deposits" ? "var(--color-text)" : "var(--color-muted)",
                     fontWeight: 600,
                     fontSize: "12px",
                     cursor: "pointer",
-                    boxShadow: activeTab === "deposits" ? "0 1px 3px rgba(0,0,0,0.06)" : "none",
                   }}
                 >
                   Deposits ({deposits.length})
@@ -773,16 +767,13 @@ export default function StatusPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("withdrawals")}
+                  className={activeTab === "withdrawals" ? "lp-btn lp-btn--filled" : "lp-btn lp-btn--outline"}
                   style={{
                     padding: "4px 12px",
                     borderRadius: "var(--radius-sm)",
-                    border: "none",
-                    background: activeTab === "withdrawals" ? "#ffffff" : "transparent",
-                    color: activeTab === "withdrawals" ? "var(--color-text)" : "var(--color-muted)",
                     fontWeight: 600,
                     fontSize: "12px",
                     cursor: "pointer",
-                    boxShadow: activeTab === "withdrawals" ? "0 1px 3px rgba(0,0,0,0.06)" : "none",
                   }}
                 >
                   Withdrawals ({withdrawals.length})
@@ -875,10 +866,10 @@ export default function StatusPage() {
                         <button
                           type="button"
                           onClick={() => copyToClipboard(d.commitment, `c-${i}`)}
+                          className="hover:text-[#FF8C00] transition-colors p-1 rounded hover:bg-orange-50/50"
                           style={{
                             background: "none",
                             border: "none",
-                            padding: 0,
                             cursor: "pointer",
                             color: copiedId === `c-${i}` ? "var(--color-accent)" : "var(--color-muted)",
                             marginLeft: "8px",
@@ -952,10 +943,10 @@ export default function StatusPage() {
                         <button
                           type="button"
                           onClick={() => copyToClipboard(w.nullifierHash, `n-${i}`)}
+                          className="hover:text-[#FF8C00] transition-colors p-1 rounded hover:bg-orange-50/50"
                           style={{
                             background: "none",
                             border: "none",
-                            padding: 0,
                             cursor: "pointer",
                             color: copiedId === `n-${i}` ? "var(--color-accent)" : "var(--color-muted)",
                             marginLeft: "8px",

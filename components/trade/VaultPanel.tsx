@@ -160,6 +160,7 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({
               onClick={() => fileInputRef.current?.click()}
               type="button"
               title="Import notes from JSON backup file"
+              className="lp-btn lp-btn--outline"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -167,13 +168,10 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({
                 padding: "6px 12px",
                 minHeight: "28px",
                 borderRadius: "var(--radius-sm)",
-                backgroundColor: "rgba(26, 26, 26, 0.04)",
-                border: "1px solid var(--color-border)",
                 color: "var(--color-text)",
                 fontSize: "var(--text-caption)",
                 cursor: "pointer",
                 fontWeight: 600,
-                transition: "all var(--duration-fast)",
               }}
             >
               <Upload className="w-3.5 h-3.5 text-[#FF8C00]" aria-hidden="true" />
@@ -269,13 +267,11 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({
               <button
                 type="button"
                 onClick={onGoShield}
+                className="lp-btn lp-btn--filled"
                 style={{
                   padding: "6px 14px",
                   minHeight: "30px",
                   borderRadius: "var(--radius-sm)",
-                  backgroundColor: "var(--color-text)",
-                  border: "none",
-                  color: "#ffffff",
                   fontSize: "12px",
                   fontWeight: 600,
                   cursor: "pointer",
@@ -288,12 +284,11 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
+                className="lp-btn lp-btn--outline"
                 style={{
                   padding: "6px 14px",
                   minHeight: "30px",
                   borderRadius: "var(--radius-sm)",
-                  backgroundColor: "transparent",
-                  border: "1px solid var(--color-border-strong)",
                   color: "var(--color-text)",
                   fontSize: "12px",
                   fontWeight: 600,
@@ -457,6 +452,7 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({
                       setTimeout(() => setCopiedReceiptIndex(null), 2000);
                     }}
                     aria-label={`Copy anonymous receipt for note ${index + 1}`}
+                    className="lp-btn lp-btn--outline"
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
@@ -464,13 +460,10 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({
                       padding: "5px 10px",
                       minHeight: "28px",
                       borderRadius: "var(--radius-sm)",
-                      backgroundColor: copiedReceiptIndex === index ? "rgba(255, 140, 0, 0.1)" : "transparent",
-                      border: copiedReceiptIndex === index ? "1px solid rgba(255, 140, 0, 0.4)" : "1px solid var(--color-border)",
-                      color: copiedReceiptIndex === index ? "var(--color-accent-ink)" : "var(--color-muted)",
+                      color: copiedReceiptIndex === index ? "var(--color-accent-ink)" : "var(--color-text)",
                       fontSize: "12px",
                       fontWeight: 600,
                       cursor: "pointer",
-                      transition: "all var(--duration-fast)",
                     }}
                   >
                     {copiedReceiptIndex === index ? (
@@ -490,6 +483,7 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({
                     type="button"
                     onClick={() => onBackupNote(note.nullifier)}
                     aria-label={`Back up note ${index + 1} as encrypted JSON`}
+                    className="lp-btn lp-btn--outline"
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
@@ -497,13 +491,10 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({
                       padding: "5px 12px",
                       minHeight: "28px",
                       borderRadius: "var(--radius-sm)",
-                      backgroundColor: "transparent",
-                      border: "1px solid var(--color-border)",
-                      color: "var(--color-muted)",
+                      color: "var(--color-text)",
                       fontSize: "12px",
                       fontWeight: 600,
                       cursor: "pointer",
-                      transition: "all var(--duration-fast)",
                     }}
                   >
                     <span>Backup</span>
@@ -511,6 +502,7 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({
                   <button
                     type="button"
                     onClick={() => onWithdrawNote(note.nullifier)}
+                    className="lp-btn lp-btn--filled"
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
@@ -518,13 +510,9 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({
                       padding: "5px 12px",
                       minHeight: "28px",
                       borderRadius: "var(--radius-sm)",
-                      backgroundColor: "rgba(26, 26, 26, 0.04)",
-                      border: "1px solid var(--color-border-strong)",
-                      color: "var(--color-text)",
                       fontSize: "12px",
                       fontWeight: 600,
                       cursor: "pointer",
-                      transition: "all var(--duration-fast)",
                     }}
                   >
                     <span>Withdraw Note ➔</span>
@@ -534,6 +522,7 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({
                     onClick={() => setConfirmRemove(note)}
                     title="Remove a spent or duplicate note from this vault (back up first)"
                     aria-label={`Remove note ${index + 1} from vault`}
+                    className="lp-btn lp-btn--outline"
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
@@ -541,13 +530,10 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({
                       padding: "5px 12px",
                       minHeight: "28px",
                       borderRadius: "var(--radius-sm)",
-                      backgroundColor: "transparent",
-                      border: "1px solid var(--color-border)",
                       color: "var(--color-muted)",
                       fontSize: "12px",
                       fontWeight: 600,
                       cursor: "pointer",
-                      transition: "all var(--duration-fast)",
                     }}
                   >
                     <span>Remove</span>
@@ -604,12 +590,11 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({
               <button
                 type="button"
                 onClick={() => setConfirmRemove(null)}
+                className="lp-btn lp-btn--outline"
                 style={{
                   padding: "8px 16px",
                   minHeight: "36px",
                   borderRadius: "var(--radius-sm)",
-                  backgroundColor: "transparent",
-                  border: "1px solid var(--color-border)",
                   color: "var(--color-text)",
                   fontSize: "13px",
                   fontWeight: 600,
@@ -624,13 +609,11 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({
                   onRemoveNote(confirmRemove.nullifier);
                   setConfirmRemove(null);
                 }}
+                className="lp-btn lp-btn--accent"
                 style={{
                   padding: "8px 16px",
                   minHeight: "36px",
                   borderRadius: "var(--radius-sm)",
-                  backgroundColor: "#b42318",
-                  border: "1px solid #b42318",
-                  color: "#ffffff",
                   fontSize: "13px",
                   fontWeight: 600,
                   cursor: "pointer",

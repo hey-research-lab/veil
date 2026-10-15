@@ -214,18 +214,8 @@ export const SlippageSettingsModal: React.FC<SlippageSettingsModalProps> = ({
           className="lp-btn lp-btn--accent"
           style={{
             width: "100%",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
             minHeight: "2.75rem",
-            borderRadius: "var(--radius-md)",
-            border: "none",
-            backgroundColor: "var(--color-accent)",
-            color: "var(--color-accent-contrast)",
-            fontFamily: "var(--font-body)",
             fontSize: "var(--text-body-sm)",
-            fontWeight: 600,
-            cursor: "pointer",
           }}
         >
           Save &amp; Close

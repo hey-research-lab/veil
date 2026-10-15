@@ -146,13 +146,12 @@ export const ZkShieldedSwapPanel: React.FC<ZkShieldedSwapPanelProps> = ({
           <button
             type="button"
             onClick={onGoShield}
+            className="lp-btn lp-btn--outline"
             style={{
               alignSelf: "flex-start",
               padding: "6px 12px",
               minHeight: "28px",
               borderRadius: "var(--radius-sm)",
-              backgroundColor: "transparent",
-              border: "1px solid var(--color-border-strong)",
               color: "var(--color-text)",
               fontSize: "12px",
               fontWeight: 600,
@@ -395,14 +394,13 @@ export const ZkShieldedSwapPanel: React.FC<ZkShieldedSwapPanelProps> = ({
               <button
                 type="button"
                 onClick={handleUseConnectedWallet}
+                className="lp-btn lp-btn--outline"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "3px",
-                  padding: "2px 6px",
+                  padding: "2px 8px",
                   borderRadius: "var(--radius-sm)",
-                  backgroundColor: "rgba(26, 26, 26, 0.04)",
-                  border: "1px solid var(--color-border)",
                   fontSize: "11px",
                   color: "var(--color-accent-ink)",
                   fontWeight: 600,
@@ -416,14 +414,13 @@ export const ZkShieldedSwapPanel: React.FC<ZkShieldedSwapPanelProps> = ({
             <button
               type="button"
               onClick={handlePastePayout}
+              className="lp-btn lp-btn--outline"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "3px",
-                padding: "2px 6px",
+                padding: "2px 8px",
                 borderRadius: "var(--radius-sm)",
-                backgroundColor: "rgba(26, 26, 26, 0.04)",
-                border: "1px solid var(--color-border)",
                 fontSize: "11px",
                 color: "var(--color-accent-ink)",
                 fontWeight: 600,

@@ -4068,6 +4068,7 @@ export default function SwapToShieldPage() {
             <button
               type="button"
               onClick={() => switchTab("vault")}
+              className="hover:underline transition-colors hover:text-[#FF8C00]"
               style={{
                 background: "none",
                 border: "none",
@@ -4284,20 +4285,18 @@ export default function SwapToShieldPage() {
             <button
               onClick={() => setIsSettingsOpen(true)}
               title="Execution & Slippage Settings"
+              className="lp-btn lp-btn--outline"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "6px",
                 padding: "6px 12px",
                 borderRadius: "var(--radius-sm)",
-                backgroundColor: "rgba(26, 26, 26, 0.04)",
-                border: "1px solid var(--color-border)",
                 color: "var(--color-text)",
                 cursor: "pointer",
                 fontFamily: "monospace",
                 fontSize: "var(--text-caption)",
                 fontWeight: 600,
-                transition: "all var(--duration-fast)",
               }}
             >
               <Settings className="w-3.5 h-3.5 text-neutral-400" aria-hidden="true" />
@@ -4516,17 +4515,15 @@ export default function SwapToShieldPage() {
                 <button
                   type="button"
                   onClick={() => switchTab("buy_and_shield")}
+                  className="lp-btn lp-btn--accent"
                   style={{
                     marginTop: "var(--space-2)",
                     padding: "6px 14px",
                     borderRadius: "var(--radius-sm)",
-                    backgroundColor: "rgba(255, 140, 0, 0.15)",
-                    border: "1px solid rgba(255, 140, 0, 0.35)",
-                    color: "var(--color-accent-ink)",
                     fontSize: "12px",
                     fontWeight: 600,
                     cursor: "pointer",
-                    minHeight: "24px",
+                    minHeight: "28px",
                   }}
                 >
                   Go to Shield
@@ -4742,6 +4739,7 @@ export default function SwapToShieldPage() {
         <button
           type="button"
           onClick={() => setIsProverOpen(true)}
+          className="lp-btn lp-btn--filled"
           style={{
             position: "fixed",
             right: "var(--page-gutter, 24px)",
@@ -4750,17 +4748,13 @@ export default function SwapToShieldPage() {
             display: "inline-flex",
             alignItems: "center",
             gap: "8px",
-            padding: "10px 16px",
+            padding: "10px 18px",
             minHeight: "44px",
             borderRadius: "var(--radius-full)",
-            backgroundColor: "var(--color-text)",
-            color: "var(--color-bg)",
             fontFamily: "var(--font-body)",
             fontSize: "var(--text-body-sm)",
             fontWeight: 600,
-            border: "none",
             cursor: "pointer",
-            boxShadow: "0 8px 24px rgba(26, 26, 26, 0.3)",
           }}
         >
           <Loader2 className="w-4 h-4 animate-spin" style={{ color: "var(--color-accent)" }} aria-hidden="true" />

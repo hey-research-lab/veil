@@ -390,17 +390,13 @@ export default function ContractsPage() {
                   key={cat.id}
                   type="button"
                   onClick={() => setActiveCategory(cat.id as ContractCategory)}
+                  className={activeCategory === cat.id ? "lp-btn lp-btn--filled" : "lp-btn lp-btn--outline"}
                   style={{
                     padding: "4px 10px",
                     borderRadius: "var(--radius-sm)",
-                    border: activeCategory === cat.id ? "1px solid var(--color-text)" : "1px solid var(--color-border)",
-                    backgroundColor: activeCategory === cat.id ? "var(--color-text)" : "#ffffff",
-                    color: activeCategory === cat.id ? "#ffffff" : "var(--color-muted)",
                     fontSize: "12px",
                     fontFamily: "var(--font-body)",
-                    fontWeight: 500,
-                    cursor: "pointer",
-                    transition: "all var(--duration-fast)",
+                    fontWeight: 600,
                   }}
                 >
                   {cat.label}
@@ -522,14 +518,13 @@ export default function ContractsPage() {
                         type="button"
                         onClick={() => copyToClipboard(row.address)}
                         title="Copy contract address"
+                        className="lp-btn lp-btn--outline"
                         style={{
                           display: "inline-flex",
                           alignItems: "center",
                           gap: "4px",
                           padding: "4px 8px",
                           borderRadius: "var(--radius-sm)",
-                          backgroundColor: "#ffffff",
-                          border: "1px solid var(--color-border)",
                           color: copiedAddress === row.address ? "var(--color-accent)" : "var(--color-text)",
                           fontSize: "11px",
                           fontFamily: "var(--font-mono)",
@@ -546,14 +541,13 @@ export default function ContractsPage() {
                         target="_blank"
                         rel="noreferrer"
                         title="View contract on Blockscout"
+                        className="lp-btn lp-btn--outline"
                         style={{
                           display: "inline-flex",
                           alignItems: "center",
                           gap: "4px",
                           padding: "4px 8px",
                           borderRadius: "var(--radius-sm)",
-                          backgroundColor: "#ffffff",
-                          border: "1px solid var(--color-border)",
                           color: "var(--color-text)",
                           fontSize: "11px",
                           fontFamily: "var(--font-mono)",

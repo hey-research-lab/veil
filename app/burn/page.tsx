@@ -449,14 +449,13 @@ export default function BurnPage() {
               <button
                 type="button"
                 onClick={() => copyToClipboard(TREASURY_ADDRESS, "treasury")}
+                className="lp-btn lp-btn--outline"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "4px",
                   padding: "4px 8px",
                   borderRadius: "var(--radius-sm)",
-                  backgroundColor: "#ffffff",
-                  border: "1px solid var(--color-border)",
                   color: copiedId === "treasury" ? "var(--color-accent)" : "var(--color-text)",
                   fontSize: "11px",
                   fontFamily: "var(--font-mono)",
@@ -503,16 +502,13 @@ export default function BurnPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("all")}
+                  className={activeTab === "all" ? "lp-btn lp-btn--filled" : "lp-btn lp-btn--outline"}
                   style={{
                     padding: "4px 12px",
                     borderRadius: "var(--radius-sm)",
-                    border: "none",
-                    background: activeTab === "all" ? "#ffffff" : "transparent",
-                    color: activeTab === "all" ? "var(--color-text)" : "var(--color-muted)",
                     fontWeight: 600,
                     fontSize: "12px",
                     cursor: "pointer",
-                    boxShadow: activeTab === "all" ? "0 1px 3px rgba(0,0,0,0.06)" : "none",
                   }}
                 >
                   All ({history.length})
@@ -520,16 +516,13 @@ export default function BurnPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("burns")}
+                  className={activeTab === "burns" ? "lp-btn lp-btn--filled" : "lp-btn lp-btn--outline"}
                   style={{
                     padding: "4px 12px",
                     borderRadius: "var(--radius-sm)",
-                    border: "none",
-                    background: activeTab === "burns" ? "#ffffff" : "transparent",
-                    color: activeTab === "burns" ? "var(--color-text)" : "var(--color-muted)",
                     fontWeight: 600,
                     fontSize: "12px",
                     cursor: "pointer",
-                    boxShadow: activeTab === "burns" ? "0 1px 3px rgba(0,0,0,0.06)" : "none",
                   }}
                 >
                   Burns ({history.filter((r) => r.source === "Treasury burn").length})
@@ -537,16 +530,13 @@ export default function BurnPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("fees")}
+                  className={activeTab === "fees" ? "lp-btn lp-btn--filled" : "lp-btn lp-btn--outline"}
                   style={{
                     padding: "4px 12px",
                     borderRadius: "var(--radius-sm)",
-                    border: "none",
-                    background: activeTab === "fees" ? "#ffffff" : "transparent",
-                    color: activeTab === "fees" ? "var(--color-text)" : "var(--color-muted)",
                     fontWeight: 600,
                     fontSize: "12px",
                     cursor: "pointer",
-                    boxShadow: activeTab === "fees" ? "0 1px 3px rgba(0,0,0,0.06)" : "none",
                   }}
                 >
                   Fees ({history.filter((r) => r.source === "Protocol fee received").length})

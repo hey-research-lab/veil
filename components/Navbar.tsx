@@ -126,22 +126,19 @@ export function Navbar() {
           <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
             <Link
               href="/"
-              className="group"
+              className="group lp-btn lp-btn--outline"
               aria-label="Back to Home"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "var(--space-2)",
-                padding: "6px 12px",
+                padding: "6px 14px",
                 borderRadius: "var(--radius-full)",
-                backgroundColor: "rgba(26, 26, 26, 0.04)",
-                border: "1px solid var(--color-border)",
                 color: "var(--color-text)",
                 textDecoration: "none",
                 fontFamily: "var(--font-body)",
                 fontSize: "var(--text-body-sm)",
                 fontWeight: 500,
-                transition: "all var(--duration-fast) var(--ease-out)",
               }}
             >
               <ArrowLeft
@@ -242,11 +239,11 @@ export function Navbar() {
                   aria-haspopup="true"
                   aria-expanded={isMenuOpen}
                   aria-label={`Wallet ${wallet.address.slice(0, 6)}…${wallet.address.slice(-4)}, open account menu`}
+                  className="lp-btn lp-btn--outline"
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
                     gap: "8px",
-                    backgroundColor: "#ffffff",
                     color: "var(--color-text)",
                     fontFamily: "monospace",
                     fontSize: "var(--text-body-sm)",
@@ -254,12 +251,8 @@ export function Navbar() {
                     minHeight: "2.25rem",
                     padding: "0 12px",
                     borderRadius: "var(--radius-md)",
-                    border: "1px solid var(--color-border-strong)",
-                    boxShadow: "0 2px 6px rgba(26, 26, 26, 0.06)",
                     cursor: "pointer",
-                    transition: "all var(--duration-fast)",
                   }}
-                  className="hover:border-[#FF8C00]"
                 >
                   {walletMeta && (
                     <img
@@ -428,20 +421,17 @@ export function Navbar() {
               type="button"
               onClick={() => setIsNavDrawerOpen(true)}
               aria-label="Open Navigation Menu"
-              className="inline-flex md:hidden"
+              className="inline-flex md:hidden lp-btn lp-btn--outline"
               style={{
                 alignItems: "center",
                 justifyContent: "center",
                 width: "2.25rem",
                 height: "2.25rem",
                 borderRadius: "var(--radius-md)",
-                backgroundColor: "rgba(26, 26, 26, 0.04)",
-                border: "1px solid var(--color-border)",
                 color: "var(--color-text)",
                 cursor: "pointer",
                 padding: 0,
                 flexShrink: 0,
-                transition: "all var(--duration-fast)",
               }}
             >
               <Menu size={18} />
@@ -509,6 +499,7 @@ export function Navbar() {
                   type="button"
                   onClick={() => setIsNavDrawerOpen(false)}
                   aria-label="Close navigation menu"
+                  className="lp-btn lp-btn--outline"
                   style={{
                     width: "32px",
                     height: "32px",
@@ -516,10 +507,9 @@ export function Navbar() {
                     alignItems: "center",
                     justifyContent: "center",
                     borderRadius: "var(--radius-sm)",
-                    border: "1px solid var(--color-border)",
-                    backgroundColor: "rgba(26, 26, 26, 0.04)",
                     color: "var(--color-text)",
                     cursor: "pointer",
+                    padding: 0,
                   }}
                 >
                   <CloseIcon size={16} />
@@ -597,6 +587,7 @@ export function Navbar() {
                 href="https://x.com/veilpools"
                 target="_blank"
                 rel="noopener noreferrer"
+                className="lp-btn lp-btn--filled"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -604,14 +595,12 @@ export function Navbar() {
                   gap: "8px",
                   padding: "10px 14px",
                   borderRadius: "var(--radius-md)",
-                  backgroundColor: "var(--color-text)",
-                  color: "var(--color-bg)",
                   textDecoration: "none",
                   fontSize: "13px",
                   fontWeight: 600,
                 }}
               >
-                <XLogo size={14} color="var(--color-bg)" />
+                <XLogo size={14} color="currentColor" />
                 <span>Follow @veilpools on X</span>
               </a>
 

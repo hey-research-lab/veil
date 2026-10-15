@@ -252,19 +252,16 @@ export const TokenSelectModal: React.FC<TokenSelectModalProps> = ({
           <button
             onClick={onClose}
             aria-label="Close token selector"
+            className="lp-btn lp-btn--outline"
             style={{
-              background: "rgba(26, 26, 26, 0.05)",
-              border: "1px solid var(--color-border)",
+              padding: "5px",
               borderRadius: "var(--radius-sm)",
               cursor: "pointer",
-              padding: "5px",
               color: "var(--color-muted)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              transition: "all var(--duration-fast)",
             }}
-            className="hover:bg-neutral-100"
           >
             <X className="w-4 h-4" />
           </button>
@@ -314,21 +311,19 @@ export const TokenSelectModal: React.FC<TokenSelectModalProps> = ({
                     onSelectToken(tok);
                     onClose();
                   }}
+                  className="lp-btn lp-btn--outline"
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
                     gap: "5px",
                     padding: "2px 8px",
                     borderRadius: "var(--radius-full)",
-                    backgroundColor: "rgba(26, 26, 26, 0.04)",
-                    border: "1px solid var(--color-border)",
                     fontSize: "11px",
                     fontFamily: "monospace",
                     fontWeight: 600,
                     color: "var(--color-text)",
                     cursor: "pointer",
                   }}
-                  className="hover:border-[#FF8C00] hover:bg-orange-50/50"
                 >
                   <span>{sym}</span>
                 </button>

@@ -116,18 +116,16 @@ export function WalletModal({
           type="button"
           onClick={onClose}
           aria-label="Close"
+          className="lp-btn lp-btn--outline"
           style={{
             padding: "6px",
             borderRadius: "var(--radius-sm)",
-            border: "1px solid var(--color-border)",
-            backgroundColor: "rgba(26, 26, 26, 0.04)",
             color: "var(--color-muted)",
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
           }}
-          className="hover:bg-neutral-100"
         >
           <X size={15} />
         </button>
@@ -157,6 +155,7 @@ export function WalletModal({
                   type="button"
                   onClick={() => pick(w.id)}
                   disabled={busy}
+                  className="lp-card lp-btn lp-btn--outline"
                   style={{
                     width: "100%",
                     display: "flex",
@@ -164,13 +163,9 @@ export function WalletModal({
                     gap: "10px",
                     padding: "9px 12px",
                     borderRadius: "var(--radius-md)",
-                    backgroundColor: "rgba(26, 26, 26, 0.025)",
-                    border: "1px solid var(--color-border)",
                     cursor: busy ? "wait" : "pointer",
-                    transition: "all var(--duration-fast)",
                     boxSizing: "border-box",
                   }}
-                  className="hover:border-[#FF8C00] hover:bg-[rgba(255,140,0,0.04)]"
                 >
                   <img
                     src={w.icon}
@@ -210,6 +205,7 @@ export function WalletModal({
                   href={w.installUrl}
                   target="_blank"
                   rel="noreferrer"
+                  className="lp-card lp-btn lp-btn--outline"
                   style={{
                     width: "100%",
                     display: "flex",
@@ -217,14 +213,11 @@ export function WalletModal({
                     gap: "10px",
                     padding: "9px 12px",
                     borderRadius: "var(--radius-md)",
-                    backgroundColor: "rgba(26, 26, 26, 0.015)",
                     border: "1px dashed var(--color-border)",
                     color: "var(--color-muted)",
                     textDecoration: "none",
                     boxSizing: "border-box",
-                    transition: "all var(--duration-fast)",
                   }}
-                  className="hover:border-slate-400"
                 >
                   <img
                     src={w.icon}

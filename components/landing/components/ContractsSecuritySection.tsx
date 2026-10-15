@@ -674,17 +674,13 @@ export const ContractsSecuritySection: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setActiveTab("core")}
+                  className={activeTab === "core" ? "lp-btn lp-btn--filled" : "lp-btn lp-btn--outline"}
                   style={{
-                    background: activeTab === "core" ? "var(--color-white)" : "transparent",
-                    color: activeTab === "core" ? "var(--color-text)" : "var(--color-muted)",
-                    border: "none",
                     borderRadius: "var(--radius-sm)",
                     padding: "4px 12px",
                     fontSize: "var(--text-caption)",
                     fontWeight: 600,
                     cursor: "pointer",
-                    boxShadow: activeTab === "core" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
-                    transition: "all 0.15s ease",
                   }}
                 >
                   Core Protocol ({contracts.filter((c) => c.category === "core").length})
@@ -692,17 +688,13 @@ export const ContractsSecuritySection: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setActiveTab("dependency")}
+                  className={activeTab === "dependency" ? "lp-btn lp-btn--filled" : "lp-btn lp-btn--outline"}
                   style={{
-                    background: activeTab === "dependency" ? "var(--color-white)" : "transparent",
-                    color: activeTab === "dependency" ? "var(--color-text)" : "var(--color-muted)",
-                    border: "none",
                     borderRadius: "var(--radius-sm)",
                     padding: "4px 12px",
                     fontSize: "var(--text-caption)",
                     fontWeight: 600,
                     cursor: "pointer",
-                    boxShadow: activeTab === "dependency" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
-                    transition: "all 0.15s ease",
                   }}
                 >
                   Uniswap v4 Dependencies ({contracts.filter((c) => c.category === "dependency").length})
@@ -868,12 +860,11 @@ export const ContractsSecuritySection: React.FC = () => {
                     type="button"
                     onClick={() => copyToClipboard(c.address)}
                     title="Click to copy full address"
+                    className="lp-btn lp-btn--outline"
                     style={{
                       fontFamily: "var(--font-body)",
                       fontSize: "var(--text-caption)",
                       fontWeight: 600,
-                      background: "var(--color-white)",
-                      border: "1px solid var(--color-border-strong)",
                       padding: "4px 10px",
                       borderRadius: "var(--radius-sm)",
                       cursor: "pointer",
@@ -882,7 +873,6 @@ export const ContractsSecuritySection: React.FC = () => {
                       alignItems: "center",
                       gap: "var(--space-1)",
                       flexShrink: 0,
-                      transition: "all 0.15s ease",
                     }}
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

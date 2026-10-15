@@ -273,17 +273,8 @@ export function ShieldNoteBackupModal({ note, isOpen, onClose, onRestoreNote, on
               className="lp-btn lp-btn--accent"
               style={{
                 width: "100%",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
                 minHeight: "2.75rem",
-                borderRadius: "var(--radius-md)",
-                border: "none",
-                backgroundColor: "var(--color-accent)",
-                color: "var(--color-accent-contrast)",
-                fontFamily: "var(--font-body)",
                 fontSize: "var(--text-body-sm)",
-                fontWeight: 600,
                 cursor: password.length < 8 || !note ? "not-allowed" : "pointer",
                 opacity: password.length < 8 || !note ? 0.4 : 1,
               }}
@@ -420,17 +411,8 @@ export function ShieldNoteBackupModal({ note, isOpen, onClose, onRestoreNote, on
               className="lp-btn lp-btn--accent"
               style={{
                 width: "100%",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
                 minHeight: "2.75rem",
-                borderRadius: "var(--radius-md)",
-                border: "none",
-                backgroundColor: "var(--color-accent)",
-                color: "var(--color-accent-contrast)",
-                fontFamily: "var(--font-body)",
                 fontSize: "var(--text-body-sm)",
-                fontWeight: 600,
                 cursor: !importJson || !password ? "not-allowed" : "pointer",
                 opacity: !importJson || !password ? 0.4 : 1,
               }}

@@ -260,22 +260,19 @@ export const BuyAndShieldPanel: React.FC<BuyAndShieldPanelProps> = ({
                     setMultiplier(preset.mult);
                     onDepositAmount(isEth ? formatEther(ethDenomination) : "0.001");
                   }}
+                  className={isSelected ? "lp-btn lp-btn--filled" : "lp-btn lp-btn--outline"}
                   style={{
                     padding: "6px 8px",
                     borderRadius: "var(--radius-sm)",
-                    border: isSelected ? "1px solid var(--color-accent)" : "1px solid var(--color-border)",
-                    backgroundColor: isSelected ? "rgba(255, 140, 0, 0.08)" : "#ffffff",
-                    color: isSelected ? "var(--color-accent-ink)" : "var(--color-text)",
                     cursor: "pointer",
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
                     gap: "2px",
-                    transition: "all var(--duration-fast)",
                   }}
                 >
                   <span style={{ fontSize: "12px", fontWeight: isSelected ? 700 : 500 }}>{preset.label}</span>
-                  <span style={{ fontSize: "10px", fontFamily: "var(--font-mono)", color: isSelected ? "var(--color-accent-ink)" : "var(--color-muted)" }}>
+                  <span style={{ fontSize: "10px", fontFamily: "var(--font-mono)", color: isSelected ? "var(--color-bg)" : "var(--color-muted)" }}>
                     {preset.val} {depositAsset}
                   </span>
                 </button>
