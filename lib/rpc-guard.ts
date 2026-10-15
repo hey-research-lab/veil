@@ -12,6 +12,11 @@ export const RPC_READ_METHODS: ReadonlySet<string> = new Set([
   "eth_estimateGas",
   "eth_getLogs",
   "eth_getTransactionReceipt",
+  // Read-only tx lookup (incident 2026-10-14: wallet History panels query
+  // getTransactionByHash through this route when the user points the wallet
+  // at it; blocking a pure read breaks their UI with a scary banner while
+  // the shield itself succeeded). No state change, same class as receipt.
+  "eth_getTransactionByHash",
 ]);
 
 export const RPC_MAX_BODY_BYTES = 256_000;
