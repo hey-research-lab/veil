@@ -119,18 +119,10 @@ export const Header: React.FC = () => {
             title="Official X: @veilpools"
             className="lp-btn lp-btn--filled hidden sm:inline-flex"
             style={{
-              alignItems: "center",
-              justifyContent: "center",
               width: "2.25rem",
               height: "2.25rem",
               minHeight: "2.25rem",
-              borderRadius: "var(--radius-md)",
-              background: "var(--color-text)",
-              color: "var(--color-bg)",
-              border: "var(--border-thin) solid transparent",
-              boxSizing: "border-box",
               padding: 0,
-              transition: "all var(--duration-fast) var(--ease-out)",
               flexShrink: 0,
             }}
           >
@@ -140,21 +132,10 @@ export const Header: React.FC = () => {
             href="/trade"
             className="lp-btn lp-btn--filled"
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "var(--space-2)",
-              background: "var(--color-text)",
-              color: "var(--color-bg)",
               minHeight: "2.25rem",
-              boxSizing: "border-box",
-              lineHeight: 1,
-              letterSpacing: "0.005em",
+              height: "2.25rem",
               padding: "0 var(--space-4)",
-              borderRadius: "var(--radius-md)",
-              textDecoration: "none",
               fontSize: "var(--text-body-sm)",
-              whiteSpace: "nowrap",
-              transition: "all var(--duration-fast) var(--ease-out)",
             }}
           >
             Launch App

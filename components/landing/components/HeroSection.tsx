@@ -146,24 +146,9 @@ export const HeroSection: React.FC = () => {
               href="/trade"
               className="lp-btn lp-btn--filled"
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "var(--space-2)",
-                fontFamily: "var(--font-body)",
                 fontSize: "var(--text-body-lg)",
-                lineHeight: 1,
-                letterSpacing: "0.005em",
-                textDecoration: "none",
-                cursor: "pointer",
                 minHeight: "3rem",
                 padding: "0 var(--space-5)",
-                borderRadius: "var(--radius-md)",
-                border: "var(--border-thin) solid transparent",
-                whiteSpace: "nowrap",
-                boxSizing: "border-box",
-                background: "var(--color-text)",
-                color: "var(--color-bg)",
               }}
             >
               Launch App
@@ -187,25 +172,9 @@ export const HeroSection: React.FC = () => {
               href="/contracts"
               className="lp-btn lp-btn--outline"
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "var(--space-2)",
-                fontFamily: "var(--font-body)",
                 fontSize: "var(--text-body-lg)",
-                lineHeight: 1,
-                letterSpacing: "0.005em",
-                textDecoration: "none",
-                cursor: "pointer",
                 minHeight: "3rem",
                 padding: "0 var(--space-5)",
-                borderRadius: "var(--radius-md)",
-                border: "var(--border-thin) solid transparent",
-                whiteSpace: "nowrap",
-                boxSizing: "border-box",
-                background: "transparent",
-                color: "var(--color-text)",
-                borderColor: "var(--color-border-strong)",
               }}
             >
               View Contracts

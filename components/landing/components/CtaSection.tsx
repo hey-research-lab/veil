@@ -97,22 +97,9 @@ export const CtaSection: React.FC = () => {
               href="/trade"
               className="lp-btn lp-btn--filled"
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "var(--space-2)",
-                background: "var(--color-text)",
-                color: "var(--color-bg)",
-                fontFamily: "var(--font-body)",
                 fontSize: "var(--text-body-lg)",
-                lineHeight: 1,
-                letterSpacing: "0.005em",
                 minHeight: "3rem",
-                boxSizing: "border-box",
                 padding: "0 var(--space-5)",
-                borderRadius: "var(--radius-md)",
-                textDecoration: "none",
-                whiteSpace: "nowrap",
               }}
             >
               Launch App
@@ -135,23 +122,9 @@ export const CtaSection: React.FC = () => {
               href="/contracts"
               className="lp-btn lp-btn--outline"
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "var(--space-2)",
-                background: "transparent",
-                color: "var(--color-text)",
-                fontFamily: "var(--font-body)",
                 fontSize: "var(--text-body-lg)",
-                lineHeight: 1,
-                letterSpacing: "0.005em",
                 minHeight: "3rem",
-                boxSizing: "border-box",
                 padding: "0 var(--space-5)",
-                borderRadius: "var(--radius-md)",
-                border: "var(--border-thin) solid var(--color-text)",
-                textDecoration: "none",
-                whiteSpace: "nowrap",
               }}
             >
               View Contracts

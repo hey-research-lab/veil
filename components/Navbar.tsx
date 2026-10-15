@@ -207,18 +207,10 @@ export function Navbar() {
               title="Official X: @veilpools"
               className="lp-btn lp-btn--filled hidden sm:inline-flex"
               style={{
-                alignItems: "center",
-                justifyContent: "center",
                 width: "2.25rem",
                 height: "2.25rem",
                 minHeight: "2.25rem",
-                borderRadius: "var(--radius-md)",
-                background: "var(--color-text)",
-                color: "var(--color-bg)",
-                border: "var(--border-thin) solid transparent",
-                boxSizing: "border-box",
                 padding: 0,
-                transition: "all var(--duration-fast) var(--ease-out)",
                 flexShrink: 0,
               }}
             >
@@ -228,24 +220,14 @@ export function Navbar() {
             {pathname !== "/trade" && (
               <Link
                 href="/trade"
+                className="lp-btn lp-btn--filled hidden sm:inline-flex"
                 style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  padding: "0 14px",
                   minHeight: "2.25rem",
                   height: "2.25rem",
-                  borderRadius: "var(--radius-md)",
-                  backgroundColor: "var(--color-text)",
-                  color: "var(--color-bg)",
-                  textDecoration: "none",
-                  fontFamily: "var(--font-body)",
+                  padding: "0 14px",
                   fontSize: "var(--text-body-sm)",
                   fontWeight: 600,
-                  transition: "all var(--duration-fast) var(--ease-out)",
-                  boxSizing: "border-box",
                 }}
-                className="hidden sm:inline-flex hover:opacity-90 active:scale-95"
               >
                 <span>Trade</span>
                 <span aria-hidden="true">→</span>
@@ -415,21 +397,10 @@ export function Navbar() {
                 onClick={() => setIsModalOpen(true)}
                 className="lp-btn lp-btn--filled"
                 style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "var(--space-2)",
-                  backgroundColor: "var(--color-text)",
-                  color: "var(--color-bg)",
-                  fontFamily: "var(--font-body)",
-                  fontSize: "var(--text-body-sm)",
-                  fontWeight: 500,
                   minHeight: "2.25rem",
                   padding: "0 var(--space-4)",
-                  borderRadius: "var(--radius-md)",
-                  border: "none",
-                  cursor: "pointer",
-                  transition: "all var(--duration-fast) var(--ease-out)",
-                  whiteSpace: "nowrap",
+                  fontSize: "var(--text-body-sm)",
+                  fontWeight: 500,
                 }}
               >
                 <svg

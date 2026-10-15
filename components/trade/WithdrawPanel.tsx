@@ -516,25 +516,21 @@ export const WithdrawPanel: React.FC<WithdrawPanelProps> = ({
 
       <button
         onClick={onWithdraw}
-        disabled={ctaDisabled}        className="group active:scale-[0.99] transition-all"
+        disabled={ctaDisabled}
+        className={ctaDisabled ? "opacity-45 cursor-not-allowed" : "lp-btn lp-btn--accent"}
         style={{
           width: "100%",
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "var(--space-2)",
-          fontFamily: "var(--font-body)",
-          fontSize: "var(--text-body)",
-          fontWeight: 600,
           minHeight: "3.25rem",
           borderRadius: "var(--radius-md)",
-          border: "none",
-          backgroundColor: "var(--color-accent)",
-          color: "var(--color-accent-contrast)",
+          fontSize: "var(--text-body)",
+          fontWeight: 700,
           cursor: ctaDisabled ? "not-allowed" : "pointer",
-          opacity: ctaDisabled ? 0.45 : 1,
-          boxShadow: "0 6px 20px -2px rgba(255, 140, 0, 0.35)",
-          transition: "all var(--duration-fast)",
+          ...(ctaDisabled ? {
+            backgroundColor: "rgba(255, 140, 0, 0.2)",
+            color: "var(--color-muted)",
+            border: "1px solid var(--color-border)",
+            boxShadow: "none",
+          } : {}),
         }}
       >
         <span>{isExecuting ? "Synthesizing Proof & Broadcasting..." : "Prove & Withdraw via Self-Relay"}</span>

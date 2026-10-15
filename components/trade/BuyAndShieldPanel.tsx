@@ -384,25 +384,20 @@ export const BuyAndShieldPanel: React.FC<BuyAndShieldPanelProps> = ({
       <button
         onClick={onExecute}
         disabled={executeDisabled}
-        className="group active:scale-[0.99] transition-all"
+        className={executeDisabled ? "opacity-60 cursor-not-allowed" : "lp-btn lp-btn--accent"}
         style={{
           width: "100%",
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "var(--space-2)",
           padding: "16px 24px",
           borderRadius: "var(--radius-md)",
           fontSize: "var(--text-body)",
-          fontWeight: 600,
-          fontFamily: "var(--font-body)",
+          fontWeight: 700,
           cursor: executeDisabled ? "not-allowed" : "pointer",
-          backgroundColor: executeDisabled ? "rgba(26, 26, 26, 0.05)" : "var(--color-brand)",
-          color: executeDisabled ? "var(--color-text)" : "#ffffff",
-          opacity: executeDisabled ? 0.6 : 1,
-          border: executeDisabled ? "1px solid var(--color-border)" : "none",
-          boxShadow: executeDisabled ? "none" : "0 4px 16px rgba(255, 140, 0, 0.25)",
-          transition: "all var(--duration-fast)",
+          ...(executeDisabled ? {
+            backgroundColor: "rgba(26, 26, 26, 0.05)",
+            color: "var(--color-text)",
+            border: "1px solid var(--color-border)",
+            boxShadow: "none",
+          } : {}),
         }}
       >
         <span>

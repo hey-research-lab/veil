@@ -468,24 +468,19 @@ export const ZkShieldedSwapPanel: React.FC<ZkShieldedSwapPanelProps> = ({
           type="button"
           onClick={onQuote}
           disabled={quoteDisabled}
+          className={quoteDisabled ? "opacity-45 cursor-not-allowed" : "lp-btn lp-btn--outline"}
           style={{
             flex: 1,
             minWidth: "140px",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "6px",
-            fontFamily: "var(--font-body)",
             fontSize: "var(--text-body-sm)",
             fontWeight: 600,
             minHeight: "3rem",
-            borderRadius: "var(--radius-md)",
-            border: "1px solid var(--color-border-strong)",
-            backgroundColor: "#ffffff",
-            color: "var(--color-text)",
             cursor: quoteDisabled ? "not-allowed" : "pointer",
-            opacity: quoteDisabled ? 0.45 : 1,
-            transition: "all var(--duration-fast)",
+            ...(quoteDisabled ? {
+              backgroundColor: "#ffffff",
+              color: "var(--color-muted)",
+              border: "1px solid var(--color-border-strong)",
+            } : {}),
           }}
         >
           {isQuoting && <Loader2 size={14} className="animate-spin text-[#FF8C00]" aria-hidden="true" />}
@@ -495,26 +490,20 @@ export const ZkShieldedSwapPanel: React.FC<ZkShieldedSwapPanelProps> = ({
           type="button"
           onClick={onExecute}
           disabled={executeDisabled}
-          className="group active:scale-[0.99] transition-all"
+          className={executeDisabled ? "opacity-45 cursor-not-allowed" : "lp-btn lp-btn--accent"}
           style={{
             flex: 1,
             minWidth: "160px",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "6px",
-            fontFamily: "var(--font-body)",
             fontSize: "var(--text-body-sm)",
-            fontWeight: 600,
+            fontWeight: 700,
             minHeight: "3rem",
-            borderRadius: "var(--radius-md)",
-            border: "none",
-            backgroundColor: "var(--color-accent)",
-            color: "var(--color-accent-contrast)",
             cursor: executeDisabled ? "not-allowed" : "pointer",
-            opacity: executeDisabled ? 0.45 : 1,
-            boxShadow: "0 6px 20px -2px rgba(255, 140, 0, 0.35)",
-            transition: "all var(--duration-fast)",
+            ...(executeDisabled ? {
+              backgroundColor: "rgba(255, 140, 0, 0.2)",
+              color: "var(--color-muted)",
+              border: "1px solid var(--color-border)",
+              boxShadow: "none",
+            } : {}),
           }}
         >
           {isExecuting && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}

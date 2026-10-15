@@ -186,21 +186,18 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({
             type="button"
             disabled={notes.length === 0}
             title={notes.length === 0 ? "No active notes to export" : "Export all encrypted notes as JSON file"}
+            className={notes.length === 0 ? "opacity-50 cursor-not-allowed" : "lp-btn lp-btn--outline"}
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
               padding: "6px 12px",
               minHeight: "28px",
-              borderRadius: "var(--radius-sm)",
-              backgroundColor: notes.length === 0 ? "rgba(26, 26, 26, 0.03)" : "rgba(255, 140, 0, 0.08)",
-              border: notes.length === 0 ? "1px solid var(--color-border)" : "1px solid rgba(255, 140, 0, 0.3)",
-              color: notes.length === 0 ? "var(--color-muted)" : "var(--color-accent-ink)",
               fontSize: "var(--text-caption)",
-              cursor: notes.length === 0 ? "not-allowed" : "pointer",
               fontWeight: 600,
-              opacity: notes.length === 0 ? 0.6 : 1,
-              transition: "all var(--duration-fast)",
+              cursor: notes.length === 0 ? "not-allowed" : "pointer",
+              ...(notes.length === 0 ? {
+                backgroundColor: "rgba(26, 26, 26, 0.03)",
+                border: "1px solid var(--color-border)",
+                color: "var(--color-muted)",
+              } : {}),
             }}
           >
             {exported ? (
