@@ -843,8 +843,13 @@ export default function SwapToShieldPage() {
     };
   }, [activeTab, bowDepositAsset, connectedAddress]);
 
-  function saveNoteLocally(newNote: AnyShieldedNote) {
-    const updated = [newNote, ...notes.filter((n) => n.nullifier !== newNote.nullifier)];
+  function saveNoteLocally(newNote: AnyShieldedNote, base?: AnyShieldedNote[]) {
+    // Stale-closure bug 2026-10-14: swap flows called setNotes(remaining)
+    // (spent note removed) then saveNoteLocally(newNote), which rebuilt from
+    // the STALE `notes` closure — resurrecting the spent note in state AND
+    // storage. Pass the already-filtered list at swap sites.
+    const source = base ?? notes;
+    const updated = [newNote, ...source.filter((n) => n.nullifier !== newNote.nullifier)];
     setNotes(updated);
     setSelectedNoteNullifier(newNote.nullifier);
     if (typeof window !== "undefined") {
@@ -1833,7 +1838,7 @@ export default function SwapToShieldPage() {
       setSelectedNote(newNote);
       setProverCommitment(newNote.commitmentHash);
       savePendingNote(newNote, fullHash, zkBundle.destPool);
-      saveNoteLocally(newNote);
+      saveNoteLocally(newNote, remaining);
       clearPendingNoteByTx(fullHash);
       setProverCommitted(true);
 
@@ -2672,7 +2677,7 @@ export default function SwapToShieldPage() {
         setSelectedNote(newNote);
         setProverCommitment(newNote.commitmentHash);
         savePendingNote(newNote, multiHash, zkMultiBundle.destPool);
-        saveNoteLocally(newNote);
+        saveNoteLocally(newNote, remaining);
         clearPendingNoteByTx(multiHash);
         setProverCommitted(true);
         setZkBundle(null);
@@ -2917,7 +2922,7 @@ export default function SwapToShieldPage() {
       setSelectedNote(newNote);
       setProverCommitment(newNote.commitmentHash);
       savePendingNote(newNote, fullHash, zkBundle.destPool);
-      saveNoteLocally(newNote);
+      saveNoteLocally(newNote, remaining);
       clearPendingNoteByTx(fullHash);
       setProverCommitted(true);
       setZkBundle(null);
