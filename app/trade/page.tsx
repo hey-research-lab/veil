@@ -26,6 +26,9 @@ import {
   savePendingNote,
   clearPendingNoteByTx,
   loadPendingNotes,
+  savePendingShield,
+  clearPendingShieldByTx,
+  loadPendingShields,
   type ShieldedNote,
   type AnyShieldedNote,
   type BowShieldedNote,
@@ -618,6 +621,76 @@ export default function SwapToShieldPage() {
           }
         } catch (e) {
           console.warn("Pending-note reconcile failed:", e);
+        }
+        // Reconcile pre-receipt shield journals (stranded-funds incident
+        // 2026-10-14): secrets journaled at send time, completed into full
+        // notes from the receipt's Deposited event. Entries older than 24h
+        // without a receipt are dropped (deposit never mined).
+        try {
+          const shields = loadPendingShields();
+          if (shields.length === 0) return;
+          const { getTransactionReceipt } = await import("viem/actions");
+          for (const s of shields) {
+            let receipt: { status: string; blockNumber: bigint } | null = null;
+            try {
+              receipt = (await getTransactionReceipt(publicClient, {
+                hash: s.txHash as `0x${string}`,
+              })) as { status: string; blockNumber: bigint };
+            } catch {
+              continue; // No receipt yet — keep journaled for next load.
+            }
+            if (!receipt || receipt.status !== "success") {
+              if (Date.now() - s.savedAt > 24 * 3600 * 1000) clearPendingShieldByTx(s.txHash);
+              continue;
+            }
+            try {
+              const logs = await publicClient.getContractEvents({
+                address: s.pool as Address,
+                abi: parseAbi([
+                  "event Deposited(address indexed _depositor, uint256 _commitment, uint256 _label, uint256 _value, uint256 _precommitmentHash)",
+                ]),
+                eventName: "Deposited",
+                args: {},
+                fromBlock: receipt.blockNumber,
+                toBlock: receipt.blockNumber,
+              });
+              const own = logs.find(
+                (l) => l.transactionHash.toLowerCase() === s.txHash.toLowerCase()
+              ) as { args: { _label?: bigint; _value?: bigint; _commitment?: bigint } } | undefined;
+              if (!own) continue; // Event not indexed yet — retry next load.
+              const note = createBowNote({
+                scope: BigInt(s.scope),
+                denomination: BigInt(s.denomination),
+                label: BigInt((own.args._label ?? 0n) as bigint),
+                nullifier: BigInt(s.nullifier),
+                secret: BigInt(s.secret),
+                precommitment: BigInt(s.precommitment),
+                txHash: s.txHash,
+                blockNumber: receipt.blockNumber,
+                asset: s.asset as Address,
+                chainId: s.chainId,
+              });
+              if (BigInt(note.commitmentHash) !== BigInt((own.args._commitment ?? 0n) as bigint)) {
+                clearPendingShieldByTx(s.txHash);
+                continue; // Secrets don't match event — never fabricate.
+              }
+              setNotes((prev) => {
+                const merged = prev.some((n) => n.nullifier === note.nullifier) ? prev : [note, ...prev];
+                try {
+                  localStorage.setItem(LOCAL_STORAGE_KEY, serializeNotesList(merged));
+                } catch {
+                  // Storage failure — journal entry stays for next retry.
+                  return prev;
+                }
+                return merged;
+              });
+              clearPendingShieldByTx(s.txHash);
+            } catch {
+              // Event read failed — keep journaled for next load.
+            }
+          }
+        } catch (e) {
+          console.warn("Pending-shield reconcile failed:", e);
         }
       })();
     }
@@ -3072,6 +3145,20 @@ export default function SwapToShieldPage() {
       }
 
       setProverTxHash(depositHash);
+      // Pre-receipt shield journal (stranded-funds incident 2026-10-14):
+      // secrets must survive a receipt-wait crash. Completed into a full
+      // note by the mount reconcile below; cleared after the vault write.
+      savePendingShield({
+        nullifier: secrets.nullifier.toString(),
+        secret: secrets.secret.toString(),
+        precommitment: secrets.precommitment.toString(),
+        txHash: depositHash,
+        pool: depositPool,
+        scope: scope.toString(),
+        asset: (isBowEthDeposit ? ETH_ZERO_ADDRESS : zkSuite.veilToken) as string,
+        chainId: connectedChainId ?? TESTNET_CHAIN_ID,
+        denomination: depositValue.toString(),
+      });
       setProverSteps((prev) => [
         prev[0],
         prev[1],
@@ -3132,6 +3219,7 @@ export default function SwapToShieldPage() {
       savePendingNote(bowNote, depositHash, depositPool);
       saveNoteLocally(bowNote);
       clearPendingNoteByTx(depositHash);
+      clearPendingShieldByTx(depositHash);
       setProverCommitted(true);
 
       fetch("/api/asp/sync", {

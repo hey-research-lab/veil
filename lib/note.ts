@@ -284,3 +284,75 @@ export function clearPendingNoteByTx(txHash: string): void {
     // ignore
   }
 }
+
+// Pre-receipt shield journal (stranded-funds incident 2026-10-14): the
+// deposit secrets exist BEFORE the receipt arrives, but the full note needs
+// the onchain label from the Deposited event. If the tab dies (or the
+// receipt wait throws, e.g. a blocked RPC method) between send and save,
+// the secrets would be lost with the funds locked. Journal the secrets
+// immediately after send; the mount reconcile completes the note from the
+// receipt event. Cleared once the vault write lands.
+const SHIELD_PENDING_KEY = "veil_pending_shields_v1";
+
+export interface PendingShieldRecord {
+  kind: "shield";
+  nullifier: string;
+  secret: string;
+  precommitment: string;
+  txHash: string;
+  pool: string;
+  scope: string;
+  asset: string;
+  chainId: number;
+  denomination: string;
+  savedAt: number;
+}
+
+function readShieldPendingRaw(): PendingShieldRecord[] {
+  try {
+    if (typeof window === "undefined" || typeof localStorage === "undefined") return [];
+    const raw = localStorage.getItem(SHIELD_PENDING_KEY);
+    if (!raw) return [];
+    const list = JSON.parse(raw);
+    if (!Array.isArray(list)) return [];
+    return list.filter(
+      (r): r is PendingShieldRecord =>
+        r !== null &&
+        typeof r === "object" &&
+        r.kind === "shield" &&
+        typeof r.txHash === "string" &&
+        typeof r.nullifier === "string" &&
+        typeof r.secret === "string"
+    );
+  } catch {
+    return [];
+  }
+}
+
+export function loadPendingShields(): PendingShieldRecord[] {
+  return readShieldPendingRaw();
+}
+
+/** Journal shield secrets immediately after send (pre-receipt). */
+export function savePendingShield(rec: Omit<PendingShieldRecord, "kind" | "savedAt">): void {
+  try {
+    if (typeof window === "undefined" || typeof localStorage === "undefined") return;
+    const next = readShieldPendingRaw().filter((r) => r.txHash.toLowerCase() !== rec.txHash.toLowerCase());
+    next.push({ ...rec, kind: "shield", savedAt: Date.now() });
+    localStorage.setItem(SHIELD_PENDING_KEY, JSON.stringify(next));
+  } catch {
+    // Journal is best-effort; the confirmed-save path remains authoritative.
+  }
+}
+
+export function clearPendingShieldByTx(txHash: string): void {
+  try {
+    if (typeof window === "undefined" || typeof localStorage === "undefined") return;
+    const next = readShieldPendingRaw().filter(
+      (r) => r.txHash.toLowerCase() !== txHash.toLowerCase()
+    );
+    localStorage.setItem(SHIELD_PENDING_KEY, JSON.stringify(next));
+  } catch {
+    // ignore
+  }
+}
