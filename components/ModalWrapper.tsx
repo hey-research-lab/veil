@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 interface ModalWrapperProps {
   isOpen: boolean;
@@ -103,7 +104,7 @@ export const ModalWrapper: React.FC<ModalWrapperProps> = ({
 
   if (!mounted) return null;
 
-  return (
+  const modalNode = (
     <div
       role="dialog"
       aria-modal="true"
@@ -113,7 +114,7 @@ export const ModalWrapper: React.FC<ModalWrapperProps> = ({
       style={{
         position: "fixed",
         inset: 0,
-        zIndex: 100,
+        zIndex: 1000,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -146,4 +147,10 @@ export const ModalWrapper: React.FC<ModalWrapperProps> = ({
       </div>
     </div>
   );
+
+  if (typeof document !== "undefined") {
+    return createPortal(modalNode, document.body);
+  }
+
+  return modalNode;
 };

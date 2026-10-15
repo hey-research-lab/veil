@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { Copy, Download, FileText, Check, Upload } from "lucide-react";
+import { Copy, Download, FileText, Check, Upload, Trash2, AlertTriangle, X } from "lucide-react";
 import { isBowNote, serializeAnyNote, deserializeAnyNote, type AnyShieldedNote } from "../../lib/note";
 import { formatNoteAmount, getNoteAssetSymbol } from "../../lib/note-format";
 import { TokenIcon } from "../TokenLogos";
+import { ModalWrapper } from "../ModalWrapper";
 
 export interface VaultPanelProps {
   notes: AnyShieldedNote[];
@@ -546,56 +547,159 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({
       )}
 
       {confirmRemove !== null && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Confirm note removal"
-          onClick={() => setConfirmRemove(null)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 100,
-            backgroundColor: "rgba(26, 26, 26, 0.45)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "16px",
-          }}
+        <ModalWrapper
+          isOpen={confirmRemove !== null}
+          onClose={() => setConfirmRemove(null)}
+          maxWidth="440px"
+          ariaLabel="Confirm note removal"
         >
+          {/* Header */}
           <div
-            onClick={(e) => e.stopPropagation()}
             style={{
-              width: "100%",
-              maxWidth: "420px",
-              backgroundColor: "#ffffff",
-              borderRadius: "var(--radius-lg)",
-              border: "1px solid var(--color-border-strong)",
-              boxShadow: "0 24px 64px -12px rgba(26, 26, 26, 0.25)",
-              padding: "var(--space-6)",
               display: "flex",
-              flexDirection: "column",
-              gap: "var(--space-4)",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "16px 20px",
+              borderBottom: "1px solid var(--color-border)",
+              backgroundColor: "rgba(26, 26, 26, 0.02)",
             }}
           >
-            <div style={{ fontWeight: 700, color: "var(--color-text)", fontSize: "var(--text-body)" }}>
-              Remove this note from the vault?
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <div
+                style={{
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "var(--radius-sm)",
+                  backgroundColor: "rgba(220, 38, 38, 0.1)",
+                  border: "1px solid rgba(220, 38, 38, 0.2)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#dc2626",
+                  flexShrink: 0,
+                }}
+              >
+                <Trash2 size={16} />
+              </div>
+              <div>
+                <h3
+                  style={{
+                    margin: 0,
+                    fontFamily: "var(--font-headline)",
+                    fontSize: "15px",
+                    fontWeight: 600,
+                    color: "var(--color-text)",
+                  }}
+                >
+                  Remove Note from Vault
+                </h3>
+                <p
+                  style={{
+                    margin: 0,
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "11px",
+                    color: "var(--color-muted)",
+                  }}
+                >
+                  Local browser storage pruning
+                </p>
+              </div>
             </div>
-            <div style={{ fontSize: "var(--text-body-sm)", color: "var(--color-text)", fontFamily: "monospace" }}>
-              {formatNoteAmount(confirmRemove.denomination, confirmRemove.asset)} · {getNoteAssetSymbol(confirmRemove.asset)}
+
+            <button
+              type="button"
+              onClick={() => setConfirmRemove(null)}
+              aria-label="Close modal"
+              className="lp-btn lp-btn--outline"
+              style={{
+                width: "28px",
+                height: "28px",
+                padding: 0,
+                borderRadius: "var(--radius-sm)",
+                color: "var(--color-muted)",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+              }}
+            >
+              <X size={15} />
+            </button>
+          </div>
+
+          {/* Modal Body */}
+          <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "16px" }}>
+            {/* Note details preview box */}
+            <div
+              style={{
+                backgroundColor: "rgba(26, 26, 26, 0.025)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "var(--radius-md)",
+                padding: "12px 14px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                  Note Value
+                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <TokenIcon symbol={getNoteAssetSymbol(confirmRemove.asset)} size={16} />
+                  <span style={{ fontFamily: "monospace", fontSize: "14px", fontWeight: 700, color: "var(--color-accent-ink)" }}>
+                    {formatNoteAmount(confirmRemove.denomination, confirmRemove.asset)}
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ height: "1px", backgroundColor: "var(--color-hairline)" }} />
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "11px", fontFamily: "monospace" }}>
+                <span style={{ color: "var(--color-muted)" }}>Nullifier:</span>
+                <span style={{ color: "var(--color-text)", fontWeight: 500 }}>
+                  {confirmRemove.nullifier.slice(0, 10)}...{confirmRemove.nullifier.slice(-8)}
+                </span>
+              </div>
             </div>
-            <div style={{ fontSize: "12px", color: "var(--color-muted)", fontFamily: "monospace", lineHeight: 1.5 }}>
-              Only removes the LOCAL entry. Onchain funds are untouched. Only remove spent or duplicate notes — back up anything unspent first, or it can never be recovered.
+
+            {/* Warning advisory */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "10px",
+                padding: "12px",
+                borderRadius: "var(--radius-sm)",
+                backgroundColor: "rgba(255, 140, 0, 0.08)",
+                border: "1px solid rgba(255, 140, 0, 0.25)",
+                color: "var(--color-text)",
+                fontSize: "12px",
+                lineHeight: 1.5,
+              }}
+            >
+              <AlertTriangle size={16} className="text-[#FF8C00] shrink-0 mt-0.5" />
+              <div>
+                <div style={{ fontWeight: 600, color: "var(--color-accent-ink)", marginBottom: "2px" }}>
+                  Only removes local browser record
+                </div>
+                <div style={{ color: "var(--color-muted)" }}>
+                  Onchain funds are untouched. Only remove spent or duplicate notes. If this note has unspent funds and is not backed up, you will permanently lose access to withdraw it.
+                </div>
+              </div>
             </div>
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+
+            {/* Action buttons */}
+            <div style={{ display: "flex", gap: "10px", marginTop: "4px" }}>
               <button
                 type="button"
                 onClick={() => setConfirmRemove(null)}
                 className="lp-btn lp-btn--outline"
                 style={{
+                  flex: 1,
+                  minHeight: "40px",
                   padding: "8px 16px",
-                  minHeight: "36px",
                   borderRadius: "var(--radius-sm)",
-                  color: "var(--color-text)",
                   fontSize: "13px",
                   fontWeight: 600,
                   cursor: "pointer",
@@ -609,21 +713,31 @@ export const VaultPanel: React.FC<VaultPanelProps> = ({
                   onRemoveNote(confirmRemove.nullifier);
                   setConfirmRemove(null);
                 }}
-                className="lp-btn lp-btn--accent"
+                className="lp-btn"
                 style={{
+                  flex: 1,
+                  minHeight: "40px",
                   padding: "8px 16px",
-                  minHeight: "36px",
                   borderRadius: "var(--radius-sm)",
+                  backgroundColor: "#dc2626",
+                  borderColor: "#b91c1c",
+                  color: "#ffffff",
                   fontSize: "13px",
-                  fontWeight: 600,
+                  fontWeight: 700,
                   cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
+                  boxShadow: "0 2px 8px rgba(220, 38, 38, 0.25)",
                 }}
               >
-                Remove note
+                <Trash2 size={14} />
+                <span>Remove Note</span>
               </button>
             </div>
           </div>
-        </div>
+        </ModalWrapper>
       )}
     </div>
   );
