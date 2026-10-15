@@ -153,19 +153,19 @@ Blockscout checkmark follows whenever their explorer recovers (same sources).
 
 ## 8. Proof Cycle 0.001 (2026-10-12, REAL funds) + One Dust Note
 **Cycle PASSED.** Deposit
-[`0x3eee36f9…a8784a1e4a`](https://explorer.mainnet.chain.robinhood.com/tx/0x3eee36f9bd1ae425cea82de105ac67e0b5b6ed72b899f805b6949aa8784a1e4a)
+[`0x3eee36f9…a8784a1e4a`](https://robinhoodchain.blockscout.com/tx/0x3eee36f9bd1ae425cea82de105ac67e0b5b6ed72b899f805b6949aa8784a1e4a)
 (block 86372444) → ASP publish
-[`0x9fddd994…28600f271`](https://explorer.mainnet.chain.robinhood.com/tx/0x9fddd994e340324549e833933b287098939526158ac031b3a59469528600f271)
+[`0x9fddd994…28600f271`](https://robinhoodchain.blockscout.com/tx/0x9fddd994e340324549e833933b287098939526158ac031b3a59469528600f271)
 (root `21190888…`, includes the label — not sentinel) → Groth16 prove +
 local verify → relay to self
-[`0x435a3d0e…c2a7843d4ee`](https://explorer.mainnet.chain.robinhood.com/tx/0x435a3d0e4d6c5d2c1c87f7cd951ba55b19a5f1a4ab9a8ae2cb50ec2a7843d4ee)
+[`0x435a3d0e…c2a7843d4ee`](https://robinhoodchain.blockscout.com/tx/0x435a3d0e4d6c5d2c1c87f7cd951ba55b19a5f1a4ab9a8ae2cb50ec2a7843d4ee)
 (block 86372898, nullifier spent, 0.001 returned home). Script:
 `scripts/mainnet-proof-cycle.mjs` (relay recipient = deployer, secrets
 persisted pre-deposit, spent-note file auto-removed).
 
 **Dust (honest record, same class as testnet dust):** the FIRST cycle attempt
 deposited 0.001 ETH
-([`0x0b328e7c…a3270c2a15`](https://explorer.mainnet.chain.robinhood.com/tx/0x0b328e7c2e527e52469f1336c6b3bbe65d3377126647a99f27eefea3270c2a15),
+([`0x0b328e7c…a3270c2a15`](https://robinhoodchain.blockscout.com/tx/0x0b328e7c2e527e52469f1336c6b3bbe65d3377126647a99f27eefea3270c2a15),
 block 86370415, label `87025063…`) then crashed on a fresh-tip log-indexing
 lag BEFORE persisting secrets — note unspendable, 0.001 locked in the pool
 forever. No one can take it (not even the operator); invariant still holds
@@ -227,7 +227,7 @@ extTokenId=3752545, onchain PM live). Root cause unproven; documented, not chase
 - Free offchain quote (scripts/mainnet-quote-zk.mjs, exact full-range math) killed the thin-pool theory: even pre-deepen, 0.001 ETH -> 0.786 VEIL (786x the 0.001 note). The single-ZK preflight failure was NOT depth. Post-deepen quote: 0.903 VEIL.
 - Deepen 0.0006 ETH caps via v2 helper (removable): L=12500000000000000, tx 0x3eb394f9c9e5709dbedc86cc060fba12d99b5b779dc3cab739818eae57646333, pool 37500000000000000 -> 50000000000000000. Wallet 0.0010085 -> 0.0006953 (floor 0.0003 held). Removal path, if ever needed: removeLiquidity(key, -887220, 887220, 12500000000000000) on 0xb4194deb8a51b69118e5d5414d7d08326a2e9b0b.
 - Sim-ordering lesson: helper sims must run AFTER approve (transferFrom in sim context), else every L reverts and looks like a pool problem. First deepen attempt burned nothing (guard correctly refused).
-- Single-ZK live still needs ~0.001024 (deposit + 3x gas); short ~1.5e-5 on gas. Any top-up >= 0.0001 unlocks it � no further deepen needed.
+- Single-ZK live still needs ~0.001024 (deposit + 3x gas); short ~1.5e-5 on gas. Any top-up >= 0.0001 unlocks it � no further deepen needed.
 
 
 
@@ -244,7 +244,7 @@ extTokenId=3752545, onchain PM live). Root cause unproven; documented, not chase
 
 - The Withdraw tab (app/trade handleWithdraw) was code-reviewed end to end: integrity checks, ASP sync, state-freshness gate, browser proving, pre-send ASP re-check, spent check, relay, post-receipt spent assert. Mainnet notes reach the 0xbow path (resolveZkSuite(4663).chainId === MAINNET_CHAIN_ID). Its contract call is entrypoint.relay(note -> cleanRecipient).
 - Headless tab-equivalent test, scripts/mainnet-veil-relay.mjs: shielded 0.001 VEIL note -> fresh decoupled 0x8d49842f8810f6fefb8c6d6a525ecf55799d322f. ASP republished 0xadff52010c81ab1d0a6ff0661cc4e7296107d242fa93e702d59cac31691eec49 (VEIL label was new), relay 0x4f24a9da4d0e484bf97eb416c338521ff744b8a013df57357a3816d7b261a7e3 block 87216572, nullifier spent, recipient 0 -> exactly 1000000000000000.
-- First-ever VEIL (ERC20-leg) relay on mainnet. Withdraw coverage now: ETH notes 3x + VEIL notes 1x + decoupled recipient 1x. Remaining UI-only (untestable without user wallet): browser proving + vault storage � same code runs on testnet.
+- First-ever VEIL (ERC20-leg) relay on mainnet. Withdraw coverage now: ETH notes 3x + VEIL notes 1x + decoupled recipient 1x. Remaining UI-only (untestable without user wallet): browser proving + vault storage � same code runs on testnet.
 
 
 
@@ -334,7 +334,7 @@ extTokenId=3752545, onchain PM live). Root cause unproven; documented, not chase
 
 ## 29. Storefront Audit: Lighthouse + Links (2026-10-14, no sends)
 
-- Lighthouse production /trade: Accessibility 96, Best Practices 100, SEO 100 (Blockscout's own page scored 77 for reference � not ours).
+- Lighthouse production /trade: Accessibility 96, Best Practices 100, SEO 100 (Blockscout's own page scored 77 for reference � not ours).
 - Fixed real a11y fail: disabled Shield CTA used muted-on-faint text (fails 4.5:1) -> text-token at 60% opacity (blended contrast passes, disabled cue kept).
 - Added public/llms.txt (fixes agentic-browsing check + genuinely useful sitemap).
 - Doc links: all internal markdown links resolve.
@@ -346,6 +346,6 @@ extTokenId=3752545, onchain PM live). Root cause unproven; documented, not chase
 
 - FINDING: Vercel PRIVATE_KEY was the suite OWNER key (treasury rescue, hook config, entrypoint UUPS upgrade, guardianship). Server only ever calls updateRoot (postman role). Breach = total takeover.
 - ROTATION: fresh key 0xd39F39974Be0949a6C3404080aE967e549778db7 generated+persisted BEFORE any chain op; granted ASP_POSTMAN onchain (0x6e387998...); funded 0.00002; updateRoot sim from fresh key PASS; Vercel PRIVATE_KEY swapped (rm+add, Production); redeployed; endpoint proven live with fresh key as sender (publish 0x9891e47b... block 88254128, 7 labels, from=0xd39F, status success). Operator key off server.
-- COLLATERAL (honest): two orphan postman grants from script iterations (0x4662... empty; 0x5F52... holds 0.00002 locked, key lost before persist-fix � fail-closed guard + persist-first ordering added after). No fund risk (owner can always re-grant); orphans hold ~dust. ASP_POSTMAN_KEY backed in .env.mainnet.local (gitignored) � back up independently.
+- COLLATERAL (honest): two orphan postman grants from script iterations (0x4662... empty; 0x5F52... holds 0.00002 locked, key lost before persist-fix � fail-closed guard + persist-first ordering added after). No fund risk (owner can always re-grant); orphans hold ~dust. ASP_POSTMAN_KEY backed in .env.mainnet.local (gitignored) � back up independently.
 - RESIDUAL: upstream RPC 429s under burst fan-out (retries succeed); consider staggered chunks if publishes start failing regularly.
 

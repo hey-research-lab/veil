@@ -133,5 +133,5 @@ if (liqAfter !== liqBefore) throw new Error("Pool liquidity did not return to ba
 if (helpEth > 0n || helpVeil > 0n) throw new Error("Helper retains residue; investigate.");
 if (veilAfter <= veilBefore) throw new Error("VEIL did not return to owner; investigate.");
 console.log("ROUND-TRIP PROVEN: seed -> remove -> funds back, zero residue.");
-console.log(`Explorer: https://explorer.mainnet.chain.robinhood.com/tx/${remH}`);
+console.log(`Explorer: https://robinhoodchain.blockscout.com/tx/${remH}`);
 process.exit(0);

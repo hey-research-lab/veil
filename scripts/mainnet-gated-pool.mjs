@@ -196,6 +196,6 @@ try {
     console.log("Negative proof OK (revert, reason stripped by RPC):", msg.slice(0, 120));
   }
 }
-console.log(`Explorer: https://explorer.mainnet.chain.robinhood.com/tx/${swapH}`);
+console.log(`Explorer: https://robinhoodchain.blockscout.com/tx/${swapH}`);
 console.log(`HOOKED POOL: ${poolId} | SWAPPER: ${SWAPPER} | LIQHELPER: ${LIQHELPER}`);
 process.exit(0);

@@ -11,7 +11,7 @@ import { rpcRequest } from "./rpc-helper.mjs";
 
 const FAST = process.argv.includes("--fast");
 const sleep = (ms) => (FAST ? Promise.resolve() : new Promise((r) => setTimeout(r, ms)));
-const EXPLORER = "https://explorer.mainnet.chain.robinhood.com/address/";
+const EXPLORER = "https://robinhoodchain.blockscout.com/address/";
 
 const provider = {
   async request({ method, params }) {

@@ -61,7 +61,7 @@ export const Footer: React.FC = () => {
               <li><Link href="/contracts">Contract Deployments</Link></li>
               <li>
                 <a
-                  href="https://explorer.mainnet.chain.robinhood.com"
+                  href="https://robinhoodchain.blockscout.com"
                   target="_blank"
                   rel="noopener noreferrer"
                 >

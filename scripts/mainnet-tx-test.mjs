@@ -93,8 +93,8 @@ async function main() {
   console.log(`Remaining Deployer Balance: ${formatEther(balanceAfter)} ETH`);
   console.log("=================================================");
   console.log("\nVerified On-Chain Transactions on Robinhood Mainnet Blockscout:");
-  console.log(`1. Attestation Registration : https://explorer.mainnet.chain.robinhood.com/tx/${tx1}`);
-  console.log(`2. Treasury Fee Receipt     : https://explorer.mainnet.chain.robinhood.com/tx/${tx2}`);
+  console.log(`1. Attestation Registration : https://robinhoodchain.blockscout.com/tx/${tx1}`);
+  console.log(`2. Treasury Fee Receipt     : https://robinhoodchain.blockscout.com/tx/${tx2}`);
 }
 
 main().catch((err) => {

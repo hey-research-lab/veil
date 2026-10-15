@@ -210,5 +210,5 @@ const freshAfter = await pub.readContract({ address: VEIL, abi: erc20bal, functi
 console.log(`Nullifier spent. Fresh recipient VEIL: ${freshBefore} -> ${freshAfter} (str ${freshAfter.toString()})`);
 if (freshAfter - freshBefore !== DENOM) throw new Error("Recipient did not receive exactly 0.001 VEIL.");
 console.log("TAB-EQUIVALENT WITHDRAW PROVEN on mainnet: VEIL note -> fresh decoupled recipient.");
-console.log(`Explorer: https://explorer.mainnet.chain.robinhood.com/tx/${relayHash}`);
+console.log(`Explorer: https://robinhoodchain.blockscout.com/tx/${relayHash}`);
 process.exit(0);

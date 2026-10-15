@@ -59,9 +59,9 @@ export const GATED_MAINNET_SWAPPER_ADDRESS =
   (process.env.NEXT_PUBLIC_MAINNET_SWAP_HELPER as Address | undefined) ||
   ("" as Address);
 export const GATED_MAINNET_EXPLORER_TX_BASE =
-  "https://explorer.mainnet.chain.robinhood.com/tx/";
+  "https://robinhoodchain.blockscout.com/tx/";
 export const GATED_MAINNET_EXPLORER_ADDRESS_BASE =
-  "https://explorer.mainnet.chain.robinhood.com/address/";
+  "https://robinhoodchain.blockscout.com/address/";
 
 // Proven gated poolKey, verbatim from scripts/gated-swap-v2.mjs:
 // { currency0: ETH, currency1: VEIL, fee: 3000, tickSpacing: 60, hooks: v2 }.
@@ -85,9 +85,9 @@ export const GATED_EXPLORER_ADDRESS_BASE =
 
 // Mainnet explorer bases (AttestPanel is chain-aware; testnet stays default).
 export const MAINNET_EXPLORER_TX_BASE =
-  "https://explorer.mainnet.chain.robinhood.com/tx/";
+  "https://robinhoodchain.blockscout.com/tx/";
 export const MAINNET_EXPLORER_ADDRESS_BASE =
-  "https://explorer.mainnet.chain.robinhood.com/address/";
+  "https://robinhoodchain.blockscout.com/address/";
 
 // Proven-script mirrors: self-attest deadline = now + 3600s
 // (scripts/selfattest-hook-v2.mjs deadline1), hookData deadline = now + 600s

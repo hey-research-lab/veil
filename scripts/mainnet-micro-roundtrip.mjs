@@ -197,5 +197,5 @@ if (helpEth > 0n || helpVeil > 0n) throw new Error("Helper retains residue; inve
 if (veilAfter <= veilBefore) throw new Error("VEIL did not return to owner; investigate.");
 console.log("MICRO ROUND-TRIP PROVEN: v2 deploy -> seed -> remove -> funds back, zero residue.");
 console.log(`HELPER V2 (recoverable seeding from now on): ${helper}`);
-console.log(`Explorer: https://explorer.mainnet.chain.robinhood.com/tx/${remH}`);
+console.log(`Explorer: https://robinhoodchain.blockscout.com/tx/${remH}`);
 process.exit(0);

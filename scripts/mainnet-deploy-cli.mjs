@@ -26,8 +26,8 @@ const hl = (s) => `${C.yellow}${s}${C.reset}`;
 const dim = (s) => `${C.dim}${s}${C.reset}`;
 const num = (n) => Number(n).toLocaleString("en-US");
 
-const EXPLORER_TX = "https://explorer.mainnet.chain.robinhood.com/tx/";
-const EXPLORER_ADDR = "https://explorer.mainnet.chain.robinhood.com/address/";
+const EXPLORER_TX = "https://robinhoodchain.blockscout.com/tx/";
+const EXPLORER_ADDR = "https://robinhoodchain.blockscout.com/address/";
 
 function banner() {
   console.log(`${C.magenta}${C.bold}`);

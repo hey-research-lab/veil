@@ -91,7 +91,7 @@ export const ZkProverModal: React.FC<ZkProverModalProps> = ({
       "- Zero-knowledge membership proof over Poseidon tree root",
       "- Nullifier integrity mathematically enforced",
       "----------------------------------------------------------------",
-      `Explorer:       ${txHash ? explorerTxUrl(txHash) : "https://explorer.robinhood.com"}`,
+      `Explorer:       ${txHash ? explorerTxUrl(txHash) : "https://robinhoodchain.blockscout.com"}`,
       "================================================================",
     ].join("\n");
   };

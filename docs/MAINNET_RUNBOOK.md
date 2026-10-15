@@ -13,7 +13,7 @@
 |---|---|
 | **Chain ID** | `4663` |
 | **RPC Endpoint** | `https://rpc.mainnet.chain.robinhood.com` |
-| **Block Explorer** | `https://explorer.mainnet.chain.robinhood.com` |
+| **Block Explorer** | `https://robinhoodchain.blockscout.com` |
 | **Uniswap v4 PoolManager** | `0x8366a39CC670B4001A1121B8F6A443A643e40951` |
 | **Uniswap v4 PositionManager** | `0x58daec3116aae6d93017baaea7749052e8a04fa7` |
 | **Uniswap v4 StateView** | `0xf3334192d15450cdd385c8b70e03f9a6bd9e673b` |

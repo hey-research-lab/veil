@@ -243,5 +243,5 @@ const ethAfter = await pub.getBalance({ address: account.address });
 console.log(`Nullifier spent. Wallet ${formatEther(ethBefore)} -> ${formatEther(ethAfter)} (net +${formatEther(ethAfter - ethBefore)}).`);
 renameSync(NOTE_FILE, join(root, "deployments", "mainnet-single-note-rescued.json"));
 console.log("Note file archived as rescued (secrets dead, audit trail kept).");
-console.log(`Explorer: https://explorer.mainnet.chain.robinhood.com/tx/${relayHash}`);
+console.log(`Explorer: https://robinhoodchain.blockscout.com/tx/${relayHash}`);
 process.exit(0);

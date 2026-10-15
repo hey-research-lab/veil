@@ -24,7 +24,10 @@ export const robinhoodMainnet = defineChain({
   blockExplorers: {
     default: {
       name: "Blockscout",
-      url: "https://explorer.mainnet.chain.robinhood.com",
+      // Mainnet lives on Blockscout (robinhoodchain.blockscout.com).
+      // explorer.mainnet.chain.robinhood.com is dead (SSL mismatch) — never
+      // link it. Testnet keeps its own explorer host.
+      url: "https://robinhoodchain.blockscout.com",
     },
   },
 });

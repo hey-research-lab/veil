@@ -119,5 +119,5 @@ if (BigInt(exp.hash ?? exp) !== BigInt(ours.args._commitment)) throw new Error("
 const note = JSON.parse(readFileSync(NOTE_FILE, "utf8"));
 Object.assign(note, { depositHash: depH, block: depRc.blockNumber.toString(), label: ours.args._label.toString(), commitment: ours.args._commitment.toString(), savedAt: new Date().toISOString() });
 writeFileSync(NOTE_FILE, JSON.stringify(note, null, 2));
-console.log(`VEIL note saved (label ${note.label}). Explorer: https://explorer.mainnet.chain.robinhood.com/tx/${depH}`);
+console.log(`VEIL note saved (label ${note.label}). Explorer: https://robinhoodchain.blockscout.com/tx/${depH}`);
 process.exit(0);

@@ -238,7 +238,7 @@ if (!dlog || BigInt(dlog.args._value) !== DENOM) throw new Error("0.001 VEIL not
 const spent = await pub.readContract({ address: ETH_POOL, abi: poolArt.abi, functionName: "nullifierHashes", args: [BigInt(wproof.publicSignals[1])] });
 if (!spent) throw new Error("Nullifier not spent.");
 console.log(`VERIFIED: 0.001 VEIL note minted (commitment ${dlog.args._commitment}), nullifier spent.`);
-console.log(`Explorer: https://explorer.mainnet.chain.robinhood.com/tx/${execH}`);
+console.log(`Explorer: https://robinhoodchain.blockscout.com/tx/${execH}`);
 writeFileSync(join(root, "deployments", "mainnet-veil-note.json"), JSON.stringify({
   chainId: 4663, pool: VEIL_POOL, scope: scopeVEIL.toString(), asset: VEIL,
   denomination: DENOM.toString(), label: dlog.args._label.toString(),

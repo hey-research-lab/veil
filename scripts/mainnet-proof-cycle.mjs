@@ -259,8 +259,8 @@ const spent = await pub.readContract({ address: poolAddress, abi: poolArtifact.a
 if (!spent) throw new Error("Nullifier not marked spent.");
 const balanceAfter = await pub.getBalance({ address: account.address });
 console.log(`SUCCESS mainnet proof cycle: deposit=${depositHash} aspUpdate=${updateHash} relay=${relayHash} nullifierSpent=${spent} balanceAfter=${formatEther(balanceAfter)}`);
-console.log(`Explorer: https://explorer.mainnet.chain.robinhood.com/tx/${depositHash}`);
-console.log(`Explorer: https://explorer.mainnet.chain.robinhood.com/tx/${relayHash}`);
+console.log(`Explorer: https://robinhoodchain.blockscout.com/tx/${depositHash}`);
+console.log(`Explorer: https://robinhoodchain.blockscout.com/tx/${relayHash}`);
 const { unlinkSync: removeNote } = await import("node:fs");
 try { removeNote(NOTE_FILE); console.log("Spent note file removed (nullifier spent, secrets now useless)."); } catch {}
 process.exit(0);

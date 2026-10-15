@@ -218,6 +218,6 @@ const spent = await pub.readContract({ address: VEIL_POOL, abi: poolArt.abi, fun
 if (!spent) throw new Error("Nullifier not spent.");
 const ethAfter = await pub.getBalance({ address: account.address });
 console.log(`Nullifier spent. Payout received (net of gas). Wallet ${formatEther(ethBefore)} -> ${formatEther(ethAfter)}.`);
-console.log(`Explorer: https://explorer.mainnet.chain.robinhood.com/tx/${dh}`);
+console.log(`Explorer: https://robinhoodchain.blockscout.com/tx/${dh}`);
 try { unlinkSync(NOTE_FILE); console.log("Spent VEIL note file removed."); } catch {}
 process.exit(0);

@@ -51,7 +51,7 @@ export const ContractsSecuritySection: React.FC = () => {
       category: "core",
       description: "Mined CREATE2 hook enforcing open self-attestation gating (beforeSwap), atomic zero-custody routing, and protocol fee collection (afterSwap).",
       source: "Salt: 0x4b7d · Flag: 0x20c4",
-      explorerUrl: "https://explorer.mainnet.chain.robinhood.com/address/0xf95f041462ee34c2ea7b953a879838133ef820c4",
+      explorerUrl: "https://robinhoodchain.blockscout.com/address/0xf95f041462ee34c2ea7b953a879838133ef820c4",
     },
     {
       name: "0xbow Privacy Pools Entrypoint",
@@ -60,7 +60,7 @@ export const ContractsSecuritySection: React.FC = () => {
       category: "core",
       description: "Canonical ERC1967 Proxy entrypoint for 0xbow privacy pool deposits and relay-assisted withdrawals with ASP association sets.",
       source: "0xbow Privacy Pools v1.2.1",
-      explorerUrl: "https://explorer.mainnet.chain.robinhood.com/address/0x96cb8b1836d341a6f5f1f54428bd6696c8b950b1",
+      explorerUrl: "https://robinhoodchain.blockscout.com/address/0x96cb8b1836d341a6f5f1f54428bd6696c8b950b1",
     },
     {
       name: "0xbow Privacy Pool (ETH)",
@@ -69,7 +69,7 @@ export const ContractsSecuritySection: React.FC = () => {
       category: "core",
       description: "Fixed-denomination 0.001 ETH pool with 20-depth LeanIMT Merkle tree and Groth16 zk-SNARK verification.",
       source: "0xbow Privacy Pools v1.2.1",
-      explorerUrl: "https://explorer.mainnet.chain.robinhood.com/address/0x10c17b7538e13c63b890fea52708846e88bb1932",
+      explorerUrl: "https://robinhoodchain.blockscout.com/address/0x10c17b7538e13c63b890fea52708846e88bb1932",
     },
     {
       name: "0xbow Privacy Pool (VEIL)",
@@ -78,7 +78,7 @@ export const ContractsSecuritySection: React.FC = () => {
       category: "core",
       description: "Fixed-denomination 0.001 VEIL privacy pool with LeanIMT Merkle tree and Groth16 zk-SNARK verification.",
       source: "0xbow Privacy Pools v1.2.1",
-      explorerUrl: "https://explorer.mainnet.chain.robinhood.com/address/0xdb9f182670da2cc6c5ddd432ec98a45e4f2290d1",
+      explorerUrl: "https://robinhoodchain.blockscout.com/address/0xdb9f182670da2cc6c5ddd432ec98a45e4f2290d1",
     },
     {
       name: "VeilZkRouter",
@@ -87,7 +87,7 @@ export const ContractsSecuritySection: React.FC = () => {
       category: "core",
       description: "Coordinates atomic shielded swap operations connecting 0xbow Privacy Pools and Uniswap v4 pools.",
       source: "contracts/VeilZkRouter.sol",
-      explorerUrl: "https://explorer.mainnet.chain.robinhood.com/address/0x0fb48c9552154ea028cbd812430e1ea3465a9b4c",
+      explorerUrl: "https://robinhoodchain.blockscout.com/address/0x0fb48c9552154ea028cbd812430e1ea3465a9b4c",
     },
     {
       name: "VeilShieldRouter",
@@ -96,7 +96,7 @@ export const ContractsSecuritySection: React.FC = () => {
       category: "core",
       description: "Coordinates 1-Tx Swap-to-Shield and Shielded Swaps with strict 0-balance custody invariant. No user funds ever linger in router storage.",
       source: "contracts/VeilShieldRouter.sol",
-      explorerUrl: "https://explorer.mainnet.chain.robinhood.com/address/0x3db4ae3429f1507aa0cd31c740a0fd276e22a55c",
+      explorerUrl: "https://robinhoodchain.blockscout.com/address/0x3db4ae3429f1507aa0cd31c740a0fd276e22a55c",
     },
     {
       name: "VeilTreasury",
@@ -105,7 +105,7 @@ export const ContractsSecuritySection: React.FC = () => {
       category: "core",
       description: "Protocol treasury collecting VeilHook fees and creator fees; accumulates funds and executes on-chain token burns.",
       source: "contracts/VeilTreasury.sol",
-      explorerUrl: "https://explorer.mainnet.chain.robinhood.com/address/0xb68c3d25e5e9902363e8e10d5c0a471e65be8152",
+      explorerUrl: "https://robinhoodchain.blockscout.com/address/0xb68c3d25e5e9902363e8e10d5c0a471e65be8152",
     },
     {
       name: "VeilAttestationRegistry v2",
@@ -114,7 +114,7 @@ export const ContractsSecuritySection: React.FC = () => {
       category: "core",
       description: "Attestation registry for gated pools: open self-attest with no eligibility conditions; gating is an anti-bot speedbump plus launch windows only.",
       source: "contracts/VeilAttestationRegistry.sol",
-      explorerUrl: "https://explorer.mainnet.chain.robinhood.com/address/0xd1f17c70067f1cc2b478606b3f0faa18ee8add1d",
+      explorerUrl: "https://robinhoodchain.blockscout.com/address/0xd1f17c70067f1cc2b478606b3f0faa18ee8add1d",
     },
     {
       name: "Groth16 Withdrawal Verifier",
@@ -123,7 +123,7 @@ export const ContractsSecuritySection: React.FC = () => {
       category: "core",
       description: "Audited Circom/Groth16 verifier contract validating 0xbow withdrawal proofs and ASP membership.",
       source: "0xbow Circuits v1.2.1",
-      explorerUrl: "https://explorer.mainnet.chain.robinhood.com/address/0xdbbe1acf08a99789b5ca0ee688679dab80ba12d2",
+      explorerUrl: "https://robinhoodchain.blockscout.com/address/0xdbbe1acf08a99789b5ca0ee688679dab80ba12d2",
     },
     {
       name: "Groth16 Commitment Verifier",
@@ -132,7 +132,7 @@ export const ContractsSecuritySection: React.FC = () => {
       category: "core",
       description: "Audited Circom/Groth16 verifier contract validating commitment integrity for 0xbow privacy pool operations.",
       source: "0xbow Circuits v1.2.1",
-      explorerUrl: "https://explorer.mainnet.chain.robinhood.com/address/0xfdb7161a993fa914bbb734b3d52c4342501836eb",
+      explorerUrl: "https://robinhoodchain.blockscout.com/address/0xfdb7161a993fa914bbb734b3d52c4342501836eb",
     },
     {
       name: "VeilCreate2Deployer",
@@ -141,7 +141,7 @@ export const ContractsSecuritySection: React.FC = () => {
       category: "core",
       description: "Deterministic CREATE2 factory contract used to mine and deploy VeilHook permissions.",
       source: "contracts/VeilCreate2Deployer.sol",
-      explorerUrl: "https://explorer.mainnet.chain.robinhood.com/address/0xea48e6a7ae296ebbd7d58792091b8087032d3aa4",
+      explorerUrl: "https://robinhoodchain.blockscout.com/address/0xea48e6a7ae296ebbd7d58792091b8087032d3aa4",
     },
     {
       name: "VeilToken",
@@ -150,7 +150,7 @@ export const ContractsSecuritySection: React.FC = () => {
       category: "core",
       description: "Temporary ERC-20 token deployed on Robinhood Mainnet; canonical token launches on Pons.",
       source: "contracts/VeilToken.sol",
-      explorerUrl: "https://explorer.mainnet.chain.robinhood.com/address/0xe0e11ec0d62eda12de796d025d6334fadfe5ab2a",
+      explorerUrl: "https://robinhoodchain.blockscout.com/address/0xe0e11ec0d62eda12de796d025d6334fadfe5ab2a",
     },
     {
       name: "Uniswap V4 PoolManager",
@@ -159,7 +159,7 @@ export const ContractsSecuritySection: React.FC = () => {
       category: "dependency",
       description: "Official Uniswap v4 singleton contract deployed and active on Robinhood Chain Mainnet.",
       source: "@uniswap/v4-core IPoolManager",
-      explorerUrl: `https://explorer.mainnet.chain.robinhood.com/address/${V4_MAINNET_POOL_MANAGER}`,
+      explorerUrl: `https://robinhoodchain.blockscout.com/address/${V4_MAINNET_POOL_MANAGER}`,
     },
     {
       name: "Uniswap V4 PositionManager",
@@ -168,7 +168,7 @@ export const ContractsSecuritySection: React.FC = () => {
       category: "dependency",
       description: "Manages Uniswap v4 liquidity positions and pool initializations on Robinhood Chain.",
       source: "@uniswap/v4-periphery PositionManager",
-      explorerUrl: `https://explorer.mainnet.chain.robinhood.com/address/${V4_MAINNET_POSITION_MANAGER}`,
+      explorerUrl: `https://robinhoodchain.blockscout.com/address/${V4_MAINNET_POSITION_MANAGER}`,
     },
     {
       name: "Uniswap V4 StateView",
@@ -177,7 +177,7 @@ export const ContractsSecuritySection: React.FC = () => {
       category: "dependency",
       description: "External view contract allowing atomic, non-state-mutating liquidity reading.",
       source: "@uniswap/v4-periphery StateView",
-      explorerUrl: `https://explorer.mainnet.chain.robinhood.com/address/${V4_MAINNET_STATE_VIEW}`,
+      explorerUrl: `https://robinhoodchain.blockscout.com/address/${V4_MAINNET_STATE_VIEW}`,
     },
     {
       name: "Permit2",
@@ -186,7 +186,7 @@ export const ContractsSecuritySection: React.FC = () => {
       category: "dependency",
       description: "Canonical Permit2 token approval and signature transfer router.",
       source: "@uniswap/permit2",
-      explorerUrl: `https://explorer.mainnet.chain.robinhood.com/address/${V4_MAINNET_PERMIT2}`,
+      explorerUrl: `https://robinhoodchain.blockscout.com/address/${V4_MAINNET_PERMIT2}`,
     },
     {
       name: "Wrapped Ether (WETH9)",
@@ -195,7 +195,7 @@ export const ContractsSecuritySection: React.FC = () => {
       category: "dependency",
       description: "Official WETH contract deployed natively on Robinhood Chain Cancun EVM.",
       source: "Canonical WETH9",
-      explorerUrl: `https://explorer.mainnet.chain.robinhood.com/address/${V4_MAINNET_WETH}`,
+      explorerUrl: `https://robinhoodchain.blockscout.com/address/${V4_MAINNET_WETH}`,
     },
   ];
 

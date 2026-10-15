@@ -103,7 +103,7 @@ Network: Robinhood Chain Mainnet (EVM)
 Chain ID: 4663
 Native Currency: ETH
 Explorer: https://robinhoodchain.blockscout.com
-Mirror (TLS-down): https://explorer.mainnet.chain.robinhood.com
+Mirror (TLS-down): https://robinhoodchain.blockscout.com
 
 1. 0xbow Entrypoint (UUPS proxy):
    Address: 0x96cb8b1836d341a6f5f1f54428bd6696c8b950b1

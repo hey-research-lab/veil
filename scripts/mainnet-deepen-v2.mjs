@@ -137,6 +137,6 @@ console.log(`Pool liquidity: ${liqBefore} -> ${liqAfter} (v2-owned position, rem
 const ethAfter = await pub.getBalance({ address: account.address });
 console.log(`Wallet now: ${formatEther(ethAfter)} ETH (floor ${formatEther(RESERVE)})`);
 if (ethAfter < RESERVE) throw new Error("Reserve floor breached; investigate (should be impossible by guard).");
-console.log(`Explorer: https://explorer.mainnet.chain.robinhood.com/tx/${mintH}`);
+console.log(`Explorer: https://robinhoodchain.blockscout.com/tx/${mintH}`);
 console.log(`REMOVE (if ever needed): removeLiquidity(key, ${TICK_LOWER}, ${TICK_UPPER}, ${good}) on ${HELPER}`);
 process.exit(0);

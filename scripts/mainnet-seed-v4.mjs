@@ -152,6 +152,6 @@ if (liq <= 0n) throw new Error("Pool liquidity reads zero; investigate.");
 console.log(`Pool liquidity: ${liq} (helper-owned position, removable by owner)`);
 const after = await pub.readContract({ address: STATEVIEW, abi: svAbi, functionName: "getSlot0", args: [poolId] });
 console.log(`Pool live — sqrtPrice: ${after[0]}, tick: ${after[1]}`);
-console.log(`Explorer: https://explorer.mainnet.chain.robinhood.com/tx/${mintH}`);
+console.log(`Explorer: https://robinhoodchain.blockscout.com/tx/${mintH}`);
 console.log(`HELPER (for future removal): ${helper}`);
 process.exit(0);
