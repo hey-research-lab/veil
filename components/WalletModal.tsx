@@ -155,7 +155,7 @@ export function WalletModal({
                   type="button"
                   onClick={() => pick(w.id)}
                   disabled={busy}
-                  className="lp-card lp-btn lp-btn--outline"
+                  className="lp-btn lp-btn--outline"
                   style={{
                     width: "100%",
                     display: "flex",

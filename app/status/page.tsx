@@ -729,11 +729,12 @@ export default function StatusPage() {
               <div
                 style={{
                   display: "inline-flex",
-                  padding: "3px",
+                  alignItems: "center",
+                  padding: "4px 5px",
                   borderRadius: "var(--radius-md)",
                   backgroundColor: "rgba(26, 26, 26, 0.05)",
                   border: "1px solid var(--color-border)",
-                  gap: "2px",
+                  gap: "4px",
                 }}
               >
                 <button

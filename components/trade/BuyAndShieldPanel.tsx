@@ -271,8 +271,8 @@ export const BuyAndShieldPanel: React.FC<BuyAndShieldPanelProps> = ({
                     gap: "2px",
                   }}
                 >
-                  <span style={{ fontSize: "12px", fontWeight: isSelected ? 700 : 500 }}>{preset.label}</span>
-                  <span style={{ fontSize: "10px", fontFamily: "var(--font-mono)", color: isSelected ? "var(--color-bg)" : "var(--color-muted)" }}>
+                  <span style={{ fontSize: "12px", fontWeight: isSelected ? 700 : 500, color: isSelected ? "#ffffff" : "var(--color-text)" }}>{preset.label}</span>
+                  <span style={{ fontSize: "10px", fontFamily: "var(--font-mono)", color: isSelected ? "rgba(255, 255, 255, 0.85)" : "var(--color-muted)" }}>
                     {preset.val} {depositAsset}
                   </span>
                 </button>

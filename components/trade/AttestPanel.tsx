@@ -167,18 +167,21 @@ export const AttestPanel: React.FC<AttestPanelProps> = ({
           onClick={onSelfAttest}
           disabled={isAttesting || attestedDone}
           aria-label="Self-attest the connected address onchain"
+          className={isAttesting || attestedDone ? "opacity-50 cursor-not-allowed" : "lp-btn lp-btn--accent"}
           style={{
             flex: 1,
             minHeight: "44px",
             padding: "8px 14px",
             borderRadius: "var(--radius-sm)",
-            border: "1px solid var(--color-border)",
-            backgroundColor: "var(--color-accent)",
-            color: "var(--color-accent-contrast)",
-            fontWeight: 600,
+            fontWeight: 700,
             fontSize: "var(--text-body-sm)",
             cursor: isAttesting || attestedDone ? "not-allowed" : "pointer",
-            opacity: isAttesting || attestedDone ? 0.45 : 1,
+            ...(isAttesting || attestedDone ? {
+              backgroundColor: "rgba(255, 140, 0, 0.2)",
+              color: "var(--color-muted)",
+              border: "1px solid var(--color-border)",
+              boxShadow: "none",
+            } : {}),
           }}
         >
           {!connectedAddress
@@ -194,17 +197,18 @@ export const AttestPanel: React.FC<AttestPanelProps> = ({
           onClick={onRefresh}
           disabled={isAttestLoading || !connectedAddress}
           aria-label="Refresh attestation and gating status from chain"
+          className={isAttestLoading || !connectedAddress ? "opacity-50 cursor-not-allowed" : "lp-btn lp-btn--outline"}
           style={{
             minHeight: "44px",
             padding: "8px 14px",
             borderRadius: "var(--radius-sm)",
-            border: "1px solid var(--color-border)",
-            backgroundColor: "transparent",
             color: "var(--color-text)",
             fontWeight: 600,
             fontSize: "var(--text-body-sm)",
             cursor: isAttestLoading || !connectedAddress ? "not-allowed" : "pointer",
-            opacity: isAttestLoading || !connectedAddress ? 0.45 : 1,
+            ...(isAttestLoading || !connectedAddress ? {
+              border: "1px solid var(--color-border)",
+            } : {}),
           }}
         >
           Refresh
@@ -257,18 +261,19 @@ export const AttestPanel: React.FC<AttestPanelProps> = ({
             onClick={onSimulate}
             disabled={isSimulatingGated}
             aria-label="Simulate the gated swap gas-free via eth_call"
+            className={isSimulatingGated ? "opacity-50 cursor-not-allowed" : "lp-btn lp-btn--outline"}
             style={{
               flex: 1,
               minHeight: "44px",
               padding: "8px 14px",
               borderRadius: "var(--radius-sm)",
-              border: "1px solid var(--color-border)",
-              backgroundColor: "transparent",
               color: "var(--color-text)",
               fontWeight: 600,
               fontSize: "var(--text-body-sm)",
               cursor: isSimulatingGated ? "not-allowed" : "pointer",
-              opacity: isSimulatingGated ? 0.45 : 1,
+              ...(isSimulatingGated ? {
+                border: "1px solid var(--color-border)",
+              } : {}),
             }}
           >
             {isSimulatingGated ? "Simulating…" : "Simulate Gated Swap (Gas-Free)"}
@@ -278,18 +283,21 @@ export const AttestPanel: React.FC<AttestPanelProps> = ({
             onClick={onGatedSwap}
             disabled={gatedDisabled}
             aria-label="Execute the gated pool swap"
+            className={gatedDisabled ? "opacity-50 cursor-not-allowed" : "lp-btn lp-btn--accent"}
             style={{
               flex: 1,
               minHeight: "44px",
               padding: "8px 14px",
               borderRadius: "var(--radius-sm)",
-              border: "none",
-              backgroundColor: "var(--color-accent)",
-              color: "var(--color-accent-contrast)",
-              fontWeight: 600,
+              fontWeight: 700,
               fontSize: "var(--text-body-sm)",
               cursor: gatedDisabled ? "not-allowed" : "pointer",
-              opacity: gatedDisabled ? 0.45 : 1,
+              ...(gatedDisabled ? {
+                backgroundColor: "rgba(255, 140, 0, 0.2)",
+                color: "var(--color-muted)",
+                border: "1px solid var(--color-border)",
+                boxShadow: "none",
+              } : {}),
             }}
           >
             {!connectedAddress

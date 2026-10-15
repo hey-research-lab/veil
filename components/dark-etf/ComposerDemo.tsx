@@ -309,8 +309,8 @@ export const ComposerDemo: React.FC = () => {
                   gap: "6px",
                 }}
               >
-                <span>{p.name}</span>
-                <span style={{ fontSize: "10px", color: isMatch ? "var(--color-bg)" : "var(--color-muted)", fontWeight: 400 }}>
+                <span style={{ color: isMatch ? "#111111" : "var(--color-text)" }}>{p.name}</span>
+                <span style={{ fontSize: "10px", color: isMatch ? "rgba(17, 17, 17, 0.78)" : "var(--color-muted)", fontWeight: 500 }}>
                   ({p.tickers.join("/")})
                 </span>
               </button>
@@ -366,12 +366,25 @@ export const ComposerDemo: React.FC = () => {
                   cursor: "pointer",
                 }}
               >
-                <Logo size={20} />
-                <span style={{ fontWeight: 800 }}>{t}</span>
-                <span style={{ fontSize: "11px", color: on ? "var(--color-bg)" : "var(--color-muted)", fontWeight: 400 }}>
+                <div
+                  style={{
+                    width: "22px",
+                    height: "22px",
+                    borderRadius: "50%",
+                    backgroundColor: on ? "rgba(17, 17, 17, 0.12)" : "rgba(26, 26, 26, 0.05)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Logo size={16} />
+                </div>
+                <span style={{ fontWeight: 800, color: on ? "#111111" : "var(--color-text)" }}>{t}</span>
+                <span style={{ fontSize: "11px", color: on ? "rgba(17, 17, 17, 0.78)" : "var(--color-muted)", fontWeight: 500 }}>
                   {info.name}
                 </span>
-                {on && <Check size={14} style={{ marginLeft: "4px" }} />}
+                {on && <Check size={14} style={{ marginLeft: "4px", color: "#111111" }} />}
               </button>
             );
           })}

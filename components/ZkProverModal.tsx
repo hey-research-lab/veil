@@ -680,6 +680,7 @@ export const ZkProverModal: React.FC<ZkProverModalProps> = ({
           <button
             onClick={onDownloadBackup}
             type="button"
+            className="lp-btn lp-btn--outline"
             style={{
               flex: 1,
               display: "inline-flex",
@@ -691,13 +692,9 @@ export const ZkProverModal: React.FC<ZkProverModalProps> = ({
               fontWeight: 600,
               minHeight: "2.6rem",
               borderRadius: "var(--radius-md)",
-              border: "1px solid var(--color-border-strong)",
-              backgroundColor: "rgba(26, 26, 26, 0.04)",
               color: "var(--color-text)",
               cursor: "pointer",
-              transition: "all var(--duration-fast)",
             }}
-            className="hover:bg-neutral-100"
           >
             <Download className="w-3.5 h-3.5 text-[#FF8C00]" />
             <span>Backup Note (JSON)</span>
@@ -708,6 +705,7 @@ export const ZkProverModal: React.FC<ZkProverModalProps> = ({
           <button
             onClick={onClose}
             type="button"
+            className="lp-btn lp-btn--accent"
             style={{
               flex: 1,
               display: "inline-flex",
@@ -715,17 +713,11 @@ export const ZkProverModal: React.FC<ZkProverModalProps> = ({
               justifyContent: "center",
               fontFamily: "var(--font-body)",
               fontSize: "var(--text-body-sm)",
-              fontWeight: 600,
+              fontWeight: 700,
               minHeight: "2.6rem",
               borderRadius: "var(--radius-md)",
-              border: "none",
-              backgroundColor: "var(--color-accent)",
-              color: "var(--color-accent-contrast)",
               cursor: "pointer",
-              boxShadow: "0 4px 12px rgba(255, 140, 0, 0.25)",
-              transition: "all var(--duration-fast)",
             }}
-            className="hover:brightness-105 active:scale-[0.99]"
           >
             Done
           </button>

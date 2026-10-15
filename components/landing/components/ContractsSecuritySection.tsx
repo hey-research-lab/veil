@@ -670,7 +670,7 @@ export const ContractsSecuritySection: React.FC = () => {
               </span>
 
               {/* Category Switch Tabs */}
-              <div style={{ display: "flex", gap: "var(--space-1)", background: "rgba(0, 0, 0, 0.06)", padding: "2px", borderRadius: "var(--radius-sm)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "var(--space-1)", background: "rgba(0, 0, 0, 0.06)", padding: "4px 5px", borderRadius: "var(--radius-sm)" }}>
                 <button
                   type="button"
                   onClick={() => setActiveTab("core")}

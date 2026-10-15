@@ -112,21 +112,17 @@ export default function DarkEtfPage() {
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 mt-4 w-full sm:w-auto">
             <a
               href="#waitlist"
-              className="w-full sm:w-auto justify-center"
+              className="lp-btn lp-btn--accent w-full sm:w-auto justify-center"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "8px",
                 padding: "11px 22px",
                 borderRadius: "var(--radius-sm)",
-                backgroundColor: "var(--color-accent)",
-                color: "var(--color-accent-contrast)",
                 fontFamily: "var(--font-mono)",
                 fontSize: "13px",
                 fontWeight: 700,
                 textDecoration: "none",
-                boxShadow: "0 4px 14px rgba(255, 140, 0, 0.25)",
-                transition: "all var(--duration-fast) var(--ease-out)",
               }}
             >
               <span>Join the Waitlist</span>
@@ -135,20 +131,16 @@ export default function DarkEtfPage() {
 
             <a
               href="#composer"
-              className="w-full sm:w-auto justify-center"
+              className="lp-btn lp-btn--outline w-full sm:w-auto justify-center"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 padding: "11px 18px",
                 borderRadius: "var(--radius-sm)",
-                backgroundColor: "#ffffff",
-                color: "var(--color-text)",
                 fontFamily: "var(--font-mono)",
                 fontSize: "13px",
                 fontWeight: 600,
                 textDecoration: "none",
-                border: "1px solid var(--color-border-strong)",
-                transition: "all var(--duration-fast) var(--ease-out)",
               }}
             >
               <span>Try Composer Demo</span>
@@ -156,14 +148,12 @@ export default function DarkEtfPage() {
 
             <a
               href="#how"
-              className="w-full sm:w-auto justify-center"
+              className="lp-btn lp-btn--outline w-full sm:w-auto justify-center"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                padding: "10px 14px",
+                padding: "11px 16px",
                 borderRadius: "var(--radius-sm)",
-                backgroundColor: "transparent",
-                color: "var(--color-muted)",
                 fontFamily: "var(--font-mono)",
                 fontSize: "13px",
                 fontWeight: 500,

@@ -297,7 +297,7 @@ export const WithdrawPanel: React.FC<WithdrawPanelProps> = ({
                     Active: #{notes.findIndex((n) => n.nullifier === activeNote.nullifier) + 1}
                   </span>
                 </div>
-                <div style={{ display: "flex", gap: "6px", overflowX: "auto", paddingBottom: "2px" }}>
+                <div style={{ display: "flex", gap: "6px", overflowX: "auto", padding: "6px 2px", scrollbarWidth: "none" }}>
                   {notes.map((n, idx) => {
                     const isCurrent = n.nullifier === activeNote.nullifier;
                     return (
