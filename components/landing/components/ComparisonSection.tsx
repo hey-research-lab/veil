@@ -2,6 +2,7 @@
 
 import React from "react";
 import { SectionHeader } from "./SectionHeader";
+import { RevealBox } from "./RevealBox";
 
 interface ComparisonRow {
   metric: string;
@@ -56,7 +57,9 @@ export const ComparisonSection: React.FC = () => {
         />
 
         {/* Visual Pipeline Comparison: The Status Quo vs The Veil Solution */}
-        <div
+        <RevealBox
+          y={32}
+          stagger={120}
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
@@ -568,10 +571,10 @@ export const ComparisonSection: React.FC = () => {
               <span>The trade executes on-chain. Balances remain shielded in zero-knowledge pools.</span>
             </div>
           </div>
-        </div>
+        </RevealBox>
 
         {/* Detailed Comparison Table & Action Area */}
-        <div className="comparison-grid" style={{ marginTop: "var(--space-4)" }}>
+        <RevealBox y={32} delay={100} className="comparison-grid" style={{ marginTop: "var(--space-4)" }}>
           {/* Left Column: CTAs and Summary */}
           <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", gap: "var(--space-5)" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
@@ -783,7 +786,7 @@ export const ComparisonSection: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+        </RevealBox>
       </div>
     </section>
   );

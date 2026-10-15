@@ -222,7 +222,7 @@ export function Navbar() {
                 flexShrink: 0,
               }}
             >
-              <XLogo size={15} color="var(--color-bg)" />
+              <XLogo size={15} color="currentColor" />
             </a>
 
             {pathname !== "/trade" && (

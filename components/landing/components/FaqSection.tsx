@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { SectionHeader } from "./SectionHeader";
+import { RevealBox } from "./RevealBox";
 
 interface FaqItem {
   q: string;
@@ -53,7 +54,7 @@ export const FaqSection: React.FC = () => {
           />
         </div>
 
-        <div style={{ minWidth: 0, gridColumn: "span 2" }}>
+        <RevealBox y={24} delay={50} style={{ minWidth: 0, gridColumn: "span 2" }}>
           <div>
             {faqItems.map((item, i) => {
               const isOpen = openIndex === i;
@@ -123,7 +124,7 @@ export const FaqSection: React.FC = () => {
               );
             })}
           </div>
-        </div>
+        </RevealBox>
       </div>
     </section>
   );

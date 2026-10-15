@@ -3,6 +3,7 @@
 import React from "react";
 import { ParticleCanvas } from "./ParticleCanvas";
 import { DecodeText } from "./DecodeText";
+import { RevealBox } from "./RevealBox";
 
 export const CtaSection: React.FC = () => {
   return (
@@ -54,7 +55,7 @@ export const CtaSection: React.FC = () => {
           minHeight: 0,
         }}
       >
-        <div style={{ position: "relative", zIndex: 1, maxWidth: "36rem" }}>
+        <RevealBox y={28} style={{ position: "relative", zIndex: 1, maxWidth: "36rem" }}>
           <h2
             style={{
               fontFamily: "var(--font-headline)",
@@ -94,7 +95,7 @@ export const CtaSection: React.FC = () => {
           >
             <a
               href="/trade"
-              className="lp-btn"
+              className="lp-btn lp-btn--filled"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -132,7 +133,7 @@ export const CtaSection: React.FC = () => {
             </a>
             <a
               href="/contracts"
-              className="lp-btn"
+              className="lp-btn lp-btn--outline"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -170,7 +171,7 @@ export const CtaSection: React.FC = () => {
               </svg>
             </a>
           </div>
-        </div>
+        </RevealBox>
       </div>
     </section>
   );

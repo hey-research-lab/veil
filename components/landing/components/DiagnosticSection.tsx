@@ -7,6 +7,7 @@ import { FlowchartStep2 } from "./FlowchartStep2";
 import { WithdrawalStep3 } from "./WithdrawalStep3";
 import { DashboardStep4 } from "./DashboardStep4";
 import { StepIndicator } from "./StepIndicator";
+import { RevealBox } from "./RevealBox";
 
 export const DiagnosticSection: React.FC = () => {
   return (
@@ -19,19 +20,21 @@ export const DiagnosticSection: React.FC = () => {
           textAlign: "center",
         }}
       >
-        <h2
-          style={{
-            margin: 0,
-            fontFamily: "var(--font-headline)",
-            fontSize: "var(--text-h2)",
-            lineHeight: "var(--leading-h2)",
-            fontWeight: "var(--font-weight-regular)" as any,
-            letterSpacing: "-0.03em",
-            color: "var(--color-text)",
-          }}
-        >
-          <DecodeText text="Here’s how Veil works." />
-        </h2>
+        <RevealBox y={20}>
+          <h2
+            style={{
+              margin: 0,
+              fontFamily: "var(--font-headline)",
+              fontSize: "var(--text-h2)",
+              lineHeight: "var(--leading-h2)",
+              fontWeight: "var(--font-weight-regular)" as any,
+              letterSpacing: "-0.03em",
+              color: "var(--color-text)",
+            }}
+          >
+            <DecodeText text="Here’s how Veil works." />
+          </h2>
+        </RevealBox>
       </section>
 
       {/* Section 4: Steps 1, 2, 3, 4 */}
@@ -121,9 +124,9 @@ export const DiagnosticSection: React.FC = () => {
               </h2>
             </div>
 
-            <div style={{ marginTop: "var(--space-8)" }}>
+            <RevealBox y={28} delay={60} style={{ marginTop: "var(--space-8)" }}>
               <ShieldConsoleStep1 />
-            </div>
+            </RevealBox>
           </div>
         </div>
 
@@ -205,9 +208,9 @@ export const DiagnosticSection: React.FC = () => {
               </h2>
             </div>
 
-            <div style={{ marginTop: "var(--space-8)" }}>
+            <RevealBox y={28} delay={60} style={{ marginTop: "var(--space-8)" }}>
               <FlowchartStep2 />
-            </div>
+            </RevealBox>
           </div>
         </div>
 
@@ -289,9 +292,9 @@ export const DiagnosticSection: React.FC = () => {
               </h2>
             </div>
 
-            <div style={{ marginTop: "var(--space-8)" }}>
+            <RevealBox y={28} delay={60} style={{ marginTop: "var(--space-8)" }}>
               <WithdrawalStep3 />
-            </div>
+            </RevealBox>
           </div>
         </div>
 
@@ -373,9 +376,9 @@ export const DiagnosticSection: React.FC = () => {
               </h2>
             </div>
 
-            <div style={{ marginTop: "var(--space-8)" }}>
+            <RevealBox y={28} delay={60} style={{ marginTop: "var(--space-8)" }}>
               <DashboardStep4 />
-            </div>
+            </RevealBox>
           </div>
         </div>
 

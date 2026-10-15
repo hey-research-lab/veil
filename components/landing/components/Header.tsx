@@ -134,7 +134,7 @@ export const Header: React.FC = () => {
               flexShrink: 0,
             }}
           >
-            <XLogo size={15} color="var(--color-bg)" />
+            <XLogo size={15} color="currentColor" />
           </a>
           <a
             href="/trade"

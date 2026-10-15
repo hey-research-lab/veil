@@ -2,6 +2,7 @@
 
 import React from "react";
 import { SectionHeader } from "./SectionHeader";
+import { RevealBox } from "./RevealBox";
 
 export const HowItWorksSection: React.FC = () => {
   return (
@@ -19,7 +20,11 @@ export const HowItWorksSection: React.FC = () => {
         kickerColor="#FF8C00"
       />
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-8)" }}>
+      <RevealBox
+        y={24}
+        stagger={100}
+        style={{ display: "flex", flexDirection: "column", gap: "var(--space-8)" }}
+      >
         {/* Step 1 */}
         <div>
           <div style={{ minWidth: 0 }}>
@@ -176,7 +181,7 @@ export const HowItWorksSection: React.FC = () => {
             </a>
           </div>
         </div>
-      </div>
+      </RevealBox>
     </section>
   );
 };
